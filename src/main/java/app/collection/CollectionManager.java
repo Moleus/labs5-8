@@ -32,10 +32,6 @@ public class CollectionManager {
     this.objectsCollection.addAll(storageManager.loadCollection());
   }
   
-  public String info() {
-    return null;
-  }
-
   public void add(Flat object) {
     // TODO: throw exception if object already exists
     objectsCollection.add(object);
@@ -53,8 +49,13 @@ public class CollectionManager {
     // removes last added element from collection 
   }
 
-  public LocalDateTime getCreatedDateTime() {
+
+  public LocalDateTime getCreationDateTime() {
     return creationDateTime;
+  }
+
+  public int getSize() {
+    return objectsCollection.size();
   }
 
   /**

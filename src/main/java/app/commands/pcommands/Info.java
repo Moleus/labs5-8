@@ -7,15 +7,20 @@ import app.commands.ExecutionPayload;
 import app.commands.ExecutionResult;
 
 public final class Info extends AbstractCommand {
+  private final CollectionManager collectionManager;
+
   public Info(CollectionManager collectionManager) {
     super(CommandInfo.valueOf("info", "Displays general information about collection", true, 0, false));
+    this.collectionManager = collectionManager;
   }
   
   @Override
   public ExecutionResult execute(ExecutionPayload payload) {
-    // return ExecutionResult.valueOf(true, "Ok");
-    // TODO
-    return null;
+    String collectionInformation = "Collection of Flats:\n"
+        + "Init time: " + collectionManager.getCreationDateTime() + "\n"
+        + "Number of elements: " + collectionManager.getSize() + "\n";
+
+    return ExecutionResult.valueOf(true, collectionInformation);
   }
 }
 
