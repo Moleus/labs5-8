@@ -42,8 +42,7 @@ public class FieldsReader {
     while (step < fields.length) {
       Field field = fields[step];
 
-      //** interactive
-      if (inputMode == FieldsInputMode.INTERACTIVE) {
+      if (inputMode != FieldsInputMode.STORAGE) {
         printFieldPrompt(field);
       }
 
@@ -55,9 +54,12 @@ public class FieldsReader {
       }
 
       if (input == null) {
+        System.out.println();
         throw new ReadFailedException("No input. Stop reading");
       }
-      //**//
+      if (inputMode == FieldsInputMode.SCRIPT) {
+        System.out.println(input);
+      }
 
       // check if input value type matches field type and satisfy constraints conditions
       try {
@@ -65,7 +67,7 @@ public class FieldsReader {
         FieldsValidator.checkConstraints(parsedValue, field);
         allValues[step] = parsedValue;
       } catch (ValueFormatException | ValueConstraintsException e) {
-        if (inputMode == FieldsInputMode.INTERACTIVE) {
+        if (inputMode != FieldsInputMode.STORAGE) {
           System.out.println(e.getMessage());
           continue; // keep staying on this field
         } else {
