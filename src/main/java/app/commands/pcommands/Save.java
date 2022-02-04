@@ -5,18 +5,26 @@ import app.commands.CommandInfo;
 import app.commands.AbstractCommand;
 import app.commands.ExecutionPayload;
 import app.commands.ExecutionResult;
+import app.exceptions.StorageAccessException;
 import app.storage.Storage;
 
 public final class Save extends AbstractCommand {
-  public Save(CollectionManager collectionManager, Storage storageManager) {
+  private final CollectionManager collectionManager;
+
+  public Save(CollectionManager collectionManager) {
     super(CommandInfo.valueOf("save", "Save collection in a storage", true, 0, false));
+    this.collectionManager = collectionManager;
   }
   
   @Override
   public ExecutionResult execute(ExecutionPayload payload) {
-    // return ExecutionResult.valueOf(true, "Ok");
-    // TODO
-    return null;
+    try {
+      collectionManager.saveCollection();
+    } catch (StorageAccessException e) {
+      return ExecutionResult.valueOf(false, e.getMessage());
+    }
+
+    return ExecutionResult.valueOf(true, "Ok");
   }
 }
 
