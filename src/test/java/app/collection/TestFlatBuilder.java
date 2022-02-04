@@ -5,6 +5,7 @@ import app.collection.data.Coordinates;
 import app.collection.data.Flat;
 import app.collection.data.House;
 import app.collection.data.View;
+import app.exceptions.InvalidDataValues;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 
@@ -28,7 +29,7 @@ public class TestFlatBuilder {
 
   @Test
   @Order(1)
-  void testBuildAccessible() {
+  void testBuildAccessible() throws InvalidDataValues {
     final Coordinates coordinates = new Coordinates(COORD_X, COORD_Y);
     final House house = new House(HOUSE_NAME, HOUSE_YEAR, HOUSE_FLOORS, HOUSE_LIFTS);
 
@@ -40,7 +41,7 @@ public class TestFlatBuilder {
   }
   @Test
   @Order(2)
-  void testBuildAll() {
+  void testBuildAll() throws InvalidDataValues {
     final Coordinates coordinates = new Coordinates(COORD_X, COORD_Y);
     final House house = new House(HOUSE_NAME, HOUSE_YEAR, HOUSE_FLOORS, HOUSE_LIFTS);
 

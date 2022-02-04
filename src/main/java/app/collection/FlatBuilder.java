@@ -9,15 +9,22 @@ import app.collection.data.Coordinates;
 import app.collection.data.Flat;
 import app.collection.data.House;
 import app.collection.data.View;
+import app.exceptions.InvalidDataValues;
 
 public class FlatBuilder {
   private Integer nextId;
+  private static FlatBuilder instance;
   private FlatBuilder() {
     nextId = 0;
   }
 
   public static FlatBuilder createInstance() {
-    return new FlatBuilder();
+    instance = new FlatBuilder();
+    return instance;
+  }
+
+  public static FlatBuilder getInstance() {
+    return instance;
   }
 
   public Flat build(Integer id,
@@ -35,26 +42,16 @@ public class FlatBuilder {
     return new Flat(id, name, coordinates, creationDate, area, numberOfRooms, furniture, newness, view, house);
   }
 
-  public Flat buildAccessible(Object[] params) {
+  public Flat buildAccessible(Object[] params) throws InvalidDataValues {
     if (params.length != 12) {
-      System.err.println("Invalid arguments number");
-      // TODO: throw exception
+      throw new InvalidDataValues("Accessible data values count should be 12, but " + params.length + " were provided.");
     }
-    final int ID_INDEX = 0;
-    final int DATE_INDEX = 4;
-
-    Integer id = this.nextId;
-    LocalDate creationDate = LocalDate.now();
-    List<Object> allParams = new ArrayList<>(Arrays.asList(params));
-    allParams.add(ID_INDEX, id);
-    allParams.add(DATE_INDEX, creationDate);
-    return buildAll(allParams.toArray());
+    return buildWithCustomIdAndDate(this.nextId, LocalDate.now(), params);
   }
 
-  public Flat buildAll(Object[] params) {
+  public Flat buildAll(Object[] params) throws InvalidDataValues {
     if (params.length != 14 ) {
-      System.err.println("Invalid arguments number");
-      // TODO: throw exception
+      throw new InvalidDataValues("All data values count should be 14, but " + params.length + " were provided.");
     }
     Integer id = (Integer) params[0];
     String name = (String) params[1];
@@ -67,5 +64,15 @@ public class FlatBuilder {
     View view = (View) params[9];
     House house = new House((String) params[10], (int) params[11], (int) params[12], (Integer) params[13]);
     return build(id, name, coordinates, creationDate, area, numberOfRooms, furniture, newness, view, house);
+  }
+
+  public Flat buildWithCustomIdAndDate(Integer id, LocalDate creationDate, Object[] params) throws InvalidDataValues {
+    final int ID_INDEX = 0;
+    final int DATE_INDEX = 4;
+
+    List<Object> allParams = new ArrayList<>(Arrays.asList(params));
+    allParams.add(ID_INDEX, id);
+    allParams.add(DATE_INDEX, creationDate);
+    return buildAll(allParams.toArray());
   }
 }
