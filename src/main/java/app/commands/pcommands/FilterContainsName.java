@@ -1,21 +1,27 @@
 package app.commands.pcommands;
 
 import app.collection.CollectionManager;
+import app.collection.data.Flat;
 import app.commands.AbstractCommand;
+import app.commands.CommandInfo;
 import app.commands.ExecutionPayload;
 import app.commands.ExecutionResult;
-import app.commands.CommandInfo;
+
+import java.util.Arrays;
 
 public final class FilterContainsName extends AbstractCommand {
+  private final CollectionManager collectionManager;
+
   public FilterContainsName(CollectionManager collectionManager) {
     super(CommandInfo.valueOf("filter_contains_name", "Print elements with specified string in names", true, 1, false));
+    this.collectionManager = collectionManager;
   }
   
   @Override
   public ExecutionResult execute(ExecutionPayload payload) {
-    // return ExecutionResult.valueOf(true, "Ok");
-    // TODO
-    return null;
+    String filter = payload.getInlineArg();
+    Flat[] elements = collectionManager.filterContainsName(filter);
+    String message = Arrays.toString(elements);
+    return ExecutionResult.valueOf(true, message);
   }
 }
-

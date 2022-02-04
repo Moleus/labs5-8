@@ -1,8 +1,8 @@
 package app.collection;
 
 import java.time.LocalDateTime;
-import java.util.LinkedHashSet;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import app.collection.data.Flat;
 import app.exceptions.CollectionCorruptedException;
@@ -10,10 +10,6 @@ import app.exceptions.ElementNotFoundException;
 import app.exceptions.StorageAccessException;
 import app.storage.Storage;
 
-/**
- * 
- * TODO: {@code E} stands for a Type of a custom data object, specified in Lab task text. For example {@code Flat}
- */
 public class CollectionManager {
   //  Set s = Collections.synchronizedSet(new LinkedHashSet(...));
   private final LinkedHashSet<Flat> objectsCollection = new LinkedHashSet<>();
@@ -25,9 +21,8 @@ public class CollectionManager {
     this.storageManager = storageManager;
   }
 
-  public void saveCollection(LinkedHashSet<Flat> myCollection) throws StorageAccessException {
-    storageManager.saveCollection(myCollection);
-    // stdout saved;
+  public void saveCollection() throws StorageAccessException {
+    storageManager.saveCollection(objectsCollection);
   }
 
   public void loadCollection() throws CollectionCorruptedException, StorageAccessException {
@@ -39,18 +34,9 @@ public class CollectionManager {
     objectsCollection.add(object);
   }
 
-  public void sort() {
-    // sort collection
-  }
-
   public void clear() {
-    // clears collection
+    objectsCollection.clear();
   }
-
-  public void removeLast() {
-    // removes last added element from collection 
-  }
-
 
   public LocalDateTime getCreationDateTime() {
     return creationDateTime;
@@ -68,5 +54,35 @@ public class CollectionManager {
     if (!objectsCollection.removeIf(flat -> Objects.equals(id, flat.getId()))) {
       throw new ElementNotFoundException("No element with such id in collection");
     }
+  }
+
+  public Flat getMax() throws ElementNotFoundException {
+    if (objectsCollection.isEmpty()) {
+      throw new ElementNotFoundException("Can't get max. Collection is empty");
+    }
+    return Collections.max(objectsCollection);
+  }
+
+  public Flat getMin() throws ElementNotFoundException {
+    if (objectsCollection.isEmpty()) {
+      throw new ElementNotFoundException("Can't get min. Collection is empty");
+    }
+    return Collections.min(objectsCollection);
+  }
+
+  public boolean removeLower(Flat upperBoundFlat) {
+    return objectsCollection.removeIf(flat -> flat.compareTo(upperBoundFlat) < 0);
+  }
+
+  public Flat[] filterContainsName(String filter) {
+    return objectsCollection.stream().filter(flat -> flat.getName().contains(filter)).toArray(Flat[]::new);
+  }
+
+  public Set<Long> getUniqueNumberOfRooms() {
+    return objectsCollection.stream().map(Flat::getNumberOfRooms).collect(Collectors.toSet());
+  }
+
+  public Boolean[] getFieldDescendingNew() {
+    return objectsCollection.stream().sorted(Comparator.reverseOrder()).map(Flat::getNewness).toArray(Boolean[]::new);
   }
 }

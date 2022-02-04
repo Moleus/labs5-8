@@ -16,6 +16,11 @@ import app.exceptions.ValueFormatException;
 
 
 class FieldsValidator {
+  /**
+   * @param value User input or value from file coverted to object
+   * @param field Field corresponding to input
+   * @throws ValueConstraintsException If the input doesn't satisfy field's restrictions, such as 'greater than' or 'not null'.
+   */
   public static void checkConstraints(Object value, Field field) throws ValueConstraintsException {
     String fieldName = field.getName();
     Set<Class<?>> numericPrimitives = Stream.of(double.class, int.class, long.class, float.class).collect(Collectors.toSet());
@@ -36,20 +41,6 @@ class FieldsValidator {
     }
   }
 
-  /**
-   * Returns nothing if the input is correct.
-   * @param input User input or value from file to validate
-   * @param field Field corresponding to input
-   * @throws ValueConstraintsException If the input doesn't satisfy field's restrictions, such as 'greater than' or 'not null'. 
-   * @throws ValueFormatException If the input can't be converted to a field's Type.
-   */
-  public static Object parseValue(String input, Field field) throws ValueConstraintsException, ValueFormatException {
-    Object parsedValue = parseStrToObject(input, field.getType());
-    checkConstraints(parsedValue, field);
-    return parsedValue;
-  }
-
-  // https://stackoverflow.com/questions/36368235/java-get-valueof-for-generic-subclass-of-java-lang-number-or-primitive
   /**
    * @return New correct type object. Null if string is empty.
    * @throws ValueFormatException  if {@code str} can't be converted to {@code fieldClass}

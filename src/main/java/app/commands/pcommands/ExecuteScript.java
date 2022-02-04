@@ -9,9 +9,8 @@ public final class ExecuteScript extends AbstractCommand {
   
   @Override
   public ExecutionResult execute(ExecutionPayload payload) {
-    // return ExecutionResult.valueOf(true, "Ok");
-    // TODO
-    return null;
+    // FIXME: This command does nothing, because script executed in console.
+    throw new UnsupportedOperationException("This method shouldn't be executed for command execute_script");
   }
 }
 

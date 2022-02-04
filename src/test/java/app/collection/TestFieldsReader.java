@@ -14,15 +14,12 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
-import app.collection.data.Coordinates;
 import app.collection.data.Flat;
-import app.collection.data.House;
 import app.collection.data.View;
 import app.exceptions.ReadFailedException;
 
 public class TestFieldsReader {
   private BufferedReader reader;
-  private Field[] correctAccFields;
   private FieldsReader fieldReader;
   // паттерн для тестов такой: {methodName}_Should{do}_When{Condition}.
 
@@ -77,13 +74,6 @@ public class TestFieldsReader {
     String[] fieldNames = Arrays.stream(allFields).map(Field::getName).toArray(String[]::new);
     String[] correctNames = getCorrectAllFieldNames();
     assertArrayEquals(fieldNames, correctNames);
-  }
-
-  void prepareFlat() {
-    Coordinates coordinates = new Coordinates(0, 0);
-    House house = new House("name", 1, 2, 2);
-    Flat flatObj = FlatBuilder.createInstance().build(1, "name", coordinates, LocalDate.now(),
-        10, 1L, true, true, View.GOOD, house);
   }
 
 

@@ -7,15 +7,17 @@ import app.commands.ExecutionPayload;
 import app.commands.ExecutionResult;
 
 public final class Clear extends AbstractCommand {
+  private final CollectionManager collectionManager;
+
   public Clear(CollectionManager collectionManager) {
     super(CommandInfo.valueOf("clear", "Remove all elements from collection", true, 0, false));
+    this.collectionManager = collectionManager;
   }
   
   @Override
   public ExecutionResult execute(ExecutionPayload payload) {
-    // return ExecutionResult.valueOf(true, "Ok");
-    // TODO
-    return null;
+    collectionManager.clear();
+    return ExecutionResult.valueOf(true, "collection has been cleared");
   }
 }
 
