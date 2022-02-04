@@ -35,7 +35,7 @@ public class TestFlatBuilder {
     Object[] accessibleParams = {    NAME, COORD_X, COORD_Y,       AREA, ROOMS, HAS_FURNITURE, IS_NEW, VIEW, HOUSE_NAME, HOUSE_YEAR, HOUSE_FLOORS, HOUSE_LIFTS};
     Flat correctFlat = new  Flat(ID, NAME, coordinates,      DATE, AREA, ROOMS, HAS_FURNITURE, IS_NEW, VIEW, house);
 
-    Flat testFlat = FlatBuilder.getInstance().buildAccessible(accessibleParams);
+    Flat testFlat = FlatBuilder.createInstance().buildAccessible(accessibleParams);
     assertEquals(correctFlat, testFlat);
   }
   @Test
@@ -47,7 +47,7 @@ public class TestFlatBuilder {
     Object[] allParams =        {ID, NAME, COORD_X, COORD_Y, DATE, AREA, ROOMS, HAS_FURNITURE, IS_NEW, VIEW, HOUSE_NAME, HOUSE_YEAR, HOUSE_FLOORS, HOUSE_LIFTS};
     Flat correctFlat = new  Flat(ID, NAME, coordinates,      DATE, AREA, ROOMS, HAS_FURNITURE, IS_NEW, VIEW, house);
 
-    Flat testFlat = FlatBuilder.getInstance().buildAll(allParams);
+    Flat testFlat = FlatBuilder.createInstance().buildAll(allParams);
     assertEquals(correctFlat, testFlat);
   }
 }

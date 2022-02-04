@@ -11,18 +11,17 @@ import app.collection.data.House;
 import app.collection.data.View;
 
 public class FlatBuilder {
-  private final static FlatBuilder instance = new FlatBuilder();
-  public static FlatBuilder getInstance() {
-    return instance;
-  }
-
   private Integer nextId;
   private FlatBuilder() {
     nextId = 0;
   }
-  
-  public Flat build(Integer id, 
-                    String name, 
+
+  public static FlatBuilder createInstance() {
+    return new FlatBuilder();
+  }
+
+  public Flat build(Integer id,
+                    String name,
                     Coordinates coordinates,
                     LocalDate creationDate,
                     Integer area,

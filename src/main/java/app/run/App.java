@@ -3,8 +3,10 @@ package app.run;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 
 import app.collection.CollectionManager;
+import app.collection.FlatBuilder;
 import app.commands.CommandManager;
 import app.commands.pcommands.*;
 import app.exceptions.CollectionCorruptedException;
@@ -42,18 +44,17 @@ II. Взаимодействие с пользователем:
 */
 
 /** TODO list:
- * 1. Проверка, что id - это число (https://github.com/1MikhailStepanov1/LabSixClient/issues/10)
- * 2. Чтение из файла элементов с одинаковыми id -> очистка коллекции
+ * 1. !! Проверка, что id - это число (https://github.com/1MikhailStepanov1/LabSixClient/issues/10)
+ * 2. Чтение из файла элементов с одинаковыми id -> очистка коллекции - Done
  * 3. Не хардкодить НИКАКИЕ конфиги (https://github.com/CrazyChris3310/Lab7/issues/2)
  * 4. Для чтения файлов конфигураций - ОС независимый путь (https://github.com/CrazyChris3310/Lab7/issues/5)
- * 5. Фильтр значений из коллекции через Stream API 
- * 6.  NPE при нажатии ctrl+d (https://github.com/GesuYaro/lab5/issues/8)
- * 7. use StringBuilder in csv parser (https://github.com/DmitriyAgeevP3131/313304/issues/3)
- * 8. В CollectionManager хранить максимальный идентификатор. Обновлять при добавлении
- * 9. Можно сделать ItemFactory и создавать объекты только через неё, храня id - Сделал singleton FlatBuilder со счётчиком id.
- * 10. Можно (и нужно) разбить на более маленькие и их переиспользовать: readInt, readInteger, readNotNullString, readString... (https://github.com/allegator-e/lab5/issues/2)
- * 11. Генерация ID на сервере
- * 12. При чтении из файла проверять дубликаты id
+ * 5. NPE при нажатии ctrl+d (https://github.com/GesuYaro/lab5/issues/8) - Done (userInput == null)
+ * 6. use StringBuilder in csv parser (https://github.com/DmitriyAgeevP3131/313304/issues/3)
+ * 7. Генерация ID  - Done (FlatBuilder)
+ * 8. При чтении из файла проверять дубликаты id - Done (equals, hashcode, HashMap.add())
+ *
+ * Refactoring:
+ * 1. переименовать execute в invoke
  *
  * LAB6:
  * 1. Обработка отключения сервера (https://github.com/1MikhailStepanov1/LabSixClient/issues/14)
@@ -78,7 +79,8 @@ public class App {
       System.exit(1);
     }
     String filePath = args[0];
-    Storage storageManager = new FileStorage(filePath);
+    FlatBuilder flatBuilder = FlatBuilder.createInstance();
+    Storage storageManager = new FileStorage(filePath, flatBuilder);
     CollectionManager collectionManager = new CollectionManager(storageManager);
     try {
       collectionManager.loadCollection();
@@ -107,9 +109,9 @@ public class App {
         new PrintFieldDescendingNew(collectionManager)  // print descending sorted 'new' values
     );
 
-    Console console = new Console(commandManager, commandManager.getUserAccessibleCommands());
+    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+    Console console = new Console(bufferedReader, new PrintStream(System.out), flatBuilder, commandManager, commandManager.getUserAccessibleCommands());
     try {
-      BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
       console.run(bufferedReader);
     } catch (IOException | InterruptedException e) {
       e.printStackTrace();
