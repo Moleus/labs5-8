@@ -82,7 +82,7 @@ public class TestFieldsReader {
   void prepareFlat() {
     Coordinates coordinates = new Coordinates(0, 0);
     House house = new House("name", 1, 2, 2);
-    Flat flatObj = FlatBuilder.getInstance().build(1, "name", coordinates, LocalDate.now(),
+    Flat flatObj = FlatBuilder.createInstance().build(1, "name", coordinates, LocalDate.now(),
         10, 1L, true, true, View.GOOD, house);
   }
 

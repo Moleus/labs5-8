@@ -20,9 +20,11 @@ import app.collection.data.Flat;
 
 public class FileStorage implements Storage {
   private final File file;
+  private final FlatBuilder flatBuilder;
 
-  public FileStorage(String filePath) {
+  public FileStorage(String filePath, FlatBuilder flatBuilder) {
     this.file = new File(filePath);
+    this.flatBuilder = flatBuilder;
   }
 
   @Override
@@ -39,7 +41,7 @@ public class FileStorage implements Storage {
         // Validate all values in flat
         BufferedReader bfReader = new BufferedReader(new StringReader(oneItem));
         Object[] flatValues = fieldsReader.read(bfReader, FieldsInputMode.STORAGE);
-        Flat newFlat = FlatBuilder.getInstance().buildAll(flatValues);
+        Flat newFlat = flatBuilder.buildAll(flatValues);
         if (!collection.add(newFlat)) {
           // contains duplicate id
           throw new CollectionCorruptedException("Collection contains duplicating ids");

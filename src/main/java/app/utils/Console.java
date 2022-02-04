@@ -18,98 +18,155 @@ import app.exceptions.*;
 public class Console {
   private final Map<String, Command> userCommands;
   private final CommandManager commandManager;
+  private final FlatBuilder flatBuilder;
   private final FieldsReader fieldsReader;
-  private final List<String> executedScripts = new ArrayList<>();
+  private final List<String> executingScripts = new ArrayList<>();
+  private final String userName = "dev";
 
-  // In lab 5 read from stdin.
-  // In lab 6 will be moved to client side.
-  // Read input
-  // launch commands ( commandHandler(String strCommand)
-  // handle exit codes
-  // interactive mode / script mode
-  public Console(CommandManager commandManager, Map<String, Command> userCommands) {
+  private static final String USER_PROMPT_SUFFIX = "> ";
+  private static final String SCRIPT_PROMPT_SUFFIX = "$ ";
+
+  // contains username + working dir + >
+  private String userPrompt;
+  // contains username + script name + $
+  private String scriptPrompt;
+
+  private final BufferedReader in;
+  private final PrintStream out;
+
+  private BufferedReader scriptReader = null;
+
+  private enum InputState {USER, SCRIPT};
+  private InputState inputState = InputState.USER;
+
+  public Console(BufferedReader in, PrintStream out, FlatBuilder flatBuilder, CommandManager commandManager, Map<String, Command> userCommands) {
+    this.in = in;
+    this.out = out;
+    this.flatBuilder = flatBuilder;
     this.userCommands = userCommands;
     this.commandManager = commandManager;
     this.fieldsReader = new FieldsReader(Flat.class);
+    this.userPrompt = createUserPrompt(userName, getWorkingDir());
   }
 
   // должна принимать inputStream, outputStream и работать с чтением из скрипта, как с пользователем
   public void run(BufferedReader defaultReader) throws InterruptedException, IOException {
-    commandLoop(defaultReader);
+    commandLoop();
   }
 
-  private void commandLoop(BufferedReader bufferedReader) throws IOException, InterruptedException {
+  private void commandLoop() throws IOException {
+    String command = "";
     while (true) {
-      if (!bufferedReader.ready()) Thread.sleep(100);
+      command = readCommand();
+      if (command == null) return;
+      if (command.trim().equals("")) continue;
+
+      String[] commandWithArg;
       try {
-        String userInput = bufferedReader.readLine();
-
-        if (userInput.trim().equals("")) {
-          continue;
-        }
-
-        // parse user input and fetch info about command
-        String[] commandWithArg = parseUserInput(userInput);
-        String commandName = commandWithArg[0];
-        String inlineArg = commandWithArg.length == 2 ? commandWithArg[1] : "";
-        CommandInfo commandInfo = fetchCommandInfo(commandName);
-
-        // check if count arguments matches input
-        int requiresArgsCount = commandInfo.getArgsCount();
-        int providedArgsCount = commandWithArg.length - 1;
-        if (requiresArgsCount != providedArgsCount) {
-          System.out.printf("This command takes %d arguments, but you provided %d.\n", requiresArgsCount, providedArgsCount);
-          continue;
-        }
-
-        if (commandName.equals("execute_script")) {
-          if (executedScripts.contains(inlineArg)) {
-            System.out.printf("Script recursion detected! Script '%s' is already executing", inlineArg);
-            continue;
-          }
-          executedScripts.add(inlineArg);
-          executeScript(inlineArg);
-          executedScripts.remove(executedScripts.size() - 1);
-          continue;
-        }
-        // if element input needed: call FieldsReader.
-        Object newFlat = constructObjectFromInput(bufferedReader, commandInfo);
-        // Pack request object and send to "bridge" object.
-        Request request = createRequest(commandName, inlineArg, newFlat);
-        Response response = commandManager.executeCommand(request);
-        handleResponse(response);
-      } catch (ReadFailedException | CLIException | CommandNotRegisteredException e) {
+        commandWithArg = processLine(command);
+      } catch (CLIException e) {
         e.getMessage();
-      } catch (IOException e) {
-        e.printStackTrace();
-        System.out.println("You pressed Ctrl+d");
-        // TODO: handle null from script
+        continue;
+      }
+
+      // parse user input and fetch info about command
+      String commandName = commandWithArg[0];
+      String inlineArg = commandWithArg.length == 2 ? commandWithArg[1] : "";
+      CommandInfo commandInfo;
+      try {
+        commandInfo = fetchCommandInfo(commandName);
+      } catch (CommandNotRegisteredException e) {
+        printErr(e.getMessage());
+        continue;
+      }
+
+      // check if count arguments matches input
+      int requiresArgsCount = commandInfo.getArgsCount();
+      int providedArgsCount = commandWithArg.length - 1;
+      if (requiresArgsCount != providedArgsCount) {
+        printErr(String.format("Command '%s' takes %d arguments, but '%d' were provided.\n", commandName, requiresArgsCount, providedArgsCount));
+        continue;
+      }
+
+      if (commandName.equals("exit")) {
         break;
       }
+      if (commandName.equals("execute_script")) {
+        if (executingScripts.contains(inlineArg)) {
+          printErr(String.format("Script recursion detected! Script '%s' won't be executed\n", inlineArg));
+          continue;
+        }
+        try {
+          runScript(inlineArg);
+        } catch (FileNotFoundException e) {
+          printErr(String.format("Can't execute script '%s'. File not found.\n", inlineArg));
+        }
+        continue;
+      }
+
+      // if element input needed: call FieldsReader.
+      Object newFlat = null;
+      try {
+        newFlat = constructObjectFromInput(commandInfo);
+      } catch (ReadFailedException e) {
+        e.printStackTrace();
+      }
+      // Pack request object and send to "bridge" object.
+      Request request = createRequest(commandName, inlineArg, newFlat);
+      Response response = commandManager.executeCommand(request);
+      handleResponse(response);
     }
-    // remove script name from list (maybe just remove last element)
   }
 
-  private void executeScript(String filePath) {
+  private static String getWorkingDir() {
     try {
-      BufferedReader reader = getFileReader(filePath);
-      commandLoop(reader);
-    } catch (FileNotFoundException e) {
-      System.out.printf("Can't execute script '%s'. File not found.\n", filePath);
-    } catch (IOException | InterruptedException e) {
-      e.printStackTrace();
+      String fullPath =  System.getProperty("user.dir");
+      return fullPath.substring(fullPath.lastIndexOf(File.separator) + 1);
+    } catch (SecurityException e) {
+      return "unknown";
     }
   }
 
-  private BufferedReader getFileReader(String filePath) throws FileNotFoundException {
-    return new BufferedReader(new FileReader(filePath));
+  private static String colorText(String text, Colors color) {
+    return color.text() + text + Colors.RESET.text();
+  }
+
+  private static String createUserPrompt(String userName, String dir) {
+    return colorText(userName, Colors.GREEN) + "@" + colorText(dir, Colors.GREEN) + colorText(USER_PROMPT_SUFFIX, Colors.CYAN);
+  }
+
+  private static void printErr(String message) {
+    System.err.println(colorText(message, Colors.RED));
+  }
+
+  private String readCommand() throws IOException {
+    switch (inputState){
+      case USER:
+        return readUserCommand();
+      case SCRIPT:
+        String command = readCommandFromScript();
+        if (command != null) {
+          out.println(command);
+          return command;
+        }
+        closeScript();
+        return readUserCommand();
+    }
+    return readUserCommand();
+  }
+
+  private String readUserCommand() throws IOException {
+    out.print(userPrompt);
+    return in.readLine();
+  }
+
+  private String readCommandFromScript() throws IOException {
+    out.print(scriptPrompt);
+    return scriptReader.readLine();
   }
 
   // split string into command and arguments.
-  private String[] parseUserInput(String userInput) throws ReadFailedException, CLIException {
-    if (userInput == null) {
-      throw new ReadFailedException("Read stream is closed.");
-    }
+  private String[] processLine(String userInput) throws CLIException {
     String[] commandWithArg = userInput.trim().split("\\s+", 0);
     if (commandWithArg.length == 0) {
       throw new CLIException("Please, enter a command");
@@ -124,20 +181,42 @@ public class Console {
   // check if command exists and return its info
   private CommandInfo fetchCommandInfo(String commandName) throws CommandNotRegisteredException {
     if (!userCommands.containsKey(commandName)) {
-      throw new CommandNotRegisteredException("Unknown command name " + commandName);
+      throw new CommandNotRegisteredException(commandName);
     }
     return userCommands.get(commandName).getInfo();
+  }
+
+  private void runScript(String filename) throws FileNotFoundException {
+    scriptReader = new BufferedReader(new InputStreamReader(new FileInputStream(filename)));
+    scriptPrompt = colorText(userName, Colors.YELLOW) + "#" + colorText(filename, Colors.YELLOW) + SCRIPT_PROMPT_SUFFIX;
+    inputState = InputState.SCRIPT;
+    out.println(colorText("--- Script " + filename + " started ---", Colors.BLUE));
+    executingScripts.add(filename);
+  }
+
+  private void closeScript() throws IOException {
+    if (scriptReader != null) {
+      scriptReader.close();
+      scriptReader = null;
+    }
+    inputState = InputState.USER;
+    out.println();
+    executingScripts.remove(executingScripts.size() - 1);
   }
 
   /**
    * Returns null if additional input for object creation is not needed.
    * @return Created Flat object
    */
-  private Object constructObjectFromInput(BufferedReader reader, CommandInfo commandInfo) throws ReadFailedException {
+  private Object constructObjectFromInput(CommandInfo commandInfo) throws ReadFailedException {
     Object newFlat = null;
+    BufferedReader reader = in;
+    if (scriptReader != null) {
+      reader = scriptReader;
+    }
     if (commandInfo.isHasComplexArgs()) {
       Object[] additionalArgs = fieldsReader.read(reader, FieldsInputMode.INTERACTIVE);
-      newFlat = FlatBuilder.getInstance().buildAccessible(additionalArgs);
+      newFlat = flatBuilder.buildAccessible(additionalArgs);
     }
     return newFlat;
   }
@@ -149,10 +228,9 @@ public class Console {
   private void handleResponse(Response response) {
     ExecutionResult result = response.getExecutionResult();
     if (!result.isSuccess()) {
-      System.out.println("Error occurred on command execution: ");
-    } else {
-      System.out.println("Execution completed successfully: ");
+      printErr(result.getMessage());
+      return;
     }
-    System.out.println(result.getMessage());
+    out.println(result.getMessage());
   }
 }
