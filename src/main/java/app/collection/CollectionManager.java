@@ -2,6 +2,8 @@ package app.collection;
 
 import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
+import java.util.NoSuchElementException;
+import java.util.Objects;
 
 import app.collection.data.Flat;
 import app.exceptions.CollectionCorruptedException;
@@ -58,16 +60,13 @@ public class CollectionManager {
     return objectsCollection.size();
   }
 
-  /**
-   * @param id
-   * @return Elem {@code E} by id from collection
-   * @throws NoSuchIdException
-   */
-  public Flat getById(Integer id) {
-    // returns object by id
-    return null;
+  public Flat getById(Integer id) throws NoSuchElementException {
+    return objectsCollection.stream().filter(flat -> Objects.equals(id, flat.getId())).findAny().orElseThrow(NoSuchElementException::new);
   }
 
-  public void removeById(Integer id) {}
-
+  public void removeById(Integer id) {
+    if (!objectsCollection.removeIf(flat -> Objects.equals(id, flat.getId()))) {
+      throw new NoSuchElementException();
+    }
+  }
 }
