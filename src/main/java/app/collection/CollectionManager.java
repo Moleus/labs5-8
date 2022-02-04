@@ -2,11 +2,11 @@ package app.collection;
 
 import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 
 import app.collection.data.Flat;
 import app.exceptions.CollectionCorruptedException;
+import app.exceptions.ElementNotFoundException;
 import app.exceptions.StorageAccessException;
 import app.storage.Storage;
 
@@ -60,13 +60,13 @@ public class CollectionManager {
     return objectsCollection.size();
   }
 
-  public Flat getById(Integer id) throws NoSuchElementException {
-    return objectsCollection.stream().filter(flat -> Objects.equals(id, flat.getId())).findAny().orElseThrow(NoSuchElementException::new);
+  public Flat getById(Integer id) throws ElementNotFoundException {
+    return objectsCollection.stream().filter(flat -> Objects.equals(id, flat.getId())).findAny().orElseThrow(() -> new ElementNotFoundException("No element with such id in collection"));
   }
 
-  public void removeById(Integer id) {
+  public void removeById(Integer id) throws ElementNotFoundException {
     if (!objectsCollection.removeIf(flat -> Objects.equals(id, flat.getId()))) {
-      throw new NoSuchElementException();
+      throw new ElementNotFoundException("No element with such id in collection");
     }
   }
 }

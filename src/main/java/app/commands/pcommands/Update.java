@@ -4,10 +4,10 @@ import app.collection.CollectionManager;
 import app.collection.FlatBuilder;
 import app.collection.data.Flat;
 import app.commands.*;
+import app.exceptions.ElementNotFoundException;
 import app.exceptions.InvalidDataValues;
 
 import java.time.LocalDate;
-import java.util.NoSuchElementException;
 
 public final class Update extends AbstractCommand {
   private final CollectionManager collectionManager;
@@ -38,7 +38,7 @@ public final class Update extends AbstractCommand {
       collectionManager.add(newFlat);
     } catch (InvalidDataValues e) {
       return ExecutionResult.valueOf(false, e.getMessage());
-    } catch (NoSuchElementException e) {
+    } catch (ElementNotFoundException e) {
       return ExecutionResult.valueOf(false, "Element with id " + id + " doesn't exist");
     }
 
