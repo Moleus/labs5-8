@@ -7,7 +7,6 @@ import java.util.Map;
 
 import app.collection.FieldsInputMode;
 import app.collection.FieldsReader;
-import app.collection.FlatBuilder;
 import app.collection.data.Flat;
 import app.commands.*;
 import app.common.CommandRequest;
@@ -18,7 +17,6 @@ import app.exceptions.*;
 public class Console {
   private final Map<String, Command> userCommands;
   private final CommandManager commandManager;
-  private final FlatBuilder flatBuilder;
   private final FieldsReader fieldsReader;
   private final List<String> executingScripts = new ArrayList<>();
   private final String userName = "dev";
@@ -36,13 +34,12 @@ public class Console {
 
   private BufferedReader scriptReader = null;
 
-  private enum InputState {USER, SCRIPT};
+  private enum InputState {USER, SCRIPT}
   private InputState inputState = InputState.USER;
 
-  public Console(BufferedReader in, PrintStream out, FlatBuilder flatBuilder, CommandManager commandManager, Map<String, Command> userCommands) {
+  public Console(BufferedReader in, PrintStream out, CommandManager commandManager, Map<String, Command> userCommands) {
     this.in = in;
     this.out = out;
-    this.flatBuilder = flatBuilder;
     this.userCommands = userCommands;
     this.commandManager = commandManager;
     this.fieldsReader = new FieldsReader(Flat.class);
@@ -55,7 +52,7 @@ public class Console {
   }
 
   private void commandLoop() throws IOException {
-    String command = "";
+    String command;
     while (true) {
       command = readCommand();
       if (command == null) return;
@@ -105,15 +102,17 @@ public class Console {
       }
 
       // if element input needed: call FieldsReader.
-      Object newFlat;
+      Object[] dataValues = null;
       try {
-        newFlat = constructObjectFromInput(commandInfo);
+        if (commandInfo.isHasComplexArgs()) {
+          dataValues = readAdditionalParameters(commandInfo);
+        }
       } catch (ReadFailedException e) {
         printErr(e.getMessage());
         continue;
       }
       // Pack request object and send to "bridge" object.
-      Request request = createRequest(commandName, inlineArg, newFlat);
+      Request request = createRequest(commandName, inlineArg, dataValues);
       Response response = commandManager.executeCommand(request);
       handleResponse(response);
     }
@@ -209,23 +208,15 @@ public class Console {
    * Returns null if additional input for object creation is not needed.
    * @return Created Flat object
    */
-  private Object constructObjectFromInput(CommandInfo commandInfo) throws ReadFailedException {
-    if (!commandInfo.isHasComplexArgs()) {
-      return null;
-    }
-    Object newFlat;
-    Object[] additionalArgs;
+  private Object[] readAdditionalParameters(CommandInfo commandInfo) throws ReadFailedException {
     if (scriptReader != null) {
-      additionalArgs = fieldsReader.read(scriptReader, FieldsInputMode.SCRIPT);
-    } else {
-      additionalArgs = fieldsReader.read(in, FieldsInputMode.INTERACTIVE);
+      return fieldsReader.read(scriptReader, FieldsInputMode.SCRIPT);
     }
-    newFlat = flatBuilder.buildAccessible(additionalArgs);
-    return newFlat;
+    return fieldsReader.read(in, FieldsInputMode.INTERACTIVE);
   }
 
-  private Request createRequest(String commandName, String inlineArg, Object dataObject) {
-    return CommandRequest.valueOf(commandName, ExecutionPayload.valueOf(inlineArg, dataObject));
+  private Request createRequest(String commandName, String inlineArg, Object[] dataValues) {
+    return CommandRequest.valueOf(commandName, ExecutionPayload.valueOf(inlineArg, dataValues));
   }
 
   private void handleResponse(Response response) {

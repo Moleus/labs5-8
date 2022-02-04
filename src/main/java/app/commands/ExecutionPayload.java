@@ -2,22 +2,22 @@ package app.commands;
 
 public class ExecutionPayload {
   private final String inlineArg;
-  private final Object dataObject;
+  private final Object[] dataValues;
 
-  private ExecutionPayload(String inlineArg, Object dataObject) {
+  private ExecutionPayload(String inlineArg, Object[] dataValues) {
     this.inlineArg = inlineArg;
-    this.dataObject = dataObject;
+    this.dataValues = dataValues;
   }
 
-  public static ExecutionPayload valueOf(String inlineArg, Object dataObject) {
-    return new ExecutionPayload(inlineArg, dataObject);
+  public static ExecutionPayload valueOf(String inlineArg, Object[] dataValues) {
+    return new ExecutionPayload(inlineArg, dataValues);
   }
 
   public String getInlineArg() {
     return this.inlineArg;
   }
 
-  public Object getDataObject() {
-    return this.dataObject;
+  public Object[] getDataValues() {
+    return this.dataValues;
   }
 }

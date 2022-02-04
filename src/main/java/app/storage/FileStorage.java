@@ -9,6 +9,7 @@ import app.collection.FieldsInputMode;
 import app.collection.FieldsReader;
 import app.collection.FlatBuilder;
 import app.exceptions.CollectionCorruptedException;
+import app.exceptions.InvalidDataValues;
 import app.exceptions.ReadFailedException;
 import app.exceptions.StorageAccessException;
 import org.apache.commons.csv.CSVFormat;
@@ -54,7 +55,7 @@ public class FileStorage implements Storage {
       System.out.println("IO exception occurred on collection loading");
     } catch (SecurityException e) {
       throw new StorageAccessException("Permissions denied while loading collection. Check file read permissions");
-    } catch (ReadFailedException e) {
+    } catch (ReadFailedException | InvalidDataValues e) {
       throw new CollectionCorruptedException("File is corrupted. Error: " + e.getMessage());
     }
     return collection;

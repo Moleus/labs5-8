@@ -1,11 +1,13 @@
 package app.commands.pcommands;
 
 import app.collection.CollectionManager;
+import app.collection.FlatBuilder;
 import app.collection.data.Flat;
 import app.commands.AbstractCommand;
 import app.commands.CommandInfo;
 import app.commands.ExecutionPayload;
 import app.commands.ExecutionResult;
+import app.exceptions.InvalidDataValues;
 
 public final class Add extends AbstractCommand {
   private final CollectionManager collectionManager;
@@ -19,13 +21,14 @@ public final class Add extends AbstractCommand {
   
   @Override
   public ExecutionResult execute(ExecutionPayload payload) {
-    Object dataObject = payload.getDataObject();
-    if (!(dataObject instanceof Flat)) {
-      return ExecutionResult.valueOf(false, "object is null");
-    }
+    Object[] dataValues = payload.getDataValues();
 
-    Flat newFlat = (Flat) dataObject;
-    collectionManager.add(newFlat);
+    try {
+      Flat newFlat = FlatBuilder.getInstance().buildAccessible(dataValues);
+      collectionManager.add(newFlat);
+    } catch (InvalidDataValues e) {
+      return ExecutionResult.valueOf(false, e.getMessage());
+    }
 
     return ExecutionResult.valueOf(true, "added new item in collection");
   }
