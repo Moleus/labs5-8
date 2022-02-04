@@ -98,7 +98,7 @@ public class App {
         new Update(collectionManager),  // modify existing element in collection
         new RemoveById(collectionManager),  // remove from collection
         new Clear(collectionManager),  // remove all elements from collection
-        new Save(collectionManager, storageManager),  // save collection in storage
+        new Save(collectionManager),  // save collection in storage
         new ExecuteScript(commandManager),  // run all commands from file
         new Exit(),  // exit without saving
         new AddIfMax(collectionManager),  // add new element if it's the greatest

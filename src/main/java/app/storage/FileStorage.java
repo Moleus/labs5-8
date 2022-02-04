@@ -64,12 +64,12 @@ public class FileStorage implements Storage {
   @Override
   public void saveCollection(LinkedHashSet<Flat> collection) throws StorageAccessException {
     try (FileWriter outputStream = new FileWriter(this.file)) {
-      CSVRecord csvRecord = CSVParser.parse(collection.stream()
+      CSVParser records = CSVParser.parse(collection.stream()
           .map(values -> values.getValuesRecursive().stream().map(Objects::toString).collect(Collectors.joining(",")))
           .collect(Collectors.joining("\n")), CSVFormat.DEFAULT
-      ).getRecords().get(0);
+      );
       CSVPrinter printer = new CSVPrinter(outputStream, CSVFormat.DEFAULT);
-      printer.print(csvRecord);
+      printer.printRecords(records);
     } catch (IOException e) {
       throw new StorageAccessException("Failed to write collection to a file!");
     }

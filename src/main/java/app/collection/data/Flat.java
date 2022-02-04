@@ -102,6 +102,6 @@ public final class Flat implements Comparable<Flat> {
   }
 
   public List<Object> getValuesRecursive() {
-    return Arrays.asList(name, coordinates.getX(), coordinates.getY(), creationDate, area, numberOfRooms, furniture, newness, view, house.getName(), house.getName(), house.getNumberOfFloors(), house.getNumberOfLifts());
+    return Arrays.asList(id, name, coordinates.getX(), coordinates.getY(), creationDate, area, numberOfRooms, furniture, newness, view, house.getName(), house.getYear(), house.getNumberOfFloors(), house.getNumberOfLifts());
   }
 }
