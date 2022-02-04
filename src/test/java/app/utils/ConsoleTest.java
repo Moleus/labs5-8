@@ -1,4 +1,4 @@
-package utils;
+package app.utils;
 
 import app.collection.CollectionManager;
 import app.collection.FlatBuilder;
