@@ -113,7 +113,7 @@ public class App {
     Console console = new Console(bufferedReader, new PrintStream(System.out), commandManager, commandManager.getUserAccessibleCommands());
     try {
       console.run(bufferedReader);
-    } catch (IOException | InterruptedException e) {
+    } catch (IOException e) {
       e.printStackTrace();
     }
   }

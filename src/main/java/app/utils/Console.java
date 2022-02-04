@@ -25,7 +25,7 @@ public class Console {
   private static final String SCRIPT_PROMPT_SUFFIX = "$ ";
 
   // contains username + working dir + >
-  private String userPrompt;
+  private final String userPrompt;
   // contains username + script name + $
   private String scriptPrompt;
 
@@ -47,7 +47,7 @@ public class Console {
   }
 
   // должна принимать inputStream, outputStream и работать с чтением из скрипта, как с пользователем
-  public void run(BufferedReader defaultReader) throws InterruptedException, IOException {
+  public void run(BufferedReader defaultReader) throws IOException {
     commandLoop();
   }
 

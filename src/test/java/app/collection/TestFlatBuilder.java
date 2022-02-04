@@ -1,31 +1,17 @@
 package app.collection;
 
-import static org.junit.jupiter.api.Assertions.*;
 import app.collection.data.Coordinates;
 import app.collection.data.Flat;
 import app.collection.data.House;
-import app.collection.data.View;
 import app.exceptions.InvalidDataValues;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 
-import java.time.LocalDate;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import static util.FlatValues.*;
 
 public class TestFlatBuilder {
-  final Integer ID = 0;
-  final String NAME = "flatName";
-  final Integer AREA = 12;
-  final Long ROOMS = 12L;
-  final boolean HAS_FURNITURE = true;
-  final boolean IS_NEW = true;
-  final View VIEW = View.TERRIBLE;
-  final double COORD_X = 0;
-  final Integer COORD_Y = 0;
-  final String HOUSE_NAME = "house12";
-  final Integer HOUSE_YEAR = 100;
-  final Integer HOUSE_FLOORS = 10;
-  final Integer HOUSE_LIFTS = 2;
-  final LocalDate DATE = LocalDate.now();
 
   @Test
   @Order(1)
