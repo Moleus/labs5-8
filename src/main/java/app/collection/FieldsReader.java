@@ -26,10 +26,10 @@ public class FieldsReader {
 
   /**
    * Reads from bufferedReader line by line and validates each entry with corresponding dataClass field.
-   * @param reader
-   * @param inputMode
+   * @param reader - buffer to read from
+   * @param inputMode STORAGE for reading from file/db, INTERACTIVE/SCRIPT - with command prompt
    * @return Array of Objects generated from input strings
-   * @throws ReadFailedException
+   * @throws ReadFailedException - when values are invalid or stream is closed
    */
   public Object[] read(BufferedReader reader, FieldsInputMode inputMode) throws ReadFailedException {
     Field[] fields = accessibleFields;

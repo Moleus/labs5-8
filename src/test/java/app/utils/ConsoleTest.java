@@ -46,7 +46,7 @@ public class ConsoleTest {
     };
     BufferedReader br = new BufferedReader(new StringReader(String.join("\n", testCommands)));
     Console console = new Console(br, System.out, commandManager, commandManager.getUserAccessibleCommands());
-    console.run(br);
+    console.run();
   }
 
   @Test
@@ -56,6 +56,6 @@ public class ConsoleTest {
 
     BufferedReader br = new BufferedReader(new StringReader(inpString));
     Console console = new Console(br, System.out, commandManager, commandManager.getUserAccessibleCommands());
-    console.run(br);
+    console.run();
   }
 }

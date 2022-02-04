@@ -112,7 +112,7 @@ public class App {
     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
     Console console = new Console(bufferedReader, new PrintStream(System.out), commandManager, commandManager.getUserAccessibleCommands());
     try {
-      console.run(bufferedReader);
+      console.run();
     } catch (IOException e) {
       e.printStackTrace();
     }

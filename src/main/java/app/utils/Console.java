@@ -47,7 +47,7 @@ public class Console {
   }
 
   // должна принимать inputStream, outputStream и работать с чтением из скрипта, как с пользователем
-  public void run(BufferedReader defaultReader) throws IOException {
+  public void run() throws IOException {
     commandLoop();
   }
 
@@ -55,7 +55,7 @@ public class Console {
     String command;
     while (true) {
       command = readCommand();
-      if (command == null) return;
+      if (command == null || command.trim().equals("exit")) return;
       if (command.trim().equals("")) continue;
 
       String[] commandWithArg;
@@ -105,7 +105,7 @@ public class Console {
       Object[] dataValues = null;
       try {
         if (commandInfo.isHasComplexArgs()) {
-          dataValues = readAdditionalParameters(commandInfo);
+          dataValues = readAdditionalParameters();
         }
       } catch (ReadFailedException e) {
         printErr(e.getMessage());
@@ -208,7 +208,7 @@ public class Console {
    * Returns null if additional input for object creation is not needed.
    * @return Created Flat object
    */
-  private Object[] readAdditionalParameters(CommandInfo commandInfo) throws ReadFailedException {
+  private Object[] readAdditionalParameters() throws ReadFailedException {
     if (scriptReader != null) {
       return fieldsReader.read(scriptReader, FieldsInputMode.SCRIPT);
     }

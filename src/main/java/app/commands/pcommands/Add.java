@@ -11,11 +11,9 @@ import app.exceptions.InvalidDataValues;
 
 public final class Add extends AbstractCommand {
   private final CollectionManager collectionManager;
-  // private final productBuilder productBuilder;
-  
+
   public Add(CollectionManager collectionManager) {
     super(CommandInfo.valueOf("add", "Adds created object into the collection.", true, 0, true));
-
     this.collectionManager = collectionManager;
   }
   

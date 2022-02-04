@@ -6,7 +6,6 @@ import app.commands.AbstractCommand;
 import app.commands.ExecutionPayload;
 import app.commands.ExecutionResult;
 import app.exceptions.StorageAccessException;
-import app.storage.Storage;
 
 public final class Save extends AbstractCommand {
   private final CollectionManager collectionManager;
