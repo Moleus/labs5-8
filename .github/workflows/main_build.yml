@@ -1,0 +1,29 @@
+name: "Build and upload artifacts"
+
+on: 
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up JDK 8
+      uses: actions/setup-java@v2
+      with:
+        distribution: 'temurin'
+        java-version: '8'
+
+    - name: Build with Gradle
+      uses: gradle/gradle-build-action@937999e9cc2425eddc7fd62d1053baf041147db7
+      with:
+        arguments: test shadowJar
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with: 
+        tag_name: ${{github.ref_name}}
+        files: build/libs/app-all.jar
