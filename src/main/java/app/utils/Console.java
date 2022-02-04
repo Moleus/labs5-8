@@ -105,11 +105,12 @@ public class Console {
       }
 
       // if element input needed: call FieldsReader.
-      Object newFlat = null;
+      Object newFlat;
       try {
         newFlat = constructObjectFromInput(commandInfo);
       } catch (ReadFailedException e) {
-        e.printStackTrace();
+        printErr(e.getMessage());
+        continue;
       }
       // Pack request object and send to "bridge" object.
       Request request = createRequest(commandName, inlineArg, newFlat);
@@ -209,15 +210,17 @@ public class Console {
    * @return Created Flat object
    */
   private Object constructObjectFromInput(CommandInfo commandInfo) throws ReadFailedException {
-    Object newFlat = null;
-    BufferedReader reader = in;
+    if (!commandInfo.isHasComplexArgs()) {
+      return null;
+    }
+    Object newFlat;
+    Object[] additionalArgs;
     if (scriptReader != null) {
-      reader = scriptReader;
+      additionalArgs = fieldsReader.read(scriptReader, FieldsInputMode.SCRIPT);
+    } else {
+      additionalArgs = fieldsReader.read(in, FieldsInputMode.INTERACTIVE);
     }
-    if (commandInfo.isHasComplexArgs()) {
-      Object[] additionalArgs = fieldsReader.read(reader, FieldsInputMode.INTERACTIVE);
-      newFlat = flatBuilder.buildAccessible(additionalArgs);
-    }
+    newFlat = flatBuilder.buildAccessible(additionalArgs);
     return newFlat;
   }
 

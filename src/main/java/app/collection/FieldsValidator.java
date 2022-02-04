@@ -30,7 +30,7 @@ class FieldsValidator {
         throw new RuntimeException("Remove @GreaterThan annotation from nonnumerical field '" + fieldName + "'");
       }
       double gtValue = field.getAnnotation(GreaterThan.class).num();
-      if (((Number) value).doubleValue() <= gtValue) {
+      if ( value == null || ((Number) value).doubleValue() <= gtValue) {
         throw new ValueConstraintsException(String.format("Value '%s' should be greater than '%s'", fieldName, gtValue));
       }
     }
