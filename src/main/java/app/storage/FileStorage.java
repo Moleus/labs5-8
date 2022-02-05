@@ -37,7 +37,7 @@ public class FileStorage implements Storage {
       CSVParser parser = CSVParser.parse(new InputStreamReader(bInpStream), format);
       FieldsReader fieldsReader = new FieldsReader(Flat.class);
       for (CSVRecord flat : parser) {
-        String oneItem = flat.stream().collect(Collectors.joining("\n"));
+        String oneItem = flat.stream().collect(Collectors.joining(System.lineSeparator()));
 
         // Validate all values in flat
         BufferedReader bfReader = new BufferedReader(new StringReader(oneItem));
@@ -66,7 +66,7 @@ public class FileStorage implements Storage {
     try (FileWriter outputStream = new FileWriter(this.file)) {
       CSVParser records = CSVParser.parse(collection.stream()
           .map(values -> values.getValuesRecursive().stream().map(Objects::toString).collect(Collectors.joining(",")))
-          .collect(Collectors.joining("\n")), CSVFormat.DEFAULT
+          .collect(Collectors.joining(System.lineSeparator())), CSVFormat.DEFAULT
       );
       CSVPrinter printer = new CSVPrinter(outputStream, CSVFormat.DEFAULT);
       printer.printRecords(records);

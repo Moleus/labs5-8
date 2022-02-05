@@ -52,7 +52,7 @@ public class ConsoleTest {
   @Test
   void testUpdateElement() throws IOException {
     Object[] testInput = {"update 0", NAME, COORD_X, COORD_Y, AREA, ROOMS, HAS_FURNITURE, IS_NEW, VIEW, HOUSE_NAME, HOUSE_YEAR, HOUSE_FLOORS, HOUSE_LIFTS};
-    String inpString = Arrays.stream(testInput).map(Object::toString).collect(Collectors.joining("\n"));
+    String inpString = Arrays.stream(testInput).map(Object::toString).collect(Collectors.joining(System.lineSeparator()));
 
     BufferedReader br = new BufferedReader(new StringReader(inpString));
     Console console = new Console(br, System.out, commandManager, commandManager.getUserAccessibleCommands());

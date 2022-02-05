@@ -16,9 +16,9 @@ public final class Info extends AbstractCommand {
   
   @Override
   public ExecutionResult execute(ExecutionPayload payload) {
-    String collectionInformation = "Collection of Flats:\n"
-        + "Init time: " + collectionManager.getCreationDateTime() + "\n"
-        + "Number of elements: " + collectionManager.getSize() + "\n";
+    String collectionInformation = "Collection of Flats:%n"
+        + "Init time: " + collectionManager.getCreationDateTime() + "%n"
+        + "Number of elements: " + collectionManager.getSize() + "%n";
 
     return ExecutionResult.valueOf(true, collectionInformation);
   }

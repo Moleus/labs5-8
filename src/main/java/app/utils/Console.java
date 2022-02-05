@@ -81,7 +81,7 @@ public class Console {
       int requiresArgsCount = commandInfo.getArgsCount();
       int providedArgsCount = commandWithArg.length - 1;
       if (requiresArgsCount != providedArgsCount) {
-        printErr(String.format("Command '%s' takes %d arguments, but '%d' were provided.\n", commandName, requiresArgsCount, providedArgsCount));
+        printErr(String.format("Command '%s' takes %d arguments, but '%d' were provided.%n", commandName, requiresArgsCount, providedArgsCount));
         continue;
       }
 
@@ -90,13 +90,13 @@ public class Console {
       }
       if (commandName.equals("execute_script")) {
         if (executingScripts.contains(inlineArg)) {
-          printErr(String.format("Script recursion detected! Script '%s' won't be executed\n", inlineArg));
+          printErr(String.format("Script recursion detected! Script '%s' won't be executed%n", inlineArg));
           continue;
         }
         try {
           runScript(inlineArg);
         } catch (FileNotFoundException e) {
-          printErr(String.format("Can't execute script '%s'. File not found.\n", inlineArg));
+          printErr(String.format("Can't execute script '%s'. File not found.%n", inlineArg));
         }
         continue;
       }
