@@ -85,7 +85,7 @@ public class App {
     try {
       collectionManager.loadCollection();
     } catch (CollectionCorruptedException | StorageAccessException e) {
-      System.out.println("Failed to load collection.%n" + e.getMessage());
+      System.out.printf("Failed to load collection.%n%s %n", e.getMessage());
     }
 
     CommandManager commandManager = new CommandManager();
