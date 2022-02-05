@@ -1,11 +1,11 @@
 package app.collection;
 
+import java.beans.PropertyEditor;
+import java.beans.PropertyEditorManager;
 import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
-import java.util.HashMap;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -46,43 +46,20 @@ class FieldsValidator {
    * @throws ValueFormatException  if {@code str} can't be converted to {@code fieldClass}
    */
   public static Object parseStrToObject(String str, Class<?> fieldClass) throws ValueFormatException {
-    HashMap<Class<?>, Function<String,?>> parser = new HashMap<>();
-    parser.put(int.class    , Integer::parseInt);
-    parser.put(long.class   , Long::parseLong);
-    parser.put(double.class   , Double::valueOf);
-    parser.put(Integer.class, Integer::valueOf);
-    parser.put(Long.class   , Long::valueOf);
-    parser.put(Double.class , Double::valueOf);
-    parser.put(Float.class  , Float::valueOf);
-    parser.put(String.class , String::valueOf);
-    parser.put(LocalDate.class , LocalDate::parse);
-    String errorMessage = "Failed while parsing field " + fieldClass.getSimpleName();
-
-    if (str.length() == 0) return null;
-
-    Function<String,?> func = parser.get(fieldClass);
-    if (func != null) {
-      try {
-        return func.apply(str);
-      } catch ( NumberFormatException | DateTimeParseException e) {
-        throw new ValueFormatException(errorMessage);
+    PropertyEditor editor;
+    if (str.trim().equals("")) return null;
+    try {
+      if (fieldClass == LocalDate.class) {
+        return LocalDate.parse(str);
       }
+      editor = PropertyEditorManager.findEditor(fieldClass);
+      if (null == editor) {
+        throw new RuntimeException("No suitable converter found for type: " + fieldClass.getSimpleName());
+      }
+      editor.setAsText(str);
+    } catch (IllegalArgumentException | DateTimeParseException e){
+      throw new ValueFormatException("Failed to convert value to type " + fieldClass.getSimpleName());
     }
-    
-    if (fieldClass.isEnum())
-      try {
-        @SuppressWarnings({"unchecked", "rawtypes"})
-        Object enumConstant = Enum.valueOf((Class<Enum>) fieldClass, str);
-        return enumConstant;
-      } catch (IllegalArgumentException e) {
-        throw new ValueFormatException(errorMessage);
-      }
-    if (fieldClass == Boolean.class || fieldClass == boolean.class) {
-      if ("true".equals(str)) return Boolean.TRUE;
-      if ("false".equals(str)) return Boolean.FALSE;
-      throw new ValueFormatException(errorMessage);
-    } 
-
-    throw new UnsupportedOperationException("Can't parse string to " + fieldClass.getName());
+    return editor.getValue();
   }
 }
