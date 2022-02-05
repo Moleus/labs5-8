@@ -65,7 +65,7 @@ public class FileStorage implements Storage {
   public void saveCollection(LinkedHashSet<Flat> collection) throws StorageAccessException {
     try (FileWriter outputStream = new FileWriter(this.file)) {
       CSVParser records = CSVParser.parse(collection.stream()
-          .map(values -> values.getValuesRecursive().stream().map(Objects::toString).collect(Collectors.joining(",")))
+          .map(values -> values.getValuesRecursive().stream().map(e -> e==null?"":e.toString()).collect(Collectors.joining(",")))
           .collect(Collectors.joining(System.lineSeparator())), CSVFormat.DEFAULT
       );
       CSVPrinter printer = new CSVPrinter(outputStream, CSVFormat.DEFAULT);
