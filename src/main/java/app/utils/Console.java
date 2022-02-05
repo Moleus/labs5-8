@@ -1,10 +1,5 @@
 package app.utils;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import app.collection.FieldsInputMode;
 import app.collection.FieldsReader;
 import app.collection.data.Flat;
@@ -12,7 +7,12 @@ import app.commands.*;
 import app.common.CommandRequest;
 import app.common.Request;
 import app.common.Response;
-import app.exceptions.*;
+import app.exceptions.CLIException;
+import app.exceptions.CommandNotRegisteredException;
+import app.exceptions.ReadFailedException;
+
+import java.io.*;
+import java.util.*;
 
 public class Console {
   private final Map<String, Command> userCommands;
@@ -20,6 +20,8 @@ public class Console {
   private final FieldsReader fieldsReader;
   private final List<String> executingScripts = new ArrayList<>();
   private final String userName = "dev";
+
+  private final List<String> commandsHistory = new ArrayList<>();
 
   private static final String USER_PROMPT_SUFFIX = "> ";
   private static final String SCRIPT_PROMPT_SUFFIX = "$ ";
@@ -51,12 +53,47 @@ public class Console {
     commandLoop();
   }
 
+  private String invokeHistoryMode() throws IOException {
+    ListIterator<String> commandInHistory = commandsHistory.listIterator(commandsHistory.size());
+    if (!commandInHistory.hasPrevious()) {
+      return null;
+    }
+    out.println("Enetered history mode. Press '<Return>' to choose a command. j/k - prev/next");
+    int position = commandInHistory.previousIndex() + 1;
+    String commandToInvoke = commandInHistory.previous();
+    String keyPress;
+    while (true) {
+      out.printf("%d/%d: %s ", position, commandsHistory.size(), commandToInvoke);
+      keyPress = Optional.ofNullable(in.readLine()).orElse("Null").trim();
+      if (keyPress.equals(KeyBindings.HISTORY_UP.getBinding()) && commandInHistory.hasPrevious()) {
+        commandToInvoke = commandInHistory.previous();
+        position--;
+      } else if (keyPress.equals(KeyBindings.HISTORY_DOWN.getBinding()) && commandInHistory.hasNext()) {
+        commandToInvoke = commandInHistory.next();
+        position++;
+      } else if (keyPress.equals("")) {
+        System.out.printf("Chose a command: '%s'%n", commandToInvoke);
+        return commandToInvoke;
+      } else {
+        return null;
+      }
+    }
+  }
+
   private void commandLoop() throws IOException {
     String command;
     while (true) {
       command = readCommand();
       if (command == null || command.trim().equals("exit")) return;
       if (command.trim().equals("")) continue;
+
+      if (command.trim().equals("h")) {
+        command = invokeHistoryMode();
+        if (null == command) {
+          continue;
+        }
+      }
+      commandsHistory.add(command);
 
       String[] commandWithArg;
       try {
