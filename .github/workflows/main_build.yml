@@ -26,4 +26,4 @@ jobs:
       uses: softprops/action-gh-release@v1
       with: 
         tag_name: ${{github.ref_name}}
-        files: build/libs/app-all.jar
+        files: build/libs/lab5-all.jar
