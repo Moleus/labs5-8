@@ -41,7 +41,7 @@ public class TestFieldsReader {
   void readAllInteractiveTest() throws ReadFailedException {
     Object[] correctReadResult = new Object[] { "flatName", (double)0, 0, 12, 100L, Boolean.TRUE, Boolean.FALSE, View.TERRIBLE, "houseName", 1999, 9, 2};
 
-    String testString = Stream.of(correctReadResult).map(Object::toString).collect(Collectors.joining("\n", "", "\n"));
+    String testString = Stream.of(correctReadResult).map(Object::toString).collect(Collectors.joining(System.lineSeparator(), "", System.lineSeparator()));
 
     prepareReader(getStream(testString));
     Object[] readResult = fieldReader.read(reader, FieldsInputMode.INTERACTIVE);
@@ -52,7 +52,7 @@ public class TestFieldsReader {
   void readAllStorageTest() throws ReadFailedException {
     Object[] correctReadResult = new Object[] { 12, "flatName", (double)0, 0, LocalDate.parse("1212-12-12"), 12, 100L, Boolean.TRUE, Boolean.FALSE, View.TERRIBLE, "houseName", 1999, 9, 2};
 
-    String testString = Stream.of(correctReadResult).map(Object::toString).collect(Collectors.joining("\n", "", "\n"));
+    String testString = Stream.of(correctReadResult).map(Object::toString).collect(Collectors.joining(System.lineSeparator(), "", System.lineSeparator()));
     prepareReader(getStream(testString));
 
     Object[] readResult = fieldReader.read(reader, FieldsInputMode.STORAGE);
