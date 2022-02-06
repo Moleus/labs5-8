@@ -1,7 +1,9 @@
 package app.storage;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -33,8 +35,7 @@ public class FileStorage implements Storage {
     LinkedHashSet<Flat> collection = new LinkedHashSet<>();
     try (FileInputStream inputStream = new FileInputStream(file)) {
       BufferedInputStream bInpStream = new BufferedInputStream(inputStream);
-      CSVFormat format = CSVFormat.Builder.create().setAllowDuplicateHeaderNames(false).build();
-      CSVParser parser = CSVParser.parse(new InputStreamReader(bInpStream), format);
+      CSVParser parser = CSVParser.parse(new InputStreamReader(bInpStream), CSVFormat.INFORMIX_UNLOAD);
       FieldsReader fieldsReader = new FieldsReader(Flat.class);
       for (CSVRecord flat : parser) {
         String oneItem = flat.stream().collect(Collectors.joining(System.lineSeparator()));
@@ -64,11 +65,9 @@ public class FileStorage implements Storage {
   @Override
   public void saveCollection(LinkedHashSet<Flat> collection) throws StorageAccessException {
     try (FileWriter outputStream = new FileWriter(this.file)) {
-      CSVParser records = CSVParser.parse(collection.stream()
-          .map(values -> values.getValuesRecursive().stream().map(e -> e==null?"":e.toString()).collect(Collectors.joining(",")))
-          .collect(Collectors.joining(System.lineSeparator())), CSVFormat.DEFAULT
-      );
-      CSVPrinter printer = new CSVPrinter(outputStream, CSVFormat.DEFAULT);
+      List<String[]> records = collection.stream()
+          .map(values -> values.getValuesRecursive().stream().map(e -> e==null?"":e.toString()).toArray(String[]::new)).collect(Collectors.toList());
+      CSVPrinter printer = new CSVPrinter(outputStream, CSVFormat.INFORMIX_UNLOAD);
       printer.printRecords(records);
     } catch (IOException e) {
       throw new StorageAccessException("Failed to write collection to a file!");
