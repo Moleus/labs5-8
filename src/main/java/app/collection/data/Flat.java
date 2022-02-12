@@ -18,9 +18,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public final class Flat implements Comparable<Flat> {
   @NotNull
-  // @Id
-  // AutomaticGen
-  // TODO: Проверка, что это число
+  @GreaterThan
   @Getter
   private final Integer id; // Поле не может быть null, Значение поля должно быть больше 0, Значение этого поля должно быть уникальным, Значение этого поля должно генерироваться автоматически
   @NotNull
