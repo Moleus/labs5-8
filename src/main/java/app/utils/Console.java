@@ -105,6 +105,10 @@ public class Console {
       Object[] dataValues = null;
       try {
         if (commandInfo.isHasComplexArgs()) {
+          if (commandInfo.getArgsCount() == 1 && !inlineArg.matches("\\d+")) {
+            printErr("Command argument should be an integer");
+            continue;
+          }
           dataValues = readAdditionalParameters();
         }
       } catch (ReadFailedException e) {
