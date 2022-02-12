@@ -42,7 +42,8 @@ public class ConsoleTest {
   void testScriptRun() throws IOException {
     String[] testCommands = {
         "execute_script script2.txt",
-        "execute_script script_add.txt"
+        "execute_script script_add.txt",
+        "exit"
     };
     BufferedReader br = new BufferedReader(new StringReader(String.join("\n", testCommands)));
     Console console = new Console(br, System.out, commandManager, commandManager.getUserAccessibleCommands());

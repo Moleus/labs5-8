@@ -10,10 +10,10 @@ import app.annotations.UserAccess;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-/*
-  TODO:
-  1. Нужен ли здесь factory method вместо конструктора.
-  3.
+/**
+ * Immutable object class used as an entry in collection.
+ * Compared with others for sorting by a name field.
+ * Equivalance is checked by an id field.
  */
 @RequiredArgsConstructor
 public final class Flat implements Comparable<Flat> {
@@ -75,7 +75,7 @@ public final class Flat implements Comparable<Flat> {
   }
 
   /**
-   * Two elements are equal if they have the same id because it should always be unique.
+   * Compares by id because it should always be unique.
    */
   @Override
   public boolean equals(Object o) {
@@ -99,6 +99,9 @@ public final class Flat implements Comparable<Flat> {
       id, name, coordinates, creationDate, area, numberOfRooms, furniture, newness, view, house);
   }
 
+  /**
+   * Returns values extracted from all fields including objects.
+   */
   public List<Object> getValuesRecursive() {
     return Arrays.asList(id, name, coordinates.getX(), coordinates.getY(), creationDate, area, numberOfRooms, furniture, newness, view, house.getName(), house.getYear(), house.getNumberOfFloors(), house.getNumberOfLifts());
   }

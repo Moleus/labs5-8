@@ -11,6 +11,10 @@ import app.collection.data.House;
 import app.collection.data.View;
 import app.exceptions.InvalidDataValues;
 
+/**
+ * This class manages creation of {@link Flat} objects.
+ * It stores id of last created object and increases this value each time to avoid collisions.
+ */
 public class FlatBuilder {
   private int nextId;
   private final List<Integer> usedIds;
@@ -20,15 +24,25 @@ public class FlatBuilder {
     usedIds = new ArrayList<>();
   }
 
+  /**
+   * Static factory method to create new instance of this class.
+   * @return new {@link Flat} instance
+   */
   public static FlatBuilder createInstance() {
     instance = new FlatBuilder();
     return instance;
   }
 
+  /**
+   * Returns instance of this class.
+   */
   public static FlatBuilder getInstance() {
     return instance;
   }
 
+  /**
+   * Takes all fields which are required for creating new {@link Flat} and returns new Flat instance
+   */
   public Flat build(Integer id,
                     String name,
                     Coordinates coordinates,
@@ -48,6 +62,12 @@ public class FlatBuilder {
     return new Flat(id, name, coordinates, creationDate, area, numberOfRooms, furniture, newness, view, house);
   }
 
+  /**
+   * Builds a {@link Flat} from user passed values.
+   * @param params - Array of values which correspond to accessibe fields.
+   * @return new {@link Flat} instance
+   * @throws InvalidDataValues - if params array length doesn't match the count of accessible fields.
+   */
   public Flat buildAccessible(Object[] params) throws InvalidDataValues {
     if (params.length != 12) {
       throw new InvalidDataValues("Accessible data values count should be 12, but " + params.length + " were provided.");
@@ -55,6 +75,12 @@ public class FlatBuilder {
     return buildWithCustomIdAndDate(this.nextId, LocalDate.now(), params);
   }
 
+  /**
+   * Builds {@link Flat} from all params
+   * @param params - Array of values which correspond to all class fields.
+   * @return new {@link Flat} instance
+   * @throws InvalidDataValues - if params array length doesn't match the count of all class fields.
+   */
   public Flat buildAll(Object[] params) throws InvalidDataValues {
     if (params.length != 14 ) {
       throw new InvalidDataValues("All data values count should be 14, but " + params.length + " were provided.");
@@ -72,6 +98,11 @@ public class FlatBuilder {
     return build(id, name, coordinates, creationDate, area, numberOfRooms, furniture, newness, view, house);
   }
 
+  /**
+   * Builds {@link Flat} from accessible fields' values and specified id, creationDate.
+   * @return new {@link Flat} instance
+   * @throws InvalidDataValues - if params array length doesn't match the count of all class fields.
+   */
   public Flat buildWithCustomIdAndDate(Integer id, LocalDate creationDate, Object[] params) throws InvalidDataValues {
     final int ID_INDEX = 0;
     final int DATE_INDEX = 4;

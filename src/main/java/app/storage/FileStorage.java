@@ -1,10 +1,8 @@
 package app.storage;
 
 import java.io.*;
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import app.collection.FieldsInputMode;
@@ -21,6 +19,9 @@ import org.apache.commons.csv.CSVRecord;
 
 import app.collection.data.Flat;
 
+/**
+ * Provides API to load or save a collection from/to file.
+ */
 public class FileStorage implements Storage {
   private final File file;
   private final FlatBuilder flatBuilder;
@@ -30,6 +31,10 @@ public class FileStorage implements Storage {
     this.flatBuilder = flatBuilder;
   }
 
+  /**
+   * Load collection from a file.
+   * @see Storage#loadCollection()
+   */
   @Override
   public LinkedHashSet<Flat> loadCollection() throws CollectionCorruptedException, StorageAccessException {
     LinkedHashSet<Flat> collection = new LinkedHashSet<>();
@@ -52,8 +57,7 @@ public class FileStorage implements Storage {
     } catch (FileNotFoundException e) {
       throw new StorageAccessException("Can't find a file to load collection");
     } catch (IOException e) {
-      // FIXME: throw different message when understand why it's happening
-      System.out.println("IO exception occurred on collection loading");
+      System.out.printf("Failed to read collection from file. IO error: %s%n", e.getMessage());
     } catch (SecurityException e) {
       throw new StorageAccessException("Permissions denied while loading collection. Check file read permissions");
     } catch (ReadFailedException | InvalidDataValues e) {
@@ -62,6 +66,10 @@ public class FileStorage implements Storage {
     return collection;
   }
 
+  /**
+   * Save collection in a file.
+   * @see Storage#saveCollection(LinkedHashSet)
+   */
   @Override
   public void saveCollection(LinkedHashSet<Flat> collection) throws StorageAccessException {
     try (FileWriter outputStream = new FileWriter(this.file)) {
