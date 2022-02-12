@@ -40,4 +40,16 @@ public abstract class AbstractCommand implements Command {
     return info;
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof AbstractCommand)) return false;
+    AbstractCommand oc = (AbstractCommand) o;
+    if (this == o) return true;
+    return this.info.equals(oc.getInfo());
+  }
+
+  @Override
+  public int hashCode() {
+    return info.hashCode();
+  }
 }
