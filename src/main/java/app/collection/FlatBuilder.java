@@ -12,10 +12,12 @@ import app.collection.data.View;
 import app.exceptions.InvalidDataValues;
 
 public class FlatBuilder {
-  private Integer nextId;
+  private int nextId;
+  private final List<Integer> usedIds;
   private static FlatBuilder instance;
   private FlatBuilder() {
     nextId = 0;
+    usedIds = new ArrayList<>();
   }
 
   public static FlatBuilder createInstance() {
@@ -38,7 +40,11 @@ public class FlatBuilder {
                     View view,
                     House house
                     ) {
-    nextId = id + 1;
+    do {
+      nextId = id + 1;
+    }
+    while (usedIds.contains(nextId));
+    usedIds.add(id);
     return new Flat(id, name, coordinates, creationDate, area, numberOfRooms, furniture, newness, view, house);
   }
 
