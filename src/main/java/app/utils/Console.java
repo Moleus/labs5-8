@@ -14,6 +14,9 @@ import app.common.Request;
 import app.common.Response;
 import app.exceptions.*;
 
+/**
+ * This class creates interactive prompt, reads user input, checks commands and sends request to manager.
+ */
 public class Console {
   private final Map<String, Command> userCommands;
   private final CommandManager commandManager;
@@ -46,7 +49,9 @@ public class Console {
     this.userPrompt = createUserPrompt(userName, getWorkingDir());
   }
 
-  // должна принимать inputStream, outputStream и работать с чтением из скрипта, как с пользователем
+  /**
+   * Starts interactive command handling loop
+   */
   public void run() throws IOException {
     commandLoop();
   }
@@ -178,7 +183,6 @@ public class Console {
     if (commandWithArg.length > 2) {
       throw new CLIException("Too many arguments!");
     }
-    // TODO: validate argument type
     return commandWithArg;
   }
 
@@ -208,10 +212,6 @@ public class Console {
     executingScripts.remove(executingScripts.size() - 1);
   }
 
-  /**
-   * Returns null if additional input for object creation is not needed.
-   * @return Created Flat object
-   */
   private Object[] readAdditionalParameters() throws ReadFailedException {
     if (scriptReader != null) {
       return fieldsReader.read(scriptReader, FieldsInputMode.SCRIPT);

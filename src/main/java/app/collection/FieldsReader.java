@@ -15,6 +15,9 @@ import app.exceptions.ValueConstraintsException;
 import app.exceptions.ValueFormatException;
 
 
+/**
+ * Collects information about data-class fields and ensures that all input values correspond to fields constraints.
+ */
 public class FieldsReader {
   private final Field[] allFields;
   private final Field[] accessibleFields;
@@ -89,19 +92,17 @@ public class FieldsReader {
       }
 
       UserAccess elementAnnotation = field.getAnnotation(UserAccess.class);
-      this.print(String.format("Please enter %s with type %s: ", elementAnnotation.description(), fieldTypeName));
+      System.out.printf("Please enter %s with type %s: ", elementAnnotation.description(), fieldTypeName);
   }
 
-  private void print(String message) {
-    System.out.print(message);
-  }
-
+  /**
+   * Returns array of fields which are annotated as accessible.
+   */
   Field[] getAccessibleFields() {
     return Stream.of(allFields).filter(f -> f.isAnnotationPresent(UserAccess.class)).toArray(Field[]::new);
   }
 
   /**
-   * TODO: rename from get
    * Recursively get all fields, including those in aggregated classes.
    * @param clazz Data class Type to get fields from
    * @return Array of all fields

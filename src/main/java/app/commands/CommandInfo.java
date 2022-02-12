@@ -2,15 +2,34 @@ package app.commands;
 
 import lombok.Getter;
 
+/**
+ * Immutable data class which stores basic information about a console command.
+ * Use factory method for new instances creation.
+ */
 final public class CommandInfo {
+  /**
+   * Returns the name of a command.
+   */
   @Getter
   private final String name;
+  /**
+   * Returns description message for a command.
+   */
   @Getter
   private final String description;
+  /**
+   * Returns true if command is accessible by a user, otherwise - false.
+   */
   @Getter
   private final boolean userAccessible;
+  /**
+   * Returns number of inline args required by a command.
+   */
   @Getter
   private final int argsCount;
+  /**
+   * Returns true if additional user input required, otherwise - false.
+   */
   @Getter
   private final boolean hasComplexArgs;
 

@@ -1,8 +1,8 @@
 package app.commands;
 
 /**
- * Package private immutable class which represents result of a command execution.
- * Factory method is used to create new instances.
+ * Immutable class which represents result of a command execution.
+ * Use factory method for new instances creation.
  */
 public class ExecutionResult {
   private final boolean success;
