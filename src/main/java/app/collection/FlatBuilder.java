@@ -41,9 +41,8 @@ public class FlatBuilder {
                     House house
                     ) {
     do {
-      nextId = id + 1;
-    }
-    while (usedIds.contains(nextId));
+      nextId++;
+    } while (usedIds.contains(nextId));
     usedIds.add(id);
     return new Flat(id, name, coordinates, creationDate, area, numberOfRooms, furniture, newness, view, house);
   }
