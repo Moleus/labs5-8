@@ -22,7 +22,7 @@ public class CommandManager {
 
   /**
    * Registers passed commands in this manager.
-   * @param commands - commands to register
+   * @param commands commands to register
    */
   public void registerCommands(Command ... commands) {
     // add commands to HashMap
@@ -50,8 +50,8 @@ public class CommandManager {
 
   /**
    * Executes command specified in request.
-   * @param request - data-object with parameters required for command execution.
-   * @return {@link Response} - data-object with execution result.
+   * @param request data-object with parameters required for command execution.
+   * @return {@link Response} data-object with execution result.
    */
   public Response executeCommand(Request request) {
     String commandName = request.getCommandName();

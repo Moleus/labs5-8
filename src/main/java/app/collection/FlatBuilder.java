@@ -64,9 +64,9 @@ public class FlatBuilder {
 
   /**
    * Builds a {@link Flat} from user passed values.
-   * @param params - Array of values which correspond to accessibe fields.
+   * @param params Array of values which correspond to accessibe fields.
    * @return new {@link Flat} instance
-   * @throws InvalidDataValues - if params array length doesn't match the count of accessible fields.
+   * @throws InvalidDataValues if params array length doesn't match the count of accessible fields.
    */
   public Flat buildAccessible(Object[] params) throws InvalidDataValues {
     if (params.length != 12) {
@@ -77,9 +77,9 @@ public class FlatBuilder {
 
   /**
    * Builds {@link Flat} from all params
-   * @param params - Array of values which correspond to all class fields.
+   * @param params Array of values which correspond to all class fields.
    * @return new {@link Flat} instance
-   * @throws InvalidDataValues - if params array length doesn't match the count of all class fields.
+   * @throws InvalidDataValues if params array length doesn't match the count of all class fields.
    */
   public Flat buildAll(Object[] params) throws InvalidDataValues {
     if (params.length != 14 ) {
@@ -101,7 +101,7 @@ public class FlatBuilder {
   /**
    * Builds {@link Flat} from accessible fields' values and specified id, creationDate.
    * @return new {@link Flat} instance
-   * @throws InvalidDataValues - if params array length doesn't match the count of all class fields.
+   * @throws InvalidDataValues if params array length doesn't match the count of all class fields.
    */
   public Flat buildWithCustomIdAndDate(Integer id, LocalDate creationDate, Object[] params) throws InvalidDataValues {
     final int ID_INDEX = 0;

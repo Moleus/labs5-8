@@ -26,7 +26,7 @@ public class CollectionManager {
 
   /**
    * Saves collection in storage.
-   * @throws StorageAccessException - if storage is not accessible.
+   * @throws StorageAccessException if storage is not accessible.
    */
   public void saveCollection() throws StorageAccessException {
     storageManager.saveCollection(objectsCollection);
@@ -34,8 +34,8 @@ public class CollectionManager {
 
   /**
    * Loads collection from storage.
-   * @throws CollectionCorruptedException - if some data in storage is missing or can't be parsed to create new collection object.
-   * @throws StorageAccessException - if storage is not accessible.
+   * @throws CollectionCorruptedException if some data in storage is missing or can't be parsed to create new collection object.
+   * @throws StorageAccessException if storage is not accessible.
    */
   public void loadCollection() throws CollectionCorruptedException, StorageAccessException {
     this.objectsCollection.addAll(storageManager.loadCollection());
@@ -44,7 +44,7 @@ public class CollectionManager {
   /**
    * Adds new {@link Flat} to collection.
    * Throws {@link IllegalArgumentException} if object is already in collection.
-   * @param object - Flat instance
+   * @param object Flat instance
    */
   public void add(Flat object) {
     if (!objectsCollection.add(object)) {
@@ -77,8 +77,8 @@ public class CollectionManager {
 
   /**
    * Returns {@link Flat} from collection by id.
-   * @param id - Id to get {@link Flat} object from collection.
-   * @throws ElementNotFoundException - if there is no entry with such id in collection.
+   * @param id Id to get {@link Flat} object from collection.
+   * @throws ElementNotFoundException if there is no entry with such id in collection.
    */
   public Flat getById(Integer id) throws ElementNotFoundException {
     return objectsCollection.stream().filter(flat -> Objects.equals(id, flat.getId())).findAny().orElseThrow(() -> new ElementNotFoundException("No element with such id in collection"));
@@ -86,8 +86,8 @@ public class CollectionManager {
 
   /**
    * Removes {@link Flat} from collection by id.
-   * @param id - Id to remove {@link Flat} object from collection.
-   * @throws ElementNotFoundException - if there is no entry with such id in collection.
+   * @param id Id to remove {@link Flat} object from collection.
+   * @throws ElementNotFoundException if there is no entry with such id in collection.
    */
   public void removeById(Integer id) throws ElementNotFoundException {
     if (!objectsCollection.removeIf(flat -> Objects.equals(id, flat.getId()))) {
@@ -97,7 +97,7 @@ public class CollectionManager {
 
   /**
    * Returns max {@link Flat} from collection.
-   * @throws ElementNotFoundException - if collection is empty.
+   * @throws ElementNotFoundException if collection is empty.
    */
   public Flat getMax() throws ElementNotFoundException {
     if (objectsCollection.isEmpty()) {
@@ -108,7 +108,7 @@ public class CollectionManager {
 
   /**
    * Returns min {@link Flat} from collection.
-   * @throws ElementNotFoundException - if collection is empty.
+   * @throws ElementNotFoundException if collection is empty.
    */
   public Flat getMin() throws ElementNotFoundException {
     if (objectsCollection.isEmpty()) {
@@ -119,8 +119,8 @@ public class CollectionManager {
 
   /**
    * Removes all entries which are less than passed {@link Flat} object.
-   * @param upperBoundFlat - {@link Flat} to compare with.
-   * @return - true if removed. False if nothing changed.
+   * @param upperBoundFlat {@link Flat} to compare with.
+   * @return true if removed. False if nothing changed.
    */
   public boolean removeLower(Flat upperBoundFlat) {
     return objectsCollection.removeIf(flat -> flat.compareTo(upperBoundFlat) < 0);
@@ -128,7 +128,7 @@ public class CollectionManager {
 
   /**
    * Returns array of {@link Flat} which name contains passed string.
-   * @param filter - string to lookup in names.
+   * @param filter string to lookup in names.
    */
   public Flat[] filterContainsName(String filter) {
     return objectsCollection.stream().sorted().filter(flat -> flat.getName().contains(filter)).toArray(Flat[]::new);
