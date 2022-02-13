@@ -12,13 +12,13 @@ import app.exceptions.StorageAccessException;
 public interface Storage {
   /**
    * @return new collection object
-   * @throws CollectionCorruptedException - if some data in storage is missing or can't be parsed to create new collection object.
-   * @throws StorageAccessException - if storage is not accessible.
+   * @throws CollectionCorruptedException if some data in storage is missing or can't be parsed to create new collection object.
+   * @throws StorageAccessException if storage is not accessible.
    */
   LinkedHashSet<Flat> loadCollection() throws CollectionCorruptedException, StorageAccessException;
   /**
    * Saves collection in storage
-   * @throws StorageAccessException - if storage is not accessible.
+   * @throws StorageAccessException if storage is not accessible.
    */
   void saveCollection(LinkedHashSet<Flat> collection) throws StorageAccessException;
 }

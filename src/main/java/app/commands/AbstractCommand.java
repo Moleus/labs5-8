@@ -7,17 +7,17 @@ public abstract class AbstractCommand implements Command {
     this.info = commandInfo;
   }
 
-  /** @inheritDoc */
+  /** {@inheritDoc} */
   @Override
   public abstract ExecutionResult execute(ExecutionPayload payload);
 
-  /** @inheritDoc */
+  /** {@inheritDoc} */
   @Override
   public final String getName() {
     return info.getName();
   }
 
-  /** @inheritDoc */
+  /** {@inheritDoc} */
   @Override
   public final String getDescription() {
     return info.getDescription();
@@ -28,19 +28,19 @@ public abstract class AbstractCommand implements Command {
     return info.isUserAccessible();
   }
 
-  /** @inheritDoc */
+  /** {@inheritDoc} */
   @Override
   public final int getArgsCount() {
     return info.getArgsCount();
   }
 
-  /** @inheritDoc */
+  /** {@inheritDoc} */
   @Override
   public final boolean isHasComplexArgs() {
     return info.isHasComplexArgs();
   }
 
-  /** @inheritDoc */
+  /** {@inheritDoc} */
   @Override
   public CommandInfo getInfo() {
     return info;
