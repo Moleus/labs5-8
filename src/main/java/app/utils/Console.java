@@ -166,12 +166,18 @@ public class Console {
 
   private String readUserCommand() throws IOException {
     out.print(userPrompt);
-    return in.readLine();
+    return readInput(in, 40);
   }
 
   private String readCommandFromScript() throws IOException {
     out.print(scriptPrompt);
-    return scriptReader.readLine();
+    return readInput(scriptReader, 50);
+  }
+
+  private String readInput(BufferedReader reader, int length) throws IOException {
+    char[] chars = new char[length];
+    if (reader.read(chars, 0, length) == -1) return null;
+    return String.valueOf(chars);
   }
 
   // split string into command and arguments.

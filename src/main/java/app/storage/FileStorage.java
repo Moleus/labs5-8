@@ -3,6 +3,7 @@ package app.storage;
 import java.io.*;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import app.collection.FieldsInputMode;
@@ -18,6 +19,8 @@ import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 
 import app.collection.data.Flat;
+
+import javax.swing.text.html.Option;
 
 /**
  * Provides API to load or save a collection from/to file.
@@ -39,8 +42,12 @@ public class FileStorage implements Storage {
   public LinkedHashSet<Flat> loadCollection() throws CollectionCorruptedException, StorageAccessException {
     LinkedHashSet<Flat> collection = new LinkedHashSet<>();
     try (FileInputStream inputStream = new FileInputStream(file)) {
-      BufferedInputStream bInpStream = new BufferedInputStream(inputStream);
-      CSVParser parser = CSVParser.parse(new InputStreamReader(bInpStream), CSVFormat.INFORMIX_UNLOAD);
+      InputStreamReader reader = new InputStreamReader(new BufferedInputStream(inputStream));
+      String data = readInput(reader, 1000).orElseThrow(() -> new CollectionCorruptedException("File is too large.")).trim();
+      if (data.isEmpty()) {
+        throw new CollectionCorruptedException("File is empty.");
+      }
+      CSVParser parser = CSVParser.parse(data, CSVFormat.INFORMIX_UNLOAD);
       FieldsReader fieldsReader = new FieldsReader(Flat.class);
       for (CSVRecord flat : parser) {
         String oneItem = flat.stream().collect(Collectors.joining(System.lineSeparator()));
@@ -64,6 +71,12 @@ public class FileStorage implements Storage {
       throw new CollectionCorruptedException("File is corrupted. Error: " + e.getMessage());
     }
     return collection;
+  }
+
+  private Optional<String> readInput(InputStreamReader reader, int length) throws IOException {
+    char[] chars = new char[length];
+    if (reader.read(chars, 0, length) == -1) return Optional.empty();
+    return Optional.of(String.valueOf(chars));
   }
 
   /**
