@@ -40,10 +40,14 @@ public class FileStorage implements Storage {
    */
   @Override
   public LinkedHashSet<Flat> loadCollection() throws CollectionCorruptedException, StorageAccessException {
+    final int MAX_DATA_LENGTH = 1000;
     LinkedHashSet<Flat> collection = new LinkedHashSet<>();
     try (FileInputStream inputStream = new FileInputStream(file)) {
       InputStreamReader reader = new InputStreamReader(new BufferedInputStream(inputStream));
-      String data = readInput(reader, 1000).orElseThrow(() -> new CollectionCorruptedException("File is too large.")).trim();
+      String data = readInput(reader, MAX_DATA_LENGTH).trim();
+      if (data.length() == MAX_DATA_LENGTH) {
+        throw new CollectionCorruptedException("File is too large.");
+      }
       if (data.isEmpty()) {
         throw new CollectionCorruptedException("File is empty.");
       }
@@ -73,10 +77,10 @@ public class FileStorage implements Storage {
     return collection;
   }
 
-  private Optional<String> readInput(InputStreamReader reader, int length) throws IOException {
+  private String readInput(InputStreamReader reader, int length) throws IOException {
     char[] chars = new char[length];
-    if (reader.read(chars, 0, length) == -1) return Optional.empty();
-    return Optional.of(String.valueOf(chars));
+    if (reader.read(chars, 0, length) == -1) return "";
+    return String.valueOf(chars);
   }
 
   /**
