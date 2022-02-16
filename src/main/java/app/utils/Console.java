@@ -1,10 +1,5 @@
 package app.utils;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import app.collection.FieldsInputMode;
 import app.collection.FieldsReader;
 import app.collection.data.Flat;
@@ -12,7 +7,14 @@ import app.commands.*;
 import app.common.CommandRequest;
 import app.common.Request;
 import app.common.Response;
-import app.exceptions.*;
+import app.exceptions.CLIException;
+import app.exceptions.CommandNotRegisteredException;
+import app.exceptions.ReadFailedException;
+
+import java.io.*;
+import java.util.Map;
+import java.util.NavigableSet;
+import java.util.TreeSet;
 
 /**
  * This class creates interactive prompt, reads user input, checks commands and sends request to manager.
@@ -21,7 +23,7 @@ public class Console {
   private final Map<String, Command> userCommands;
   private final CommandManager commandManager;
   private final FieldsReader fieldsReader;
-  private final List<String> executingScripts = new ArrayList<>();
+  private final NavigableSet<String> executingScripts = new TreeSet<>();
   private final String userName = "dev";
 
   private static final String USER_PROMPT_SUFFIX = "> ";
@@ -223,7 +225,7 @@ public class Console {
     }
     inputState = InputState.USER;
     out.println();
-    executingScripts.remove(executingScripts.size() - 1);
+    executingScripts.pollLast();
   }
 
   private Object[] readAdditionalParameters() throws ReadFailedException {
