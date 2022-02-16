@@ -36,11 +36,16 @@ import app.utils.Console;
  */
 public class App {
   public static void main(String[] args) {
+    final String DEFAULT_COLLECTION_PATH = "collection.csv";
+    String filePath;
+
     if (args.length != 1) {
-      System.out.println("Please, specify path to collection file (single argument).");
-      System.exit(1);
+      System.out.printf("Please, specify path to collection file (single argument).%nLoading from a default location: '%s'%n", DEFAULT_COLLECTION_PATH);
+      filePath = DEFAULT_COLLECTION_PATH;
+    } else {
+      filePath = args[0];
     }
-    String filePath = args[0];
+
     FlatBuilder flatBuilder = FlatBuilder.createInstance();
     Storage storageManager = new FileStorage(filePath, flatBuilder);
     CollectionManager collectionManager = new CollectionManager(storageManager);
@@ -51,7 +56,6 @@ public class App {
     }
 
     CommandManager commandManager = new CommandManager();
-
 
     commandManager.registerCommands(
         new Help(commandManager),  // info about accessible commands
