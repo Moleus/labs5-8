@@ -20,7 +20,7 @@ public class FlatBuilder {
   private final List<Integer> usedIds;
   private static FlatBuilder instance;
   private FlatBuilder() {
-    nextId = 0;
+    nextId = 1;
     usedIds = new ArrayList<>();
   }
 
