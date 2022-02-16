@@ -1,6 +1,8 @@
 package app.storage;
 
-import java.util.LinkedHashSet;
+import java.time.LocalDateTime;
+import java.util.AbstractMap;
+import java.util.Set;
 
 import app.collection.data.Flat;
 import app.exceptions.CollectionCorruptedException;
@@ -15,10 +17,10 @@ public interface Storage {
    * @throws CollectionCorruptedException if some data in storage is missing or can't be parsed to create new collection object.
    * @throws StorageAccessException if storage is not accessible.
    */
-  LinkedHashSet<Flat> loadCollection() throws CollectionCorruptedException, StorageAccessException;
+  AbstractMap.SimpleEntry<LocalDateTime, Set<Flat>> loadCollection() throws CollectionCorruptedException, StorageAccessException;
   /**
    * Saves collection in storage
    * @throws StorageAccessException if storage is not accessible.
    */
-  void saveCollection(LinkedHashSet<Flat> collection) throws StorageAccessException;
+  void saveCollection(AbstractMap.SimpleEntry<LocalDateTime, Set<Flat>> collection) throws StorageAccessException;
 }

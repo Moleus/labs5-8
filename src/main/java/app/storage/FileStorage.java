@@ -1,14 +1,9 @@
 package app.storage;
 
-import java.io.*;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import app.collection.FieldsInputMode;
 import app.collection.FieldsReader;
 import app.collection.FlatBuilder;
+import app.collection.data.Flat;
 import app.exceptions.CollectionCorruptedException;
 import app.exceptions.InvalidDataValues;
 import app.exceptions.ReadFailedException;
@@ -18,9 +13,11 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 
-import app.collection.data.Flat;
-
-import javax.swing.text.html.Option;
+import java.io.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Provides API to load or save a collection from/to file.
@@ -39,9 +36,10 @@ public class FileStorage implements Storage {
    * @see Storage#loadCollection()
    */
   @Override
-  public LinkedHashSet<Flat> loadCollection() throws CollectionCorruptedException, StorageAccessException {
+  public AbstractMap.SimpleEntry<LocalDateTime, Set<Flat>> loadCollection() throws CollectionCorruptedException, StorageAccessException {
     final int MAX_DATA_LENGTH = 1000;
-    LinkedHashSet<Flat> collection = new LinkedHashSet<>();
+    Set<Flat> collection = new LinkedHashSet<>();
+    LocalDateTime creationDate = LocalDateTime.now();
     try (FileInputStream inputStream = new FileInputStream(file)) {
       InputStreamReader reader = new InputStreamReader(new BufferedInputStream(inputStream));
       String data = readInput(reader, MAX_DATA_LENGTH).trim();
@@ -53,7 +51,13 @@ public class FileStorage implements Storage {
       }
       CSVParser parser = CSVParser.parse(data, CSVFormat.INFORMIX_UNLOAD);
       FieldsReader fieldsReader = new FieldsReader(Flat.class);
-      for (CSVRecord flat : parser) {
+      List<CSVRecord> lines = parser.getRecords();
+      Optional<LocalDateTime> creationDateOp = readDateFromRecord(lines.get(0));
+      if (creationDateOp.isPresent()) {
+        creationDate = creationDateOp.get();
+        lines.remove(0);
+      }
+      for (CSVRecord flat : lines) {
         String oneItem = flat.stream().collect(Collectors.joining(System.lineSeparator()));
 
         // Validate all values in flat
@@ -74,7 +78,15 @@ public class FileStorage implements Storage {
     } catch (ReadFailedException | InvalidDataValues e) {
       throw new CollectionCorruptedException("File is corrupted. Error: " + e.getMessage());
     }
-    return collection;
+    return new AbstractMap.SimpleEntry<>(creationDate, collection);
+  }
+
+  private Optional<LocalDateTime> readDateFromRecord(CSVRecord record) throws InvalidDataValues {
+    try {
+      return Optional.of(LocalDateTime.parse(record.get(0)));
+    } catch (DateTimeParseException e) {
+      return Optional.empty();
+    }
   }
 
   private String readInput(InputStreamReader reader, int length) throws IOException {
@@ -85,13 +97,18 @@ public class FileStorage implements Storage {
 
   /**
    * Save collection in a file.
-   * @see Storage#saveCollection(LinkedHashSet)
+   * @see Storage#saveCollection(AbstractMap.SimpleEntry)
    */
   @Override
-  public void saveCollection(LinkedHashSet<Flat> collection) throws StorageAccessException {
+  public void saveCollection(AbstractMap.SimpleEntry<LocalDateTime, Set<Flat>> dateToCollection) throws StorageAccessException {
     try (FileWriter outputStream = new FileWriter(this.file)) {
-      List<String[]> records = collection.stream()
-          .map(values -> values.getValuesRecursive().stream().map(e -> e==null?"":e.toString()).toArray(String[]::new)).collect(Collectors.toList());
+      List<String[]> records = new ArrayList<>();
+      records.add(new String[] {dateToCollection.getKey().toString()});
+      records.addAll(dateToCollection.getValue().stream()
+          .map(values -> values.getValuesRecursive().stream().map(e -> e==null?"":e.toString()).toArray(String[]::new))
+          .collect(Collectors.toList())
+      );
+
       CSVPrinter printer = new CSVPrinter(outputStream, CSVFormat.INFORMIX_UNLOAD);
       printer.printRecords(records);
     } catch (IOException e) {

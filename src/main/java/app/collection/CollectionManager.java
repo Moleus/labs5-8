@@ -1,7 +1,12 @@
 package app.collection;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedHashSet;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import app.collection.data.Flat;
@@ -15,12 +20,11 @@ import app.storage.Storage;
  */
 public class CollectionManager {
   //  Set s = Collections.synchronizedSet(new LinkedHashSet(...));
-  private final LinkedHashSet<Flat> objectsCollection = new LinkedHashSet<>();
-  private final LocalDateTime creationDateTime;
+  private final Set<Flat> objectsCollection = new LinkedHashSet<>();
+  private LocalDateTime creationDateTime = LocalDateTime.now();
   private final Storage storageManager;
 
   public CollectionManager(Storage storageManager) {
-    this.creationDateTime = LocalDateTime.now();
     this.storageManager = storageManager;
   }
 
@@ -29,7 +33,7 @@ public class CollectionManager {
    * @throws StorageAccessException if storage is not accessible.
    */
   public void saveCollection() throws StorageAccessException {
-    storageManager.saveCollection(objectsCollection);
+    storageManager.saveCollection(new AbstractMap.SimpleEntry<>(creationDateTime, objectsCollection));
   }
 
   /**
@@ -38,7 +42,9 @@ public class CollectionManager {
    * @throws StorageAccessException if storage is not accessible.
    */
   public void loadCollection() throws CollectionCorruptedException, StorageAccessException {
-    this.objectsCollection.addAll(storageManager.loadCollection());
+    AbstractMap.SimpleEntry<LocalDateTime, Set<Flat>> dateToCollection = storageManager.loadCollection();
+    creationDateTime = dateToCollection.getKey();
+    this.objectsCollection.addAll(dateToCollection.getValue());
   }
 
   /**
