@@ -7,20 +7,20 @@ import app.commands.*;
 import app.common.CommandRequest;
 import app.common.Request;
 import app.common.Response;
-import app.exceptions.CLIException;
-import app.exceptions.CommandNotRegisteredException;
 import app.exceptions.ReadFailedException;
+import lombok.Data;
 
 import java.io.*;
 import java.util.Map;
 import java.util.NavigableSet;
+import java.util.Optional;
 import java.util.TreeSet;
 
 /**
  * This class creates interactive prompt, reads user input, checks commands and sends request to manager.
  */
 public class Console {
-  private final Map<String, Command> userCommands;
+  private final Map<String, Command> accessibleCommands;
   private final CommandManager commandManager;
   private final FieldsReader fieldsReader;
   private final NavigableSet<String> executingScripts = new TreeSet<>();
@@ -45,88 +45,10 @@ public class Console {
   public Console(BufferedReader in, PrintStream out, CommandManager commandManager, Map<String, Command> userCommands) {
     this.in = in;
     this.out = out;
-    this.userCommands = userCommands;
+    this.accessibleCommands = userCommands;
     this.commandManager = commandManager;
     this.fieldsReader = new FieldsReader(Flat.class);
     this.userPrompt = createUserPrompt(userName, getWorkingDir());
-  }
-
-  /**
-   * Starts interactive command handling loop
-   */
-  public void run() throws IOException {
-    commandLoop();
-  }
-
-  private void commandLoop() throws IOException {
-    String command;
-    while (true) {
-      command = readCommand();
-      if (command == null || command.trim().equals("exit")) return;
-      if (command.trim().equals("")) continue;
-
-      String[] commandWithArg;
-      try {
-        commandWithArg = processLine(command);
-      } catch (CLIException e) {
-        e.getMessage();
-        continue;
-      }
-
-      // parse user input and fetch info about command
-      String commandName = commandWithArg[0];
-      String inlineArg = commandWithArg.length == 2 ? commandWithArg[1] : "";
-      CommandInfo commandInfo;
-      try {
-        commandInfo = fetchCommandInfo(commandName);
-      } catch (CommandNotRegisteredException e) {
-        printErr(e.getMessage());
-        continue;
-      }
-
-      // check if count arguments matches input
-      int requiresArgsCount = commandInfo.getArgsCount();
-      int providedArgsCount = commandWithArg.length - 1;
-      if (requiresArgsCount != providedArgsCount) {
-        printErr(String.format("Command '%s' takes %d arguments, but '%d' were provided.%n", commandName, requiresArgsCount, providedArgsCount));
-        continue;
-      }
-
-      if (commandName.equals("exit")) {
-        break;
-      }
-      if (commandName.equals("execute_script")) {
-        if (executingScripts.contains(inlineArg)) {
-          printErr(String.format("Script recursion detected! Script '%s' won't be executed%n", inlineArg));
-          continue;
-        }
-        try {
-          runScript(inlineArg);
-        } catch (FileNotFoundException e) {
-          printErr(String.format("Can't execute script '%s'. File not found.%n", inlineArg));
-        }
-        continue;
-      }
-
-      // if element input needed: call FieldsReader.
-      Object[] dataValues = null;
-      try {
-        if (commandInfo.isHasComplexArgs()) {
-          if (commandInfo.getArgsCount() == 1 && !inlineArg.matches("\\d+")) {
-            printErr("Command argument should be an integer");
-            continue;
-          }
-          dataValues = readAdditionalParameters();
-        }
-      } catch (ReadFailedException e) {
-        printErr(e.getMessage());
-        continue;
-      }
-      // Pack request object and send to "bridge" object.
-      Request request = createRequest(commandName, inlineArg, dataValues);
-      Response response = commandManager.executeCommand(request);
-      handleResponse(response);
-    }
   }
 
   private static String getWorkingDir() {
@@ -150,6 +72,54 @@ public class Console {
     System.err.println(colorText(message, Colors.RED));
   }
 
+  /**
+   * Starts interactive command handling loop
+   */
+  public void run() throws IOException {
+    commandLoop();
+  }
+
+  private void commandLoop() throws IOException {
+    String command;
+    final CommandLineParser inputParser = new CommandLineParser();
+    while (true) {
+      command = readCommand();
+      if (command == null || command.trim().equals("exit")) return;
+      if (command.trim().equals("")) continue;
+
+      ParsedInput inputData;
+      try {
+        inputData = inputParser.parse(command);
+      } catch (IllegalArgumentException e) {
+        printErr(e.getMessage());
+        continue;
+      }
+
+      String commandName = inputData.getCommandInfo().getName();
+      String inlineArg = inputData.getInlineArg();
+      boolean additionalInputNeeded = inputData.getCommandInfo().isHasComplexArgs();
+
+      Object[] dataValues = new Object[0];
+      if (additionalInputNeeded) {
+        try {
+          dataValues = readAdditionalInput();
+        } catch (ReadFailedException e) {
+          printErr(e.getMessage());
+          continue;
+        }
+      }
+      if (commandName.equals("execute_script")) {
+        executeScriptCommand(inlineArg);
+        continue;
+      }
+
+      // Pack request object and send to "bridge" object.
+      Request request = createRequest(commandName, inlineArg, dataValues);
+      Response response = commandManager.executeCommand(request);
+      handleResponse(response);
+    }
+  }
+
   private String readCommand() throws IOException {
     switch (inputState){
       case USER:
@@ -168,46 +138,38 @@ public class Console {
 
   private String readUserCommand() throws IOException {
     out.print(userPrompt);
-    return readInput(in, 100);
+    return readLine(in, 100);
   }
 
   private String readCommandFromScript() throws IOException {
     out.print(scriptPrompt);
-    return readInput(scriptReader, 99);
+    return readLine(scriptReader, 99);
   }
 
-  private String readInput(BufferedReader reader, int len) throws IOException {
-		StringBuilder readResult = new StringBuilder();
+  private void executeScriptCommand(String scriptName) {
+      if (executingScripts.contains(scriptName)) {
+        printErr(String.format("Script recursion detected! Script '%s' won't be executed%n", scriptName));
+        return;
+      }
+      try {
+        runScript(scriptName);
+      } catch (FileNotFoundException e) {
+        printErr(String.format("Can't execute script '%s'. File not found.%n", scriptName));
+      }
+  }
+
+  private String readLine(BufferedReader reader, int len) throws IOException {
+    StringBuilder readResult = new StringBuilder();
     int currentPos = 0;
     int currentChar = reader.read();
     if (currentChar == -1) return null;
 
-		while (currentPos++ < len) {
+    while (currentPos++ < len) {
       readResult.append((char) currentChar);
       currentChar = reader.read();
       if (currentChar == -1 || (char) currentChar == '\n') break;
     }
-		return readResult.toString();
-  }
-
-  // split string into command and arguments.
-  private String[] processLine(String userInput) throws CLIException {
-    String[] commandWithArg = userInput.trim().split("\\s+", 0);
-    if (commandWithArg.length == 0) {
-      throw new CLIException("Please, enter a command");
-    }
-    if (commandWithArg.length > 2) {
-      throw new CLIException("Too many arguments!");
-    }
-    return commandWithArg;
-  }
-
-  // check if command exists and return its info
-  private CommandInfo fetchCommandInfo(String commandName) throws CommandNotRegisteredException {
-    if (!userCommands.containsKey(commandName)) {
-      throw new CommandNotRegisteredException(commandName);
-    }
-    return userCommands.get(commandName).getInfo();
+    return readResult.toString();
   }
 
   private void runScript(String filename) throws FileNotFoundException {
@@ -228,15 +190,64 @@ public class Console {
     executingScripts.pollLast();
   }
 
-  private Object[] readAdditionalParameters() throws ReadFailedException {
-    if (scriptReader != null) {
-      return fieldsReader.read(scriptReader, FieldsInputMode.SCRIPT);
-    }
-    return fieldsReader.read(in, FieldsInputMode.INTERACTIVE);
+  @Data(staticConstructor = "of")
+  private static class ParsedInput {
+    private final CommandInfo commandInfo;
+    private final String inlineArg;
   }
 
-  private Request createRequest(String commandName, String inlineArg, Object[] dataValues) {
-    return CommandRequest.valueOf(commandName, ExecutionPayload.valueOf(inlineArg, dataValues));
+  private class CommandLineParser {
+    public ParsedInput parse(String userInput) throws IllegalArgumentException {
+      String[] commandWithArgs;
+      CommandInfo commandInfo;
+
+      if (userInput.trim().equals("")) throw new IllegalArgumentException("Empty input");
+
+      commandWithArgs = splitLine(userInput);
+      String commandName = commandWithArgs[0];
+      String inlineArg = commandWithArgs.length == 2 ? commandWithArgs[1] : "";
+
+      commandInfo = fetchCommandInfo(commandName).orElseThrow(() -> new IllegalArgumentException(String.format("Command '%s' not avalible", commandName)));
+
+      int providedArgsCount = commandWithArgs.length - 1;
+      int requiresArgsCount = commandInfo.getArgsCount();
+      if (requiresArgsCount != providedArgsCount) {
+        throw new IllegalArgumentException(String.format("Command '%s' takes %d arguments, but '%d' were provided.%n", commandName, requiresArgsCount, providedArgsCount));
+      }
+
+      // if element input needed: call FieldsReader.
+      if (commandInfo.isHasComplexArgs()) {
+        if (commandInfo.getArgsCount() == 1 && !inlineArg.matches("\\d+")) {
+          throw new IllegalArgumentException("Command argument should be an integer");
+        }
+      }
+      return ParsedInput.of(commandInfo, inlineArg);
+    }
+
+    private String[] splitLine(String userInput) {
+      return userInput.trim().split("\\s+", 0);
+    }
+
+    private Optional<CommandInfo> fetchCommandInfo(String commandName) {
+      if (!accessibleCommands.containsKey(commandName)) {
+        return Optional.empty();
+      }
+      return Optional.of(accessibleCommands.get(commandName).getInfo());
+    }
+  }
+
+  private Object[] readAdditionalInput() throws ReadFailedException {
+    switch (inputState) {
+      case USER:
+        return fieldsReader.read(in, FieldsInputMode.INTERACTIVE);
+      case SCRIPT:
+        return fieldsReader.read(scriptReader, FieldsInputMode.SCRIPT);
+    }
+    throw new RuntimeException("Unknown console state");
+  }
+
+  public static Request createRequest(String commandName, String inlineArg, Object[] dataValues) {
+    return CommandRequest.valueOf(commandName, ExecutionPayload.of(inlineArg, dataValues));
   }
 
   private void handleResponse(Response response) {
