@@ -9,10 +9,12 @@ import app.exceptions.InvalidDataValues;
 
 import java.time.LocalDate;
 
+import static app.commands.ExecutionMode.SERVER;
+
 public final class Update extends AbstractCommand {
   private final CollectionManager collectionManager;
   public Update(CollectionManager collectionManager) {
-    super(CommandInfo.valueOf("update", "Modify an existing element in collection", true, 1, true));
+    super(CommandInfo.valueOf("update", "Modify an existing element in collection", true, 1, true, SERVER));
     this.collectionManager = collectionManager;
   }
 

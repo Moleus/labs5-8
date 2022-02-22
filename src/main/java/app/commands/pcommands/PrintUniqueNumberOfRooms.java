@@ -8,11 +8,13 @@ import app.commands.CommandInfo;
 
 import java.util.Set;
 
+import static app.commands.ExecutionMode.SERVER;
+
 public final class PrintUniqueNumberOfRooms extends AbstractCommand {
   private final CollectionManager collectionManager;
 
   public PrintUniqueNumberOfRooms(CollectionManager collectionManager) {
-    super(CommandInfo.valueOf("print_unique_number_of_rooms", "Print set of 'numberOfRooms' values", true, 0, false));
+    super(CommandInfo.valueOf("print_unique_number_of_rooms", "Print set of 'numberOfRooms' values", true, 0, false, SERVER));
     this.collectionManager = collectionManager;
   }
   

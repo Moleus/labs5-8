@@ -9,11 +9,13 @@ import app.commands.ExecutionResult;
 
 import java.util.Arrays;
 
+import static app.commands.ExecutionMode.SERVER;
+
 public final class FilterContainsName extends AbstractCommand {
   private final CollectionManager collectionManager;
 
   public FilterContainsName(CollectionManager collectionManager) {
-    super(CommandInfo.valueOf("filter_contains_name", "Print elements with specified string in names", true, 1, false));
+    super(CommandInfo.valueOf("filter_contains_name", "Print elements with specified string in names", true, 1, false, SERVER));
     this.collectionManager = collectionManager;
   }
   

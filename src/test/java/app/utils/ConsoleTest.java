@@ -11,7 +11,6 @@ import app.exceptions.CollectionCorruptedException;
 import app.exceptions.StorageAccessException;
 import app.storage.FileStorage;
 import app.storage.Storage;
-import app.utils.Console;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -33,7 +32,7 @@ public class ConsoleTest {
     commandManager = new CommandManager();
     collectionManager = new CollectionManager(storageManager);
     collectionManager.loadCollection();
-    commandManager.registerCommands(new ExecuteScript(commandManager),
+    commandManager.registerCommands(new ExecuteScript(),
                                     new Info(collectionManager),
                                     new Add(collectionManager),
                                     new Update(collectionManager));

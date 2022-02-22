@@ -10,11 +10,13 @@ import app.commands.ExecutionResult;
 import app.exceptions.ElementNotFoundException;
 import app.exceptions.InvalidDataValues;
 
+import static app.commands.ExecutionMode.SERVER;
+
 public final class AddIfMin extends AbstractCommand {
   private final CollectionManager collectionManager;
 
   public AddIfMin(CollectionManager collectionManager) {
-    super(CommandInfo.valueOf("add_if_min", "Add new element if it's the least in collection", true, 0, true));
+    super(CommandInfo.valueOf("add_if_min", "Add new element if it's the least in collection", true, 0, true, SERVER));
     this.collectionManager = collectionManager;
   }
 

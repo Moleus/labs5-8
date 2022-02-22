@@ -81,7 +81,7 @@ public class FileStorage implements Storage {
     return new AbstractMap.SimpleEntry<>(creationDate, collection);
   }
 
-  private Optional<LocalDateTime> readDateFromRecord(CSVRecord record) throws InvalidDataValues {
+  private Optional<LocalDateTime> readDateFromRecord(CSVRecord record) {
     try {
       return Optional.of(LocalDateTime.parse(record.get(0)));
     } catch (DateTimeParseException e) {

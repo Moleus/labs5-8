@@ -6,11 +6,13 @@ import app.commands.AbstractCommand;
 import app.commands.ExecutionPayload;
 import app.commands.ExecutionResult;
 
+import static app.commands.ExecutionMode.SERVER;
+
 public final class Info extends AbstractCommand {
   private final CollectionManager collectionManager;
 
   public Info(CollectionManager collectionManager) {
-    super(CommandInfo.valueOf("info", "Displays general information about collection", true, 0, false));
+    super(CommandInfo.valueOf("info", "Displays general information about collection", true, 0, false, SERVER));
     this.collectionManager = collectionManager;
   }
   

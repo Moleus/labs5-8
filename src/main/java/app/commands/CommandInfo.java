@@ -30,4 +30,9 @@ final public class CommandInfo {
    * Returns true if additional user input required, otherwise - false.
    */
   private final boolean hasComplexArgs;
+
+  /**
+   * Returns execution mode.
+   */
+  private final ExecutionMode executionMode;
 }

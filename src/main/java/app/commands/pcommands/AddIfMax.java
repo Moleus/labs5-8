@@ -10,11 +10,13 @@ import app.commands.ExecutionResult;
 import app.exceptions.ElementNotFoundException;
 import app.exceptions.InvalidDataValues;
 
+import static app.commands.ExecutionMode.SERVER;
+
 public final class AddIfMax extends AbstractCommand {
   private final CollectionManager collectionManager;
 
   public AddIfMax(CollectionManager collectionManager) {
-    super(CommandInfo.valueOf("add_if_max", "Add new element if it's the greatest in collection", true, 0, true));
+    super(CommandInfo.valueOf("add_if_max", "Add new element if it's the greatest in collection", true, 0, true, SERVER));
     this.collectionManager = collectionManager;
   }
   

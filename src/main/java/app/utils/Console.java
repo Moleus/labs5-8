@@ -8,7 +8,9 @@ import app.common.CommandRequest;
 import app.common.Request;
 import app.common.Response;
 import app.exceptions.ReadFailedException;
+import app.exceptions.ScriptExecutionException;
 import lombok.Data;
+import lombok.Setter;
 
 import java.io.*;
 import java.util.Map;
@@ -37,10 +39,15 @@ public class Console {
   private final BufferedReader in;
   private final PrintStream out;
 
+  @Setter
   private BufferedReader scriptReader = null;
 
   private enum InputState {USER, SCRIPT}
+  @Setter
   private InputState inputState = InputState.USER;
+
+  private boolean isConsoleRunning = false;
+  private boolean exitFlat = false;
 
   public Console(BufferedReader in, PrintStream out, CommandManager commandManager, Map<String, Command> userCommands) {
     this.in = in;
@@ -76,15 +83,27 @@ public class Console {
    * Starts interactive command handling loop
    */
   public void run() throws IOException {
+    if (isConsoleRunning) {
+      System.out.println("Console is already running");
+      return;
+    }
+    isConsoleRunning = true;
     commandLoop();
+    isConsoleRunning = false;
+  }
+
+  public void exit() {
+    exitFlat = true;
   }
 
   private void commandLoop() throws IOException {
     String command;
     final CommandLineParser inputParser = new CommandLineParser();
     while (true) {
+      if (exitFlat) return;
+
       command = readCommand();
-      if (command == null || command.trim().equals("exit")) return;
+      if (command == null) return;
       if (command.trim().equals("")) continue;
 
       ParsedInput inputData;
@@ -95,12 +114,17 @@ public class Console {
         continue;
       }
 
-      String commandName = inputData.getCommandInfo().getName();
+      CommandInfo commandInfo = inputData.getCommandInfo();
+      String commandName = commandInfo.getName();
       String inlineArg = inputData.getInlineArg();
-      boolean additionalInputNeeded = inputData.getCommandInfo().isHasComplexArgs();
+      boolean additionalInputNeeded = commandInfo.isHasComplexArgs();
+      ExecutionMode commandExecutionMode = commandInfo.getExecutionMode();
 
       Object[] dataValues = new Object[0];
-      if (additionalInputNeeded) {
+      if (commandExecutionMode.equals(ExecutionMode.CLIENT)) {
+        dataValues = new Object[1];
+        dataValues[0] = this;
+      } else if (additionalInputNeeded) {
         try {
           dataValues = readAdditionalInput();
         } catch (ReadFailedException e) {
@@ -108,12 +132,8 @@ public class Console {
           continue;
         }
       }
-      if (commandName.equals("execute_script")) {
-        executeScriptCommand(inlineArg);
-        continue;
-      }
 
-      // Pack request object and send to "bridge" object.
+     // Pack request object and send to "bridge" object.
       Request request = createRequest(commandName, inlineArg, dataValues);
       Response response = commandManager.executeCommand(request);
       handleResponse(response);
@@ -146,15 +166,19 @@ public class Console {
     return readLine(scriptReader, 99);
   }
 
-  private void executeScriptCommand(String scriptName) {
+  /**
+   * Changes console input mode to read from specified file.
+   * @param scriptName name of a file to read commands from.
+   * @throws ScriptExecutionException if recursion of file not found.
+   */
+  public void executeScript(String scriptName) throws ScriptExecutionException {
       if (executingScripts.contains(scriptName)) {
-        printErr(String.format("Script recursion detected! Script '%s' won't be executed%n", scriptName));
-        return;
+        throw new ScriptExecutionException("Recursion detected", scriptName);
       }
       try {
         runScript(scriptName);
       } catch (FileNotFoundException e) {
-        printErr(String.format("Can't execute script '%s'. File not found.%n", scriptName));
+        throw new ScriptExecutionException("File not found", scriptName);
       }
   }
 

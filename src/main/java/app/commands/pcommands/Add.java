@@ -9,11 +9,13 @@ import app.commands.ExecutionPayload;
 import app.commands.ExecutionResult;
 import app.exceptions.InvalidDataValues;
 
+import static app.commands.ExecutionMode.SERVER;
+
 public final class Add extends AbstractCommand {
   private final CollectionManager collectionManager;
 
   public Add(CollectionManager collectionManager) {
-    super(CommandInfo.valueOf("add", "Adds created object into the collection.", true, 0, true));
+    super(CommandInfo.valueOf("add", "Adds created object into the collection.", true, 0, true, SERVER));
     this.collectionManager = collectionManager;
   }
   
