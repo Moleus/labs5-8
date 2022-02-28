@@ -45,7 +45,7 @@ class FieldsValidator {
    * @return New correct type object. Null if string is empty.
    * @throws ValueFormatException  if {@code str} can't be converted to {@code fieldClass}
    */
-  public static Object parseStrToObject(String str, Class<?> fieldClass) throws ValueFormatException {
+  public static Object parseStrToObject(String input, Class<?> fieldClass) throws ValueFormatException {
     HashMap<Class<?>, Function<String,?>> parser = new HashMap<>();
     parser.put(int.class    , Integer::parseInt);
     parser.put(long.class   , Long::parseLong);
@@ -58,12 +58,12 @@ class FieldsValidator {
     parser.put(LocalDate.class , LocalDate::parse);
     String errorMessage = "Failed while parsing field " + fieldClass.getSimpleName();
 
-    if (str.length() == 0) return null;
+    if (input.length() == 0) return null;
 
     Function<String,?> func = parser.get(fieldClass);
     if (func != null) {
       try {
-        return func.apply(str);
+        return func.apply(input);
       } catch ( NumberFormatException | DateTimeParseException e) {
         throw new ValueFormatException(errorMessage);
       }
@@ -72,17 +72,18 @@ class FieldsValidator {
     if (fieldClass.isEnum())
       try {
         @SuppressWarnings({"unchecked", "rawtypes"})
-        Object enumConstant = Enum.valueOf((Class<Enum>) fieldClass, str);
+        Object enumConstant = Enum.valueOf((Class<Enum>) fieldClass, input);
         return enumConstant;
       } catch (IllegalArgumentException e) {
         throw new ValueFormatException(errorMessage);
       }
     if (fieldClass == Boolean.class || fieldClass == boolean.class) {
-      if ("true".equals(str)) return Boolean.TRUE;
-      if ("false".equals(str)) return Boolean.FALSE;
-      throw new ValueFormatException(errorMessage);
-    } 
-
+      return switch (input) {
+        case "true" -> Boolean.TRUE;
+        case "false" -> Boolean.FALSE;
+        default -> throw new ValueFormatException(errorMessage);
+      };
+    }
     throw new UnsupportedOperationException("Can't parse string to " + fieldClass.getName());
   }
 }

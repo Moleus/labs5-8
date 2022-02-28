@@ -105,7 +105,7 @@ public class FileStorage implements Storage {
       List<String[]> records = new ArrayList<>();
       records.add(new String[] {dateToCollection.getKey().toString()});
       records.addAll(dateToCollection.getValue().stream()
-          .map(values -> values.getValuesRecursive().stream().map(e -> e == null ? "" : e.toString()).toArray(String[]::new)).toList()
+          .map(values -> values.getValuesRecursive().stream().map(e -> Objects.requireNonNullElse(e.toString(), "")).toArray(String[]::new)).toList()
       );
 
       CSVPrinter printer = new CSVPrinter(outputStream, CSVFormat.INFORMIX_UNLOAD);
