@@ -4,7 +4,7 @@ import commands.CommandInfo;
 import commands.ExecutionPayload;
 import commands.ExecutionResult;
 import server.collection.CollectionManager;
-import server.commands.AbstractCommand;
+import commands.AbstractCommand;
 
 import server.model.FlatBuilder;
 import model.data.Flat;
@@ -18,7 +18,7 @@ import static commands.ExecutionMode.SERVER;
 public final class Update extends AbstractCommand {
   private final CollectionManager collectionManager;
   public Update(CollectionManager collectionManager) {
-    super(CommandInfo.valueOf("update", "Modify an existing element in collection", true, 1, true, SERVER));
+    super(CommandInfo.of("update", "Modify an existing element in collection", true, 1, true, SERVER));
     this.collectionManager = collectionManager;
   }
 

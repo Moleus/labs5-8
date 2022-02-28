@@ -4,7 +4,7 @@ import commands.CommandInfo;
 import commands.ExecutionPayload;
 import commands.ExecutionResult;
 import server.collection.CollectionManager;
-import server.commands.AbstractCommand;
+import commands.AbstractCommand;
 
 import static commands.ExecutionMode.SERVER;
 
@@ -12,7 +12,7 @@ public final class Info extends AbstractCommand {
   private final CollectionManager collectionManager;
 
   public Info(CollectionManager collectionManager) {
-    super(CommandInfo.valueOf("info", "Displays general information about collection", true, 0, false, SERVER));
+    super(CommandInfo.of("info", "Displays general information about collection", true, 0, false, SERVER));
     this.collectionManager = collectionManager;
   }
   

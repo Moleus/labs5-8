@@ -3,16 +3,15 @@ package collection;
 import model.data.Coordinates;
 import model.data.Flat;
 import model.data.House;
-import exceptions.InvalidDataValues;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import server.exceptions.InvalidDataValues;
+import server.model.FlatBuilder;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import static util.FlatValues.*;
 
 public class TestFlatBuilder {
-
   @Test
   @Order(1)
   void testBuildAccessible() throws InvalidDataValues {

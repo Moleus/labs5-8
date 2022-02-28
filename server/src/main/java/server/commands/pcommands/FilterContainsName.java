@@ -6,7 +6,7 @@ import commands.ExecutionPayload;
 import commands.ExecutionResult;
 import model.data.Flat;
 import server.collection.CollectionManager;
-import server.commands.AbstractCommand;
+import commands.AbstractCommand;
 
 import java.util.Arrays;
 
@@ -14,7 +14,7 @@ public final class FilterContainsName extends AbstractCommand {
   private final CollectionManager collectionManager;
 
   public FilterContainsName(CollectionManager collectionManager) {
-    super(CommandInfo.valueOf("filter_contains_name", "Print elements with specified string in names", true, 1, false, ExecutionMode.SERVER));
+    super(CommandInfo.of("filter_contains_name", "Print elements with specified string in names", true, 1, false, ExecutionMode.SERVER));
     this.collectionManager = collectionManager;
   }
   

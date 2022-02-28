@@ -4,7 +4,7 @@ import commands.CommandInfo;
 import commands.ExecutionPayload;
 import commands.ExecutionResult;
 import server.collection.CollectionManager;
-import server.commands.AbstractCommand;
+import commands.AbstractCommand;
 
 import java.util.Arrays;
 
@@ -14,7 +14,7 @@ public final class PrintFieldDescendingNew extends AbstractCommand {
   private final CollectionManager collectionManager;
 
   public PrintFieldDescendingNew(CollectionManager collectionManager) {
-    super(CommandInfo.valueOf("print_field_descending_new", "Print 'new' values in descending order", true, 0, false, SERVER));
+    super(CommandInfo.of("print_field_descending_new", "Print 'new' values in descending order", true, 0, false, SERVER));
     this.collectionManager = collectionManager;
   }
   

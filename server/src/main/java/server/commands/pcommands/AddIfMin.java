@@ -4,7 +4,7 @@ import commands.CommandInfo;
 import commands.ExecutionPayload;
 import commands.ExecutionResult;
 import server.collection.CollectionManager;
-import server.commands.AbstractCommand;
+import commands.AbstractCommand;
 
 import server.model.FlatBuilder;
 import model.data.Flat;
@@ -17,7 +17,7 @@ public final class AddIfMin extends AbstractCommand {
   private final CollectionManager collectionManager;
 
   public AddIfMin(CollectionManager collectionManager) {
-    super(CommandInfo.valueOf("add_if_min", "Add new element if it's the least in collection", true, 0, true, SERVER));
+    super(CommandInfo.of("add_if_min", "Add new element if it's the least in collection", true, 0, true, SERVER));
     this.collectionManager = collectionManager;
   }
 

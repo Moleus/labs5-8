@@ -1,6 +1,9 @@
-package collection;
+package model;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import exceptions.ReadFailedException;
+import model.data.Flat;
+import model.data.View;
+import org.junit.jupiter.api.Test;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -12,13 +15,7 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import collection.FieldsInputMode;
-import collection.FieldsReader;
-import org.junit.jupiter.api.Test;
-
-import model.data.Flat;
-import model.data.View;
-import exceptions.ReadFailedException;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 public class TestFieldsReader {
   private BufferedReader reader;

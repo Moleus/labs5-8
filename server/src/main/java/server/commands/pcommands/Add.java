@@ -3,7 +3,7 @@ import commands.CommandInfo;
 import commands.ExecutionPayload;
 import commands.ExecutionResult;
 import server.collection.CollectionManager;
-import server.commands.AbstractCommand;
+import commands.AbstractCommand;
 
 import server.model.FlatBuilder;
 import model.data.Flat;
@@ -15,7 +15,7 @@ public final class Add extends AbstractCommand {
   private final CollectionManager collectionManager;
 
   public Add(CollectionManager collectionManager) {
-    super(CommandInfo.valueOf("add", "Adds created object into the collection.", true, 0, true, SERVER));
+    super(CommandInfo.of("add", "Adds created object into the collection.", true, 0, true, SERVER));
     this.collectionManager = collectionManager;
   }
   

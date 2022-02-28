@@ -4,7 +4,7 @@ import commands.CommandInfo;
 import commands.ExecutionPayload;
 import commands.ExecutionResult;
 import server.collection.CollectionManager;
-import server.commands.AbstractCommand;
+import commands.AbstractCommand;
 import server.model.FlatBuilder;
 import model.data.Flat;
 import server.exceptions.ElementNotFoundException;
@@ -16,7 +16,7 @@ public final class AddIfMax extends AbstractCommand {
   private final CollectionManager collectionManager;
 
   public AddIfMax(CollectionManager collectionManager) {
-    super(CommandInfo.valueOf("add_if_max", "Add new element if it's the greatest in collection", true, 0, true, SERVER));
+    super(CommandInfo.of("add_if_max", "Add new element if it's the greatest in collection", true, 0, true, SERVER));
     this.collectionManager = collectionManager;
   }
   

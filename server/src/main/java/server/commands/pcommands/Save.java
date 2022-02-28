@@ -5,7 +5,7 @@ import commands.ExecutionPayload;
 import commands.ExecutionResult;
 import server.exceptions.StorageAccessException;
 import server.collection.CollectionManager;
-import server.commands.AbstractCommand;
+import commands.AbstractCommand;
 
 import static commands.ExecutionMode.SERVER;
 
@@ -13,7 +13,7 @@ public final class Save extends AbstractCommand {
   private final CollectionManager collectionManager;
 
   public Save(CollectionManager collectionManager) {
-    super(CommandInfo.valueOf("save", "Save collection in a storage", true, 0, false, SERVER));
+    super(CommandInfo.of("save", "Save collection in a storage", false, 0, false, SERVER));
     this.collectionManager = collectionManager;
   }
   

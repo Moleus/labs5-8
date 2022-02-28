@@ -79,8 +79,7 @@ public final class Flat implements Comparable<Flat> {
    */
   @Override
   public boolean equals(Object o) {
-    if (!(o instanceof Flat)) return false;
-    Flat of = (Flat) o;
+    if (!(o instanceof Flat of)) return false;
     if (this == o) return true;
     return this.getId().equals(of.getId());
   }

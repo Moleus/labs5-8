@@ -7,14 +7,14 @@ import commands.ExecutionResult;
 import server.exceptions.InvalidDataValues;
 import model.data.Flat;
 import server.collection.CollectionManager;
-import server.commands.AbstractCommand;
+import commands.AbstractCommand;
 import server.model.FlatBuilder;
 
 public final class RemoveLower extends AbstractCommand {
   private final CollectionManager collectionManager;
 
   public RemoveLower(CollectionManager collectionManager) {
-    super(CommandInfo.valueOf("remove_lower", "Remove elements less than given", true, 0, true, ExecutionMode.SERVER));
+    super(CommandInfo.of("remove_lower", "Remove elements less than given", true, 0, true, ExecutionMode.SERVER));
     this.collectionManager = collectionManager;
   }
   
