@@ -1,32 +1,29 @@
 package client;
 
+import commands.*;
+import communication.ClientExchanger;
+import exceptions.ReadFailedException;
+import exceptions.ScriptExecutionException;
+import lombok.Setter;
 import model.FieldsInputMode;
 import model.FieldsReader;
 import model.data.Flat;
-import commands.*;
-import communication.CommandRequest;
-import communication.Request;
-import communication.Response;
-import exceptions.ReadFailedException;
-import exceptions.ScriptExecutionException;
 import utils.Console;
-import lombok.Data;
-import lombok.Setter;
 
 import java.io.*;
-import java.util.Map;
-import java.util.NavigableSet;
-import java.util.Optional;
-import java.util.TreeSet;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * This class creates interactive prompt, reads user input, checks commands and sends request to manager.
  */
 public class UserConsole implements Console {
-  private final Map<String, Command> accessibleCommands;
+  private final CommandNameToInfo accessibleCommandsInfo;
+  private final ClientExchanger exchanger;
   private final FieldsReader fieldsReader;
   private final NavigableSet<String> executingScripts = new TreeSet<>();
   private final String userName = "dev";
+  private final Map<String, Command> consoleSpecificCommands = new HashMap<>();
 
   private static final String USER_PROMPT_SUFFIX = "> ";
   private static final String SCRIPT_PROMPT_SUFFIX = "$ ";
@@ -47,12 +44,13 @@ public class UserConsole implements Console {
   private InputState inputState = InputState.USER;
 
   private boolean isConsoleRunning = false;
-  private boolean exitFlat = false;
+  private boolean exitFlag = false;
 
-  public UserConsole(BufferedReader in, PrintStream out, Map<String, Command> userCommands) {
+  public UserConsole(BufferedReader in, PrintStream out, CommandNameToInfo accessibleCommandsInfo, ClientExchanger exchanger) {
     this.in = in;
     this.out = out;
-    this.accessibleCommands = userCommands;
+    this.accessibleCommandsInfo = accessibleCommandsInfo;
+    this.exchanger = exchanger;
     this.fieldsReader = new FieldsReader(Flat.class);
     this.userPrompt = createUserPrompt(userName, getWorkingDir());
   }
@@ -74,34 +72,62 @@ public class UserConsole implements Console {
     return colorText(userName, Colors.GREEN) + "@" + colorText(dir, Colors.GREEN) + colorText(USER_PROMPT_SUFFIX, Colors.CYAN);
   }
 
-  private static void printErr(String message) {
-    System.err.println(colorText(message, Colors.RED));
+  private void printErr(String message) {
+    out.println(colorText(message, Colors.RED));
+  }
+
+  @Override
+  public void registerLocalCommnands(Map<String, Command> clientCommands) {
+    accessibleCommandsInfo.putAll(clientCommands.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, v -> v.getValue().getInfo())));
+    consoleSpecificCommands.putAll(clientCommands);
   }
 
   /**
    * Starts interactive command handling loop
    */
   @Override
-  public void run() throws IOException {
+  public void run() {
     if (isConsoleRunning) {
-      System.out.println("Console is already running");
+      out.println("Console is already running");
       return;
     }
     isConsoleRunning = true;
-    commandLoop();
+    try {
+      commandLoop();
+    } catch (IOException e) {
+      out.println("User console exited with IO exception");
+    }
+    out.println("Console closed");
     isConsoleRunning = false;
   }
 
   @Override
   public void exit() {
-    exitFlat = true;
+    exitFlag = true;
+  }
+
+  /**
+   * Changes console input mode to read from specified file.
+   * @param scriptName name of a file to read commands from.
+   * @throws ScriptExecutionException if recursion of file not found.
+   */
+  @Override
+  public void executeScript(String scriptName) throws ScriptExecutionException {
+    if (executingScripts.contains(scriptName)) {
+      throw new ScriptExecutionException("Recursion detected", scriptName);
+    }
+    try {
+      runScript(scriptName);
+    } catch (FileNotFoundException e) {
+      throw new ScriptExecutionException("File not found", scriptName);
+    }
   }
 
   private void commandLoop() throws IOException {
     String command;
     final CommandLineParser inputParser = new CommandLineParser();
     while (true) {
-      if (exitFlat) return;
+      if (exitFlag) return;
 
       command = readCommand();
       if (command == null) return;
@@ -115,17 +141,11 @@ public class UserConsole implements Console {
         continue;
       }
 
-      CommandInfo commandInfo = inputData.getCommandInfo();
-      String commandName = commandInfo.getName();
-      String inlineArg = inputData.getInlineArg();
+      CommandInfo commandInfo = inputData.commandInfo;
       boolean additionalInputNeeded = commandInfo.isHasComplexArgs();
-      ExecutionMode commandExecutionMode = commandInfo.getExecutionMode();
 
       Object[] dataValues = new Object[0];
-      if (commandExecutionMode.equals(ExecutionMode.CLIENT)) {
-        dataValues = new Object[1];
-        dataValues[0] = this;
-      } else if (additionalInputNeeded) {
+      if (additionalInputNeeded) {
         try {
           dataValues = readAdditionalInput();
         } catch (ReadFailedException e) {
@@ -134,11 +154,69 @@ public class UserConsole implements Console {
         }
       }
 
-     // Pack request object and send to "bridge" object.
-      Request request = this.createRequest(commandName, inlineArg, dataValues);
-//      Response response = commandManager.executeCommand(request);
-//      handleResponse(response);
+      String commandName = commandInfo.getName();
+      String inlineArg = inputData.inlineArg;
+      ExecutionPayload payload = ExecutionPayload.of(commandName, inlineArg, dataValues);
+      CommandExecutor commandExecutor = new CommandExecutor(commandInfo, payload);
+      commandExecutor.executeCommand();
     }
+  }
+
+  private class CommandExecutor {
+    private final CommandInfo commandInfo;
+    private final ExecutionPayload payload;
+    private final String commandName;
+
+    CommandExecutor(CommandInfo commandInfo, ExecutionPayload payload) {
+      this.commandInfo = commandInfo;
+      this.payload = payload;
+      this.commandName = commandInfo.getName();
+    }
+
+    void executeCommand() {
+      ExecutionMode mode = commandInfo.getExecutionMode();
+      switch (mode) {
+        case SERVER -> executeOnServer();
+        case CLIENT -> executeLocaly();
+      }
+    }
+
+    private void executeLocaly() {
+      if(!consoleSpecificCommands.containsKey(commandName)) {
+        throw new IllegalArgumentException("Command can't be executed localy");
+      }
+      ExecutionResult result = consoleSpecificCommands.get(commandName).execute(payload);
+      handleExecutionResult(result);
+    }
+
+    private void executeOnServer() {
+      try {
+        out.println("Sending command to server");
+        exchanger.createCommandRequest(payload);
+        handleNewResponses();
+      } catch (IOException e) {
+        printErr("Failed to execute command on server.");
+      }
+    }
+  }
+
+  private void handleExecutionResult(ExecutionResult result) {
+    if (!result.isSuccess()) {
+      printErr(result.getMessage());
+      return;
+    }
+    out.println(result.getMessage());
+  }
+
+  private void handleNewResponses() {
+    ExecutionResult result;
+    try {
+      result = exchanger.readExecutionResponse();
+    } catch (IOException | ClassNotFoundException e) {
+      printErr("Failed to recieve a response");
+      return;
+    }
+    handleExecutionResult(result);
   }
 
   private String readCommand() throws IOException {
@@ -165,23 +243,6 @@ public class UserConsole implements Console {
   private String readCommandFromScript() throws IOException {
     out.print(scriptPrompt);
     return readLine(scriptReader, 99);
-  }
-
-  /**
-   * Changes console input mode to read from specified file.
-   * @param scriptName name of a file to read commands from.
-   * @throws ScriptExecutionException if recursion of file not found.
-   */
-  @Override
-  public void executeScript(String scriptName) throws ScriptExecutionException {
-      if (executingScripts.contains(scriptName)) {
-        throw new ScriptExecutionException("Recursion detected", scriptName);
-      }
-      try {
-        runScript(scriptName);
-      } catch (FileNotFoundException e) {
-        throw new ScriptExecutionException("File not found", scriptName);
-      }
   }
 
   private String readLine(BufferedReader reader, int len) throws IOException {
@@ -216,11 +277,7 @@ public class UserConsole implements Console {
     executingScripts.pollLast();
   }
 
-  @Data(staticConstructor = "of")
-  private static class ParsedInput {
-    private final CommandInfo commandInfo;
-    private final String inlineArg;
-  }
+  private record ParsedInput(CommandInfo commandInfo, String inlineArg) {}
 
   private class CommandLineParser {
     public ParsedInput parse(String userInput) throws IllegalArgumentException {
@@ -247,7 +304,7 @@ public class UserConsole implements Console {
           throw new IllegalArgumentException("Command argument should be an integer");
         }
       }
-      return ParsedInput.of(commandInfo, inlineArg);
+      return new ParsedInput(commandInfo, inlineArg);
     }
 
     private String[] splitLine(String userInput) {
@@ -255,34 +312,17 @@ public class UserConsole implements Console {
     }
 
     private Optional<CommandInfo> fetchCommandInfo(String commandName) {
-      if (!accessibleCommands.containsKey(commandName)) {
+      if (!accessibleCommandsInfo.containsKey(commandName)) {
         return Optional.empty();
       }
-      return Optional.of(accessibleCommands.get(commandName).getInfo());
+      return Optional.of(accessibleCommandsInfo.get(commandName));
     }
   }
 
   private Object[] readAdditionalInput() throws ReadFailedException {
-    switch (inputState) {
-      case USER:
-        return fieldsReader.read(in, FieldsInputMode.INTERACTIVE);
-      case SCRIPT:
-        return fieldsReader.read(scriptReader, FieldsInputMode.SCRIPT);
-    }
-    throw new RuntimeException("Unknown console state");
-  }
-
-  @Override
-  public Request createRequest(String commandName, String inlineArg, Object[] dataValues) {
-    return CommandRequest.valueOf(commandName, ExecutionPayload.of(inlineArg, dataValues));
-  }
-
-  private void handleResponse(Response response) {
-    ExecutionResult result = response.getExecutionResult();
-    if (!result.isSuccess()) {
-      printErr(result.getMessage());
-      return;
-    }
-    out.println(result.getMessage());
+    return switch (inputState) {
+      case USER -> fieldsReader.read(in, FieldsInputMode.INTERACTIVE);
+      case SCRIPT -> fieldsReader.read(scriptReader, FieldsInputMode.SCRIPT);
+    };
   }
 }
