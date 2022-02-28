@@ -1,13 +1,16 @@
 package app;
 
-import server.exceptions.CollectionCorruptedException;
-import server.exceptions.StorageAccessException;
+import lombok.extern.log4j.Log4j2;
 import server.collection.CollectionManager;
 import server.commands.CommandManager;
 import server.commands.pcommands.*;
+import server.exceptions.CollectionCorruptedException;
+import server.exceptions.StorageAccessException;
 import server.model.FlatBuilder;
 import server.storage.FileStorage;
 import server.storage.Storage;
+
+import java.io.IOException;
 
 /* TODO list:
  * LAB6:
@@ -33,7 +36,8 @@ import server.storage.Storage;
 /**
  * Main app class. Entry point.
  */
-public class ServerMain {
+@Log4j2
+public class App {
   public static void main(String[] args) {
     final String DEFAULT_COLLECTION_PATH = "collection.csv";
     String filePath;
@@ -62,6 +66,9 @@ public class ServerMain {
     // when connection initialized server sends accessible commands to client.
     // check if port is free
 
+
+    // Save - only server
+
     commandManager.registerCommands(
         new Help(commandManager),  // info about accessible commands
         new Info(collectionManager),  // collection type,initDate,NumOfElements
@@ -70,8 +77,6 @@ public class ServerMain {
         new RemoveById(collectionManager),  // remove from collection
         new Clear(collectionManager),  // remove all elements from collection
         new Save(collectionManager),  // save collection in storage
-        new ExecuteScript(),  // run all commands from file
-        new Exit(),  // exit without saving
         new AddIfMax(collectionManager),  // add new element if it's the greatest
         new AddIfMin(collectionManager),  // add new element if it's the least
         new RemoveLower(collectionManager),  // remove all less than given
@@ -80,12 +85,15 @@ public class ServerMain {
         new PrintFieldDescendingNew(collectionManager)  // print descending sorted 'new' values
     );
 
-//    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
-//    Console console = new UserConsole(bufferedReader, new PrintStream(System.out), commandManager, commandManager.getUserAccessibleCommands());
-//    try {
-//      console.run();
-//    } catch (IOException e) {
-//      e.printStackTrace();
-//    }
+    try {
+      Server server = new Server(2222, commandManager);
+      server.run();
+      collectionManager.saveCollection();
+      log.info("Collection saved successfully");
+    } catch (IOException e) {
+      e.printStackTrace();
+    } catch (StorageAccessException e) {
+      log.error("Failed to save collection: {}", e.getMessage());
+    }
   }
 }
