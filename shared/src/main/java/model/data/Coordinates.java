@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class Coordinates {
+public class Coordinates implements Collectible {
   @GreaterThan(num=-734)
   @Getter
   @NotNull

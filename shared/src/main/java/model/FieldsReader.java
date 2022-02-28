@@ -13,6 +13,7 @@ import annotations.UserAccess;
 import exceptions.ReadFailedException;
 import exceptions.ValueConstraintsException;
 import exceptions.ValueFormatException;
+import model.data.Collectible;
 
 
 /**
@@ -112,8 +113,8 @@ public class FieldsReader {
     
     for (Field field : clazz.getDeclaredFields()) {
       Class<?> fieldType = field.getType();
-      // if field is a custom Type located in same package 
-      if (clazz.getPackage().equals(fieldType.getPackage()) && !fieldType.isEnum()) {
+      // if field is a custom Type located in same package
+      if (Collectible.class.isAssignableFrom(fieldType)) {
         accessibleFields.addAll(Arrays.asList(getRecursiveFields(fieldType)));
         continue;
       }

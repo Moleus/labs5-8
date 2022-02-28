@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class House {
+public class House implements Collectible {
   @NotNull
   @Getter
   @UserAccess(description="house name")

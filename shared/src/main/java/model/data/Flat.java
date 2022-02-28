@@ -16,7 +16,7 @@ import lombok.RequiredArgsConstructor;
  * Equivalance is checked by an id field.
  */
 @RequiredArgsConstructor
-public final class Flat implements Comparable<Flat> {
+public final class Flat implements Comparable<Flat>, Collectible {
   @NotNull
   @GreaterThan
   @Getter
