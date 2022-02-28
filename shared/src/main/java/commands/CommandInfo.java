@@ -3,13 +3,15 @@ package commands;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
+import java.io.Serializable;
+
 /**
  * Immutable data class which stores basic information about a console command.
  * Use factory method for new instances creation.
  */
 @Data
-@RequiredArgsConstructor(staticName = "valueOf")
-final public class CommandInfo {
+@RequiredArgsConstructor(staticName = "of")
+final public class CommandInfo implements Serializable {
   /**
    * Returns the name of a command.
    */

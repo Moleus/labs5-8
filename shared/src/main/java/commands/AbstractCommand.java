@@ -1,11 +1,11 @@
-package server.commands;
+package commands;
 
-import commands.Command;
-import commands.CommandInfo;
-import commands.ExecutionPayload;
-import commands.ExecutionResult;
+import java.io.Serial;
+import java.io.Serializable;
 
-public abstract class AbstractCommand implements Command {
+public abstract class AbstractCommand implements Command, Serializable {
+  @Serial
+  private static final long serialVersionUID = 102L;
   final CommandInfo info;
 
   public AbstractCommand(CommandInfo commandInfo) {
@@ -53,8 +53,7 @@ public abstract class AbstractCommand implements Command {
 
   @Override
   public boolean equals(Object o) {
-    if (!(o instanceof AbstractCommand)) return false;
-    AbstractCommand oc = (AbstractCommand) o;
+    if (!(o instanceof AbstractCommand oc)) return false;
     if (this == o) return true;
     return this.info.equals(oc.getInfo());
   }

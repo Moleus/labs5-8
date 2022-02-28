@@ -1,10 +1,12 @@
 package commands;
 
+import java.io.Serializable;
+
 /**
  * Immutable class which represents result of a command execution.
  * Use factory method for new instances creation.
  */
-public class ExecutionResult {
+public class ExecutionResult implements Serializable {
   private final boolean success;
   private final String message;
 
