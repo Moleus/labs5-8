@@ -7,7 +7,7 @@ import communication.packaging.Request;
 import communication.packaging.Response;
 import lombok.extern.log4j.Log4j2;
 import server.commands.CommandManager;
-import server.communication.MessagesProccessor;
+import server.communication.MessagesProcessor;
 import server.communication.ServerTransceiver;
 import utils.Exitable;
 
@@ -137,7 +137,7 @@ public class Server implements Exitable {
   private void onChanngelWritable(SelectionKey key) throws IOException {
     SocketChannel writableChannel = (SocketChannel) key.channel();
     Request clientRequest = socketToRequest.get(writableChannel);
-    MessagesProccessor msgProccessor = MessagesProccessor.of(clientRequest);
+    MessagesProcessor msgProccessor = MessagesProcessor.of(clientRequest);
 
     if (!msgProccessor.isPayloadValid()) {
       log.warn("Message payload is invalid");
