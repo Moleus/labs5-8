@@ -1,11 +1,9 @@
 package server.commands;
 
 import commands.Command;
+import commands.CommandNameToInfo;
 import commands.ExecutionPayload;
 import commands.ExecutionResult;
-import communication.CommandResponse;
-import communication.Request;
-import communication.Response;
 
 import java.util.HashMap;
 import java.util.List;
@@ -53,17 +51,15 @@ public class CommandManager {
 
   /**
    * Executes command specified in request.
-   * @param request data-object with parameters required for command execution.
-   * @return {@link Response} data-object with execution result.
+   * @param payload data-object with parameters required for command execution.
+   * @return {@link ExecutionResult} data-object with execution result.
    */
-  public Response executeCommand(Request request) {
-    String commandName = request.getCommandName();
-    ExecutionPayload payload = request.getExecutionPayload();
+  public ExecutionResult executeCommand(ExecutionPayload payload) {
+    String commandName = payload.getCommandName();
     if (!isRegistered(commandName)) {
-      return CommandResponse.valueOf(ExecutionResult.valueOf(false, "Invalid command"));
+      return ExecutionResult.valueOf(false, "Invalid command");
     }
-    ExecutionResult result = strToCommand.get(commandName).execute(payload);
-    return CommandResponse.valueOf(result);
+    return strToCommand.get(commandName).execute(payload);
   }
 
   /**
@@ -83,15 +79,14 @@ public class CommandManager {
   /**
    * Returns Map of only commands which are accessible by user.
    */
-  public Map<String, Command> getUserAccessibleCommands() {
-    return strToCommand.entrySet().stream().filter(e -> e.getValue().isUserAccessible()).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  public CommandNameToInfo getUseraccessibleCommandsInfo() {
+    return CommandNameToInfo.of(strToCommand.entrySet().stream().filter(e -> e.getValue().isUserAccessible()).collect(Collectors.toMap(k -> k.getValue().getName(), v -> v.getValue().getInfo())));
   }
 
   @Override
   public boolean equals(Object o) {
-    if (!(o instanceof CommandManager)) return false;
+    if (!(o instanceof CommandManager obj)) return false;
     if (this == o) return true;
-    CommandManager obj = (CommandManager) o;
     return this.getCommandNames().equals(obj.getCommandNames());
   }
 }

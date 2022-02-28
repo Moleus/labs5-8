@@ -1,16 +1,12 @@
 package utils;
 
-import communication.Request;
+import commands.Command;
 import exceptions.ScriptExecutionException;
 
-import java.io.IOException;
+import java.util.Map;
 
-public interface Console {
-  Request createRequest(String commandName, String inlineArg, Object[] dataValues);
-
-  void run() throws IOException;
-
-  void exit();
-
+public interface Console extends Exitable, ScriptExecutor {
+  void run();
   void executeScript(String scriptName) throws ScriptExecutionException;
+  void registerLocalCommnands(Map<String, Command> commands);
 }
