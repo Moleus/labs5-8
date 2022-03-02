@@ -65,7 +65,6 @@ public class ClientExchanger implements Exchanger {
       throw new ReconnectionTimoutException();
     }
     if (!response.getResponseCode().equals(ResponseCode.SUCCESS)) {
-      // TODO: Indicate to console that something in communication went wrong.
       throw new IOException("Recieved response with invalid status code");
     }
     return (ExecutionResult) response.getPayload().orElseThrow(RecievedInvalidObjectException::new);
@@ -109,7 +108,6 @@ public class ClientExchanger implements Exchanger {
     Object payload;
     try {
       response = (Response) transceiver.recieve();
-      // TODO: refactor me
       payload = response.getPayload().orElseThrow(() -> new ClassNotFoundException("Commands Map expected"));
     } catch (IOException | ClassNotFoundException e) {
       return Optional.empty();

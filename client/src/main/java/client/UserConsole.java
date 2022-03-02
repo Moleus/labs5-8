@@ -28,12 +28,6 @@ public class UserConsole implements Console {
   private final ClientExchanger exchanger;
   private final CollectionFilter collectionFilter;
   private final FieldsReader fieldsReader;
-  private final NavigableSet<String> executingScripts = new TreeSet<>();
-  private final String userName = "dev";
-  private final Map<String, Command> consoleSpecificCommands = new HashMap<>();
-
-  private static final String USER_PROMPT_SUFFIX = "> ";
-  private static final String SCRIPT_PROMPT_SUFFIX = "$ ";
 
   // contains username + working dir + >
   private final String userPrompt;
@@ -88,12 +82,6 @@ public class UserConsole implements Console {
 
   private void printErr(String message) {
     out.println(colorText(message, Colors.RED));
-  }
-
-  @Override
-  public void registerLocalCommnands(Map<String, Command> clientCommands) {
-    accessibleCommandsInfo.putAll(clientCommands.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, v -> v.getValue().getInfo())));
-    consoleSpecificCommands.putAll(clientCommands);
   }
 
   /**
@@ -267,7 +255,6 @@ public class UserConsole implements Console {
   }
 
   private void handleNewResponses() {
-    ExecutionResult result;
     try {
       // calls blocking read
       ExecutionResult result = exchanger.readExecutionResponse();
@@ -297,7 +284,6 @@ public class UserConsole implements Console {
   }
 
   private String readUserCommand() throws IOException {
-    out.print(userPrompt);
     return readLine(in, 100);
   }
 
@@ -309,7 +295,6 @@ public class UserConsole implements Console {
   }
 
   private String readCommandFromScript() throws IOException {
-    out.print(scriptPrompt);
     return readLine(scriptReader, 99);
   }
 
