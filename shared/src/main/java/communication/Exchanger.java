@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.Optional;
 
 public interface Exchanger {
-  void createCommandRequest(ExecutionPayload payload) throws IOException;
+  void requestCollectionUpdate() throws IOException;
 
   ExecutionResult readExecutionResponse() throws IOException, ClassNotFoundException;
 
