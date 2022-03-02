@@ -3,6 +3,7 @@ package client;
 import commands.*;
 import communication.ClientExchanger;
 import exceptions.ReadFailedException;
+import exceptions.ReconnectionTimoutException;
 import exceptions.ScriptExecutionException;
 import lombok.Setter;
 import model.CollectionFilter;
@@ -211,8 +212,9 @@ public class UserConsole implements Console {
         out.println("Sending command to server");
         exchanger.createCommandRequest(payload);
         handleNewResponses();
-      } catch (IOException e) {
+      } catch (IOException | ReconnectionTimoutException e) {
         printErr("Failed to execute command on server.");
+        exit();
       }
     }
   }
@@ -267,12 +269,15 @@ public class UserConsole implements Console {
   private void handleNewResponses() {
     ExecutionResult result;
     try {
-      result = exchanger.readExecutionResponse();
-    } catch (IOException | ClassNotFoundException e) {
-      printErr("Failed to recieve a response");
-      return;
+      // calls blocking read
+      ExecutionResult result = exchanger.readExecutionResponse();
+      handleExecutionResult(result);
+    } catch (IOException ignored) {
+    } catch (ClassNotFoundException e) {
+      printErr("Failed to recieve a response: " + e.getMessage());
+    } catch (ReconnectionTimoutException e) {
+      exit();
     }
-    handleExecutionResult(result);
   }
 
   private String readCommand() throws IOException {

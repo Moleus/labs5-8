@@ -2,6 +2,7 @@ package communication;
 
 import communication.packaging.Message;
 import communication.packaging.Response;
+import exceptions.ConnectionIsDownException;
 import exceptions.RecievedInvalidObjectException;
 
 import java.io.IOException;
@@ -13,9 +14,8 @@ public class ClientTransceiver extends AbstractTransiever {
   }
 
   @Override
-  public Response recieve() throws IOException, ClassNotFoundException {
+  public Response recieve() throws IOException, ClassNotFoundException, ConnectionIsDownException {
     Message messageObj = super.readObject();
-    System.out.println("Recieving new object");
     if (!(messageObj instanceof Response responseObj)) {
       throw new RecievedInvalidObjectException("Can't parse Response object!");
     }

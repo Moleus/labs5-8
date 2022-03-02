@@ -16,6 +16,7 @@ public class ClientSession implements Session {
   public boolean connect() {
     try {
       socketChannel = SocketChannel.open(remoteAddress);
+      socketChannel.configureBlocking(false);
     } catch (IOException e) {
       return false;
     }
@@ -23,21 +24,24 @@ public class ClientSession implements Session {
   }
 
   @Override
-  public boolean reconnect() {
+  public boolean reconnect(int countDownSecnods) {
     int connectionTriesCounter = 0;
     try {
       disconnect();
-    } catch (IOException ignore) {}
+    } catch (IOException ignore) {
+    }
 
-    while(connectionTriesCounter++ < 15) {
+    while (connectionTriesCounter++ < countDownSecnods) {
       try {
         if (!connect()) {
           Thread.sleep(1000);
           System.out.println("Reconnecting to server");
         } else {
+          System.out.println("Connected");
           return true;
         }
-        } catch (InterruptedException ignored) {}
+      } catch (InterruptedException ignored) {
+      }
     }
     return false;
   }

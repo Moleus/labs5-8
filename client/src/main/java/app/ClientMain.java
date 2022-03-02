@@ -68,7 +68,14 @@ public class ClientMain {
   }
 
   private static boolean waitForConnection(Session clientSession) {
-    return clientSession.reconnect();
+    return clientSession.reconnect(15);
+  }
+
+  private static void sleep(int millis) {
+    try {
+      Thread.sleep(millis);
+    } catch (InterruptedException ignored) {
+    }
   }
 
   private static Optional<CommandNameToInfo> getaccessibleCommandsInfo(Exchanger exchanger) {
@@ -77,13 +84,10 @@ public class ClientMain {
     while (tries++ < maxTries) {
       try {
         exchanger.requestAccessibleCommandsInfo();
-        Thread.sleep(50);
+        sleep(250);
         Optional<CommandNameToInfo> commansOp = exchanger.readaccessibleCommandsInfoResponse();
         if (commansOp.isPresent()) return commansOp;
-        System.out.println("Waiting for connection");
-        Thread.sleep(1000);
-      } catch (InterruptedException ignore) {}
-        catch (IOException e) {
+      } catch (IOException | ReconnectionTimoutException e) {
         System.out.println("Failed to request accessible commands from server. Exiting");
         break;
       }

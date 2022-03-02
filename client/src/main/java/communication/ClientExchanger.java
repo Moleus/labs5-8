@@ -3,11 +3,11 @@ package communication;
 import commands.CommandNameToInfo;
 import commands.ExecutionPayload;
 import commands.ExecutionResult;
-import communication.packaging.ClientCommandsRequest;
-import communication.packaging.ExecutionRequest;
-import communication.packaging.Request;
-import communication.packaging.Response;
+import communication.packaging.*;
+import exceptions.ConnectionIsDownException;
 import exceptions.RecievedInvalidObjectException;
+import exceptions.ReconnectionTimoutException;
+import model.CollectionWrapper;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -16,6 +16,7 @@ public class ClientExchanger implements Exchanger {
   private final Transceiver transceiver;
   private RequestPurpose lastRequestPurpose;
   private final Session clientSession;
+  private final int RECONNECTION_SECONDS = 15;
 
   public ClientExchanger(Transceiver transceiver, Session clientSession) {
     this.transceiver = transceiver;
@@ -30,32 +31,39 @@ public class ClientExchanger implements Exchanger {
   }
 
   @Override
-  public void createCommandRequest(ExecutionPayload payload) throws IOException {
+  public void createCommandRequest(ExecutionPayload payload) throws IOException, ReconnectionTimoutException {
     lastRequestPurpose = RequestPurpose.EXECUTE;
     Request request = ExecutionRequest.of(payload);
     try {
       transceiver.send(request);
     } catch (IOException e) {
-      //TODO: think more about reconnecting mechanism.
-      //FIXME: responseHandler blocks console if no request is sent.
-      if(clientSession.reconnect()) {
+      if (clientSession.reconnect(RECONNECTION_SECONDS)) {
         transceiver.newSocketChannel(clientSession.getSocketChannel());
         System.out.println("Connection restored");
         transceiver.send(request);
         return;
       }
       System.out.println("Failed to connect to server");
-      throw new IOException();
+      throw new ReconnectionTimoutException();
     }
   }
 
   @Override
-  public ExecutionResult readExecutionResponse() throws IOException, ClassNotFoundException {
+  public ExecutionResult readExecutionResponse() throws IOException, ClassNotFoundException, ReconnectionTimoutException {
     if (!lastRequestPurpose.equals(RequestPurpose.EXECUTE)) {
       throw new IllegalCallerException("Last request purpose wasn't " + RequestPurpose.EXECUTE);
     }
     Response response;
-    response = (Response) transceiver.recieve();
+    clientSession.getSocketChannel().configureBlocking(true);
+    try {
+      response = (Response) transceiver.recieve();
+    } catch (ConnectionIsDownException e) {
+      if (tryToReconnect()) {
+        return readExecutionResponse();
+      }
+      System.err.println("Couldn't reconnect to server");
+      throw new ReconnectionTimoutException();
+    }
     if (!response.getResponseCode().equals(ResponseCode.SUCCESS)) {
       // TODO: Indicate to console that something in communication went wrong.
       throw new IOException("Recieved response with invalid status code");
@@ -96,7 +104,7 @@ public class ClientExchanger implements Exchanger {
   }
 
   @Override
-  public Optional<CommandNameToInfo> readaccessibleCommandsInfoResponse() {
+  public Optional<CommandNameToInfo> readaccessibleCommandsInfoResponse() throws ReconnectionTimoutException {
     Response response;
     Object payload;
     try {
@@ -105,6 +113,12 @@ public class ClientExchanger implements Exchanger {
       payload = response.getPayload().orElseThrow(() -> new ClassNotFoundException("Commands Map expected"));
     } catch (IOException | ClassNotFoundException e) {
       return Optional.empty();
+    } catch (ConnectionIsDownException e) {
+      if (!tryToReconnect()) {
+        System.err.println("Couldn't reconnect to server");
+        throw new ReconnectionTimoutException();
+      }
+      return readaccessibleCommandsInfoResponse();
     }
 
     if (!response.getResponseCode().equals(ResponseCode.SUCCESS)) {
@@ -114,5 +128,13 @@ public class ClientExchanger implements Exchanger {
       return Optional.empty();
     }
     return Optional.of(commandNameToInfo);
+  }
+
+  public boolean tryToReconnect() {
+    if (clientSession.reconnect(RECONNECTION_SECONDS)) {
+      transceiver.newSocketChannel(clientSession.getSocketChannel());
+      return true;
+    }
+    return false;
   }
 }
