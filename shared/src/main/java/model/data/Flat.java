@@ -1,14 +1,15 @@
 package model.data;
 
-import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.List;
-
 import annotations.GreaterThan;
 import annotations.NotNull;
 import annotations.UserAccess;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+
+import java.io.Serializable;
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Immutable object class used as an entry in collection.
@@ -16,7 +17,7 @@ import lombok.RequiredArgsConstructor;
  * Equivalance is checked by an id field.
  */
 @RequiredArgsConstructor
-public final class Flat implements Comparable<Flat>, Collectible {
+public final class Flat implements Comparable<Flat>, Collectible, Serializable {
   @NotNull
   @GreaterThan
   @Getter
