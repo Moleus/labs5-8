@@ -1,15 +1,14 @@
 package server.commands.pcommands;
 
+import commands.AbstractCommand;
 import commands.CommandInfo;
 import commands.ExecutionPayload;
 import commands.ExecutionResult;
-import server.collection.CollectionManager;
-import commands.AbstractCommand;
-
-import server.model.FlatBuilder;
+import exceptions.ElementNotFoundException;
 import model.data.Flat;
-import server.exceptions.ElementNotFoundException;
+import server.collection.CollectionManager;
 import server.exceptions.InvalidDataValues;
+import server.model.FlatBuilder;
 
 import static commands.ExecutionMode.SERVER;
 

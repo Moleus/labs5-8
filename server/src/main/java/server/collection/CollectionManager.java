@@ -1,18 +1,20 @@
 package server.collection;
 
+import exceptions.ElementNotFoundException;
+import lombok.extern.log4j.Log4j2;
+import model.CollectionWrapper;
 import model.data.Flat;
 import server.exceptions.CollectionCorruptedException;
-import server.exceptions.ElementNotFoundException;
 import server.exceptions.StorageAccessException;
 import server.storage.Storage;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Manager class which stores collection and provides an API to interact with it.
  */
+@Log4j2
 public class CollectionManager {
   //  Set s = Collections.synchronizedSet(new LinkedHashSet(...));
   private final Set<Flat> objectsCollection = new LinkedHashSet<>();
@@ -24,7 +26,15 @@ public class CollectionManager {
   }
 
   /**
+   * Returns wrapper object with exact copy of current collection and creationDate
+   */
+  public CollectionWrapper getWrapper() {
+    return CollectionWrapper.of(new LinkedHashSet<>(objectsCollection), creationDateTime);
+  }
+
+  /**
    * Saves collection in storage.
+   *
    * @throws StorageAccessException if storage is not accessible.
    */
   public void saveCollection() throws StorageAccessException {
@@ -62,18 +72,27 @@ public class CollectionManager {
   }
 
   /**
-   * Returns collection creation time
+   * Returns max {@link Flat} from collection.
+   *
+   * @throws exceptions.ElementNotFoundException if collection is empty.
    */
-  public LocalDateTime getCreationDateTime() {
-    return creationDateTime;
+  public Flat getMax() throws exceptions.ElementNotFoundException {
+    if (objectsCollection.isEmpty()) {
+      throw new exceptions.ElementNotFoundException("Can't get max. Collection is empty");
+    }
+    return Collections.max(objectsCollection);
   }
 
   /**
-   * Returns collection size.
-   * @see LinkedHashSet#size()
+   * Returns min {@link Flat} from collection.
+   *
+   * @throws exceptions.ElementNotFoundException if collection is empty.
    */
-  public int getSize() {
-    return objectsCollection.size();
+  public Flat getMin() throws exceptions.ElementNotFoundException {
+    if (objectsCollection.isEmpty()) {
+      throw new exceptions.ElementNotFoundException("Can't get min. Collection is empty");
+    }
+    return Collections.min(objectsCollection);
   }
 
   /**
@@ -97,55 +116,11 @@ public class CollectionManager {
   }
 
   /**
-   * Returns max {@link Flat} from collection.
-   * @throws ElementNotFoundException if collection is empty.
-   */
-  public Flat getMax() throws ElementNotFoundException {
-    if (objectsCollection.isEmpty()) {
-      throw new ElementNotFoundException("Can't get max. Collection is empty");
-    }
-    return Collections.max(objectsCollection);
-  }
-
-  /**
-   * Returns min {@link Flat} from collection.
-   * @throws ElementNotFoundException if collection is empty.
-   */
-  public Flat getMin() throws ElementNotFoundException {
-    if (objectsCollection.isEmpty()) {
-      throw new ElementNotFoundException("Can't get min. Collection is empty");
-    }
-    return Collections.min(objectsCollection);
-  }
-
-  /**
    * Removes all entries which are less than passed {@link Flat} object.
    * @param upperBoundFlat {@link Flat} to compare with.
    * @return true if removed. False if nothing changed.
    */
   public boolean removeLower(Flat upperBoundFlat) {
     return objectsCollection.removeIf(flat -> flat.compareTo(upperBoundFlat) < 0);
-  }
-
-  /**
-   * Returns array of {@link Flat} which name contains passed string.
-   * @param filter string to lookup in names.
-   */
-  public Flat[] filterContainsName(String filter) {
-    return objectsCollection.stream().sorted().filter(flat -> flat.getName().contains(filter)).toArray(Flat[]::new);
-  }
-
-  /**
-   * Returns a {@link Set} of unique {@link Long} values got by {@link Flat#getNumberOfRooms()} from each entry.
-   */
-  public Set<Long> getUniqueNumberOfRooms() {
-    return objectsCollection.stream().map(Flat::getNumberOfRooms).collect(Collectors.toSet());
-  }
-
-  /**
-   * Returns an array of {@link Boolean} values in descending order got by {@link Flat#getNewness()} from each entry.
-   */
-  public Boolean[] getFieldDescendingNew() {
-    return objectsCollection.stream().sorted(Comparator.reverseOrder()).map(Flat::getNewness).toArray(Boolean[]::new);
   }
 }

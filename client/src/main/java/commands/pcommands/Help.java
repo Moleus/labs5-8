@@ -1,7 +1,6 @@
-package server.commands.pcommands;
+package commands.pcommands;
 
 import commands.*;
-import server.commands.CommandManager;
 
 import java.util.stream.Collectors;
 
@@ -9,7 +8,7 @@ public final class Help extends AbstractCommand {
   private final CommandManager commandManager;
 
   public Help(CommandManager commandManager) {
-    super(CommandInfo.of("help", "Shows info about accessible commands", true, 0, false, ExecutionMode.SERVER));
+    super(CommandInfo.of("help", "Shows info about accessible commands", true, 0, false, ExecutionMode.CLIENT));
     this.commandManager = commandManager;
   }
 

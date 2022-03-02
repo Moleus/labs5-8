@@ -1,8 +1,8 @@
 package app;
 
+import commands.CommandManager;
 import lombok.extern.log4j.Log4j2;
 import server.collection.CollectionManager;
-import server.commands.CommandManager;
 import server.commands.pcommands.*;
 import server.exceptions.CollectionCorruptedException;
 import server.exceptions.StorageAccessException;
@@ -70,8 +70,6 @@ public class App {
     // Save - only server
 
     commandManager.registerCommands(
-        new Help(commandManager),  // info about accessible commands
-        new Info(collectionManager),  // collection type,initDate,NumOfElements
         new Add(collectionManager),  // add new element to collection
         new Update(collectionManager),  // modify existing element in collection
         new RemoveById(collectionManager),  // remove from collection
@@ -79,14 +77,11 @@ public class App {
         new Save(collectionManager),  // save collection in storage
         new AddIfMax(collectionManager),  // add new element if it's the greatest
         new AddIfMin(collectionManager),  // add new element if it's the least
-        new RemoveLower(collectionManager),  // remove all less than given
-        new FilterContainsName(collectionManager),  // print elements with this string in names
-        new PrintUniqueNumberOfRooms(collectionManager),  // print set of 'numberOfRooms' values
-        new PrintFieldDescendingNew(collectionManager)  // print descending sorted 'new' values
+        new RemoveLower(collectionManager)  // remove all less than given
     );
 
     try {
-      Server server = new Server(2222, commandManager);
+      Server server = new Server(2222, commandManager, collectionManager);
       server.run();
       collectionManager.saveCollection();
       log.info("Collection saved successfully");

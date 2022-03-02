@@ -5,21 +5,27 @@ import communication.ClientExchanger;
 import exceptions.ReadFailedException;
 import exceptions.ScriptExecutionException;
 import lombok.Setter;
+import model.CollectionFilter;
+import model.CollectionWrapper;
 import model.FieldsInputMode;
 import model.FieldsReader;
 import model.data.Flat;
 import utils.Console;
 
 import java.io.*;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.NavigableSet;
+import java.util.Optional;
+import java.util.TreeSet;
 
 /**
  * This class creates interactive prompt, reads user input, checks commands and sends request to manager.
  */
 public class UserConsole implements Console {
-  private final CommandNameToInfo accessibleCommandsInfo;
+  private final BufferedReader in;
+  private final PrintStream out;
+  private final CommandManager commandManager;
   private final ClientExchanger exchanger;
+  private final CollectionFilter collectionFilter;
   private final FieldsReader fieldsReader;
   private final NavigableSet<String> executingScripts = new TreeSet<>();
   private final String userName = "dev";
@@ -33,24 +39,31 @@ public class UserConsole implements Console {
   // contains username + script name + $
   private String scriptPrompt;
 
-  private final BufferedReader in;
-  private final PrintStream out;
+
+  private final NavigableSet<String> executingScripts = new TreeSet<>();
+  private final String userName = "dev";
+
+  private static final String USER_PROMPT_SUFFIX = "> ";
+  private static final String SCRIPT_PROMPT_SUFFIX = "$ ";
+
 
   @Setter
   private BufferedReader scriptReader = null;
 
   private enum InputState {USER, SCRIPT}
+
   @Setter
   private InputState inputState = InputState.USER;
 
   private boolean isConsoleRunning = false;
   private boolean exitFlag = false;
 
-  public UserConsole(BufferedReader in, PrintStream out, CommandNameToInfo accessibleCommandsInfo, ClientExchanger exchanger) {
+  public UserConsole(BufferedReader in, PrintStream out, CommandManager commandManager, ClientExchanger exchanger, CollectionFilter collectionFilter) {
     this.in = in;
     this.out = out;
-    this.accessibleCommandsInfo = accessibleCommandsInfo;
+    this.commandManager = commandManager;
     this.exchanger = exchanger;
+    this.collectionFilter = collectionFilter;
     this.fieldsReader = new FieldsReader(Flat.class);
     this.userPrompt = createUserPrompt(userName, getWorkingDir());
   }
@@ -182,10 +195,10 @@ public class UserConsole implements Console {
     }
 
     private void executeLocaly() {
-      if(!consoleSpecificCommands.containsKey(commandName)) {
+      if (!commandManager.isRegistered(commandName)) {
         throw new IllegalArgumentException("Command can't be executed localy");
       }
-      ExecutionResult result = consoleSpecificCommands.get(commandName).execute(payload);
+      ExecutionResult result = commandManager.executeCommand(payload);
       handleExecutionResult(result);
     }
 
@@ -238,6 +251,13 @@ public class UserConsole implements Console {
   private String readUserCommand() throws IOException {
     out.print(userPrompt);
     return readLine(in, 100);
+  }
+
+  private void printPrompt() {
+    switch (inputState) {
+      case USER -> out.print(userPrompt);
+      case SCRIPT -> out.println(scriptPrompt);
+    }
   }
 
   private String readCommandFromScript() throws IOException {
@@ -312,10 +332,11 @@ public class UserConsole implements Console {
     }
 
     private Optional<CommandInfo> fetchCommandInfo(String commandName) {
-      if (!accessibleCommandsInfo.containsKey(commandName)) {
+      CommandNameToInfo nameToInfo = commandManager.getUseraccessibleCommandsInfo();
+      if (!nameToInfo.containsKey(commandName)) {
         return Optional.empty();
       }
-      return Optional.of(accessibleCommandsInfo.get(commandName));
+      return Optional.of(nameToInfo.get(commandName));
     }
   }
 

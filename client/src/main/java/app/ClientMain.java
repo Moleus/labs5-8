@@ -1,11 +1,12 @@
 package app;
 
-import client.*;
-import commands.Command;
+import client.UserConsole;
+import commands.CommandManager;
 import commands.CommandNameToInfo;
-import commands.pcommands.ExecuteScript;
-import commands.pcommands.Exit;
+import commands.pcommands.*;
 import communication.*;
+import exceptions.ReconnectionTimoutException;
+import model.CollectionFilter;
 import utils.Console;
 
 import java.io.BufferedReader;
@@ -28,8 +29,18 @@ public class ClientMain {
     Transceiver clientTransceiver = new ClientTransceiver(clientSession.getSocketChannel());
     ClientExchanger exchanger = new ClientExchanger(clientTransceiver, clientSession);
 
+    CollectionFilter collectionFilter = new CollectionFilter();
+    try {
+      exchanger.requestCollectionUpdate();
+      collectionFilter.loadCollection(exchanger.fetchUpdatedCollection(true));
+    } catch (IOException | ClassNotFoundException | ReconnectionTimoutException e) {
+      System.err.println("Failed to load collection. Exiting with error: " + e.getMessage());
+      return;
+    }
+
     Optional<CommandNameToInfo> commandsOp = getaccessibleCommandsInfo(exchanger);
     if (commandsOp.isEmpty()) {
+      System.out.println("Can't get accessible commands stopping.");
       return;
     }
 
@@ -37,12 +48,21 @@ public class ClientMain {
 
     BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
     PrintStream writer = new PrintStream(System.out);
-    Console userConsole = new UserConsole(reader, writer, commandNameToInfo, exchanger);
+    CommandManager clientCommandManager = new CommandManager();
+    Console userConsole = new UserConsole(reader, writer, clientCommandManager, exchanger, collectionFilter);
 
-    Map<String, Command> clientSpecificCommands = new HashMap<>();
-    clientSpecificCommands.put("exit", new Exit(userConsole));
-    clientSpecificCommands.put("execute_script", new ExecuteScript(userConsole));
-    userConsole.registerLocalCommnands(clientSpecificCommands);
+    clientCommandManager.registerCommands(
+        new Help(clientCommandManager),
+        new Exit(userConsole),
+        new ExecuteScript(userConsole),
+        new Info(collectionFilter),
+        new FilterContainsName(collectionFilter),
+        new PrintUniqueNumberOfRooms(collectionFilter),
+        new PrintFieldDescendingNew(collectionFilter)
+    );
+
+    CommandNameToInfo commandNameToInfo = commandsOp.get();
+    clientCommandManager.addCommandInfos(commandNameToInfo);
 
     userConsole.run();
   }
