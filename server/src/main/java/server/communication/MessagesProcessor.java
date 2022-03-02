@@ -32,6 +32,7 @@ public class MessagesProcessor {
     boolean isValid = switch (purpose) {
       case EXECUTE -> processingMessage.getPayload().map(this::isValidExecuteValues).orElse(false);
       case GET_COMMANDS -> processingMessage.getPayload().isEmpty();
+      case UPDATE_COLLECTION -> true;
     };
 
     if (!isValid) {
@@ -49,7 +50,6 @@ public class MessagesProcessor {
   }
 
   private Response createResponse(RequestPurpose purpose, ResponseCode responseCode, Object payload) {
-    log.debug("Payload is: {}", payload);
     return BaseResponse.of(purpose, responseCode, payload);
   }
 

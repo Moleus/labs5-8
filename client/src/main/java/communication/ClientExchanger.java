@@ -23,6 +23,13 @@ public class ClientExchanger implements Exchanger {
   }
 
   @Override
+  public void requestCollectionUpdate() throws IOException {
+    lastRequestPurpose = RequestPurpose.UPDATE_COLLECTION;
+    Request request = BaseRequest.of(RequestPurpose.UPDATE_COLLECTION, null);
+    transceiver.send(request);
+  }
+
+  @Override
   public void createCommandRequest(ExecutionPayload payload) throws IOException {
     lastRequestPurpose = RequestPurpose.EXECUTE;
     Request request = ExecutionRequest.of(payload);
@@ -54,6 +61,30 @@ public class ClientExchanger implements Exchanger {
       throw new IOException("Recieved response with invalid status code");
     }
     return (ExecutionResult) response.getPayload().orElseThrow(RecievedInvalidObjectException::new);
+  }
+
+  public CollectionWrapper fetchUpdatedCollection(boolean block) throws IOException, ClassNotFoundException, ReconnectionTimoutException {
+    Response response;
+    clientSession.getSocketChannel().configureBlocking(block);
+    try {
+      response = (Response) transceiver.recieve();
+    } catch (ConnectionIsDownException e) {
+      if (tryToReconnect()) {
+        return fetchUpdatedCollection(block);
+      }
+      System.err.println("Couldn't reconnect to server");
+      throw new ReconnectionTimoutException();
+    }
+    if (!response.getResponseCode().equals(ResponseCode.SUCCESS)) {
+      throw new IOException("Recieved response with invalid status code");
+    }
+
+    Object payload = response.getPayload().orElseThrow(RecievedInvalidObjectException::new);
+
+    if (!(payload instanceof CollectionWrapper collectionWrapper)) {
+      throw new RecievedInvalidObjectException("Can't parse Response object!");
+    }
+    return collectionWrapper;
   }
 
   @Override

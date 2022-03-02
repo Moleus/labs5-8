@@ -142,6 +142,10 @@ public class UserConsole implements Console {
     while (true) {
       if (exitFlag) return;
 
+      printPrompt();
+
+      fetchCollectionUpdate();
+
       command = readCommand();
       if (command == null) return;
       if (command.trim().equals("")) continue;
@@ -221,6 +225,45 @@ public class UserConsole implements Console {
     out.println(result.getMessage());
   }
 
+  private void fetchCollectionUpdate() {
+    if (inputState == InputState.SCRIPT) {
+      sleep(100);
+      fetchCollection();
+      return;
+    }
+    if (inputState == InputState.USER) {
+      do {
+        sleep(50);
+        fetchCollection();
+      } while (!isUserInputAvailable());
+    }
+  }
+
+  private void sleep(int millis) {
+    try {
+      Thread.sleep(millis);
+    } catch (InterruptedException ignored) {
+    }
+  }
+
+  private boolean isUserInputAvailable() {
+    try {
+      if (System.in.available() > 0) return true;
+    } catch (IOException ignored) {
+    }
+    return false;
+  }
+
+  private void fetchCollection() {
+    try {
+      CollectionWrapper collectionWrapper = exchanger.fetchUpdatedCollection(false);
+      collectionFilter.loadCollection(collectionWrapper);
+    } catch (ClassNotFoundException | ReconnectionTimoutException e) {
+      printErr("Failed to recieve collection update: " + e.getMessage());
+    } catch (IOException ignored) {
+    }
+  }
+
   private void handleNewResponses() {
     ExecutionResult result;
     try {
@@ -243,7 +286,7 @@ public class UserConsole implements Console {
           return command;
         }
         closeScript();
-        return readUserCommand();
+        return "";
     }
     return readUserCommand();
   }

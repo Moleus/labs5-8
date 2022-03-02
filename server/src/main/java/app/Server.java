@@ -1,12 +1,18 @@
 package app;
 
+import commands.CommandManager;
 import commands.CommandNameToInfo;
 import commands.ExecutionPayload;
 import commands.ExecutionResult;
+import communication.RequestPurpose;
+import communication.ResponseCode;
+import communication.packaging.BaseResponse;
+import communication.packaging.Message;
 import communication.packaging.Request;
 import communication.packaging.Response;
 import lombok.extern.log4j.Log4j2;
-import server.commands.CommandManager;
+import model.CollectionWrapper;
+import server.collection.CollectionManager;
 import server.communication.MessagesProcessor;
 import server.communication.ServerTransceiver;
 import utils.Exitable;
@@ -15,55 +21,63 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.nio.channels.*;
-import java.util.*;
+import java.nio.channels.spi.SelectorProvider;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Log4j2
 public class Server implements Exitable {
   volatile boolean runningFlag;
+
+  private final int port;
   private final CommandManager commandManager;
-  private final ServerSocketChannel serverChannel;
+  private final CollectionManager collectionManager;
   private final BufferedReader bufferedReader;
+
   private final Selector selector;
+  private ServerSocketChannel serverChannel;
 
   private SocketChannel readableChannel;
 
-  private static final Map<SocketChannel, Request> socketToRequest = new ConcurrentHashMap<>();
+  private final Map<SocketChannel, Request> socketToRequest = new ConcurrentHashMap<>();
 
-  public Server(int port, CommandManager commandManager) throws IOException {
+  public Server(int port, CommandManager commandManager, CollectionManager collectionManager) throws IOException {
+    this.port = port;
     this.commandManager = commandManager;
-    this.serverChannel = ServerSocketChannel.open();
-    this.serverChannel.socket().bind(new InetSocketAddress(port));
-    this.serverChannel.configureBlocking(false);
+    this.collectionManager = collectionManager;
     this.bufferedReader = new BufferedReader(new InputStreamReader(System.in));
-    this.selector = Selector.open();
+    selector = initSelector();
+  }
+
+  private Selector initSelector() throws IOException {
+    Selector socketSelector = SelectorProvider.provider().openSelector();
+
+    serverChannel = ServerSocketChannel.open();
+    serverChannel.configureBlocking(false);
+    serverChannel.socket().bind(new InetSocketAddress(port));
+    serverChannel.register(socketSelector, SelectionKey.OP_ACCEPT);
+
+    return socketSelector;
   }
 
   public void run() {
-    try {
-      serverChannel.register(selector, SelectionKey.OP_ACCEPT);
-    } catch (IOException ignored){}
-
     runningFlag = true;
     log.info("Server started");
 
-    Thread exitHandler = new Thread(() -> {
-      while (runningFlag) {
-        handleServerInput();
-        Thread.onSpinWait();
-      }
-    });
-    exitHandler.start();
-
     while (runningFlag) {
       try {
-        selector.selectNow();
-      } catch (IOException ignored) {}
+        selector.select(200);
+      } catch (IOException ignored) {
+      }
       handleClients();
+      handleServerInput();
     }
 
-    exitHandler.interrupt();
     log.info("Server finished");
   }
 
@@ -79,7 +93,10 @@ public class Server implements Exitable {
   private void handleSelectedKey(SelectionKey key) {
       if (!key.isValid()) return;
       try {
-        if (key.isAcceptable()) {
+        if (key.isConnectable()) {
+          log.debug("New connectable channel");
+          onChannelConnectable(key);
+        } else if (key.isAcceptable()) {
           log.debug("New acceptable channel");
           onChannelAcceptable();
         } else if (key.isReadable()) {
@@ -87,14 +104,18 @@ public class Server implements Exitable {
           onChannelReadable(key);
         } else if (key.isWritable()) {
           log.debug("New writable channel");
-          onChanngelWritable(key);
+          onChannelWritable(key);
         }
       } catch (CancelledKeyException e) {
         log.info("Canceled key: {}", e.getMessage());
       } catch (IOException e) {
         log.info(e.getMessage());
       }
-    }
+  }
+
+  private void onChannelConnectable(SelectionKey key) {
+    log.debug("New connectable channel: {}", key.channel());
+  }
 
   private void onChannelAcceptable() throws IOException {
     SocketChannel socketChannel = serverChannel.accept();
@@ -104,14 +125,14 @@ public class Server implements Exitable {
 
   private void onChannelReadable(SelectionKey key) {
     this.readableChannel = (SocketChannel) key.channel();
-    readRequest().ifPresent(this::registerRequest);
+    readRequest().ifPresentOrElse(this::registerRequest, key::cancel);
   }
 
   private Optional<Request> readRequest() {
     try {
       return Optional.of((Request) ServerTransceiver.of(readableChannel).recieve());
     } catch (IOException e) {
-      log.warn("Failed to recieve request object");
+      log.warn("Client disconnected");
       closeChannel(readableChannel);
     } catch(ClassNotFoundException e) {
       log.warn("Error while reading Request: {}", e.getMessage());
@@ -134,7 +155,7 @@ public class Server implements Exitable {
     }
   }
 
-  private void onChanngelWritable(SelectionKey key) throws IOException {
+  private void onChannelWritable(SelectionKey key) throws IOException {
     SocketChannel writableChannel = (SocketChannel) key.channel();
     Request clientRequest = socketToRequest.get(writableChannel);
     MessagesProcessor msgProccessor = MessagesProcessor.of(clientRequest);
@@ -146,14 +167,44 @@ public class Server implements Exitable {
     }
 
     Response response = msgProccessor.buildResponse();
+
     ServerTransceiver.of(writableChannel).send(response);
     writableChannel.register(selector, SelectionKey.OP_READ);
+
+    if (clientRequest.getPurpose() == RequestPurpose.EXECUTE) {
+      writeUpdatedCollectionToAll();
+    }
+  }
+
+  private void writeUpdatedCollectionToAll() {
+    Set<SelectionKey> keys = selector.keys();
+    log.debug("Selected keys: {}", keys);
+    CollectionWrapper wrapper = collectionManager.getWrapper();
+    for (SelectionKey key : keys) {
+      writeUpdatedCollection(key, wrapper);
+    }
+  }
+
+  private void writeUpdatedCollection(SelectionKey key, CollectionWrapper wrapper) {
+    log.debug("Keys: {}", selector.keys());
+    log.debug("Sending update to {}", key.channel());
+    if (key.channel() instanceof ServerSocketChannel) return;
+    SocketChannel socketChannel = (SocketChannel) key.channel();
+    Message collectionMessage = BaseResponse.of(RequestPurpose.UPDATE_COLLECTION, ResponseCode.SUCCESS, wrapper);
+    SocketAddress remoteAddr = null;
+    try {
+      remoteAddr = socketChannel.getRemoteAddress();
+      ServerTransceiver.of(socketChannel).send(collectionMessage);
+    } catch (IOException e) {
+      log.info("Failed to sent updated collection to client {} '{}'", remoteAddr, e.getMessage());
+    }
   }
 
   private Object proccessRequest(Request request) {
     return switch (request.getPurpose()) {
       case EXECUTE -> executeCommand((ExecutionPayload) request.getPayload().get());
       case GET_COMMANDS -> getAccessibleCommandsInfo();
+      case UPDATE_COLLECTION -> collectionManager.getWrapper();
     };
   }
 
@@ -169,6 +220,8 @@ public class Server implements Exitable {
   private void handleServerInput() {
     String userInput;
     try {
+      if (System.in.available() == 0) return;
+
       userInput = bufferedReader.readLine();
     } catch (IOException ignore) {return;}
 
