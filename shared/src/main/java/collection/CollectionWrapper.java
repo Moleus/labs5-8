@@ -1,4 +1,4 @@
-package model;
+package collection;
 
 import lombok.Data;
 import model.data.Flat;
@@ -11,4 +11,5 @@ import java.util.Set;
 public class CollectionWrapper implements Serializable {
   private final Set<Flat> collection;
   private final LocalDateTime creationDateTime;
+  private final long version;
 }

@@ -11,15 +11,19 @@ import exceptions.ResponseCodeException;
 import java.io.IOException;
 
 public interface Exchanger {
-  void requestCollectionUpdate() throws ReconnectionTimoutException;
+  void requestFullCollection() throws ReconnectionTimoutException;
+
+  void requestCollectionChanges(Long currentVersion) throws ReconnectionTimoutException;
 
   void requestCommandExecution(ExecutionPayload payload) throws ReconnectionTimoutException;
 
   void requestAccessibleCommandsInfo() throws ReconnectionTimoutException;
 
-  ExecutionResult recieveExecutionResult() throws ReconnectionTimoutException, ResponseCodeException;
+  CollectionChangelist recieveCollectionChanges() throws ReconnectionTimoutException, ResponseCodeException, IOException;
 
-  CollectionWrapper recieveCollectionWrapper() throws ReconnectionTimoutException, ResponseCodeException;
+  CollectionWrapper recieveFullColection() throws ReconnectionTimoutException, ResponseCodeException, IOException;
 
-  CommandNameToInfo recieveAccessibleCommandsInfo() throws ReconnectionTimoutException, ResponseCodeException;
+  ExecutionResult recieveExecutionResult() throws ReconnectionTimoutException, ResponseCodeException, IOException;
+
+  CommandNameToInfo recieveAccessibleCommandsInfo() throws ReconnectionTimoutException, ResponseCodeException, IOException;
 }

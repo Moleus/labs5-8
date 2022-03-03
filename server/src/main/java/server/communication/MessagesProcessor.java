@@ -31,8 +31,8 @@ public class MessagesProcessor {
   public boolean isPayloadValid() {
     boolean isValid = switch (purpose) {
       case EXECUTE -> processingMessage.getPayload().map(this::isValidExecuteValues).orElse(false);
-      case GET_COMMANDS -> processingMessage.getPayload().isEmpty();
-      case UPDATE_COLLECTION -> true;
+      case GET_COMMANDS, INIT_COLLECTION -> processingMessage.getPayload().isEmpty();
+      case UPDATE_COLLECTION -> processingMessage.getPayload().map(this::isValidUpdateVersion).orElse(false);
     };
 
     if (!isValid) {
@@ -43,6 +43,10 @@ public class MessagesProcessor {
 
   private boolean isValidExecuteValues(Object values) {
     return (values instanceof ExecutionPayload);
+  }
+
+  private boolean isValidUpdateVersion(Object versionObj) {
+    return (versionObj instanceof Long);
   }
 
   public Response buildResponse() {

@@ -1,5 +1,7 @@
 package communication;
 
+import collection.CollectionChangelist;
+import collection.CollectionWrapper;
 import commands.CommandNameToInfo;
 import commands.ExecutionPayload;
 import commands.ExecutionResult;
@@ -67,17 +69,26 @@ public class ClientExchanger implements Exchanger {
       throw new ReconnectionTimoutException();
     }
     transceiver.newSocketChannel(clientSession.getSocketChannel());
-    System.out.println("Connection restored. Sending request one more time.");
   }
 
   @Override
-  public CollectionWrapper recieveCollectionWrapper() throws ReconnectionTimoutException, ResponseCodeException {
-    checkPurposeMatch(RequestPurpose.UPDATE_COLLECTION);
+  public CollectionWrapper recieveFullColection() throws ReconnectionTimoutException, ResponseCodeException, IOException {
+    checkPurposeMatch(RequestPurpose.INIT_COLLECTION);
 
     Response response = recieveAndCheckResponse();
     Object payload = readPayload(response);
 
     return castObjTo(payload, CollectionWrapper.class);
+  }
+
+  @Override
+  public CollectionChangelist recieveCollectionChanges() throws ReconnectionTimoutException, ResponseCodeException, IOException {
+    checkPurposeMatch(RequestPurpose.UPDATE_COLLECTION);
+
+    Response response = recieveAndCheckResponse();
+    Object payload = readPayload(response);
+
+    return castObjTo(payload, CollectionChangelist.class);
   }
 
   @Override
