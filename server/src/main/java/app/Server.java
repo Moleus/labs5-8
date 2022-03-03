@@ -88,17 +88,11 @@ public class Server implements Exitable {
   private void handleSelectedKey(SelectionKey key) {
       if (!key.isValid()) return;
       try {
-        if (key.isConnectable()) {
-          log.debug("New connectable channel");
-          onChannelConnectable(key);
-        } else if (key.isAcceptable()) {
-          log.debug("New acceptable channel");
+        if (key.isAcceptable()) {
           onChannelAcceptable();
         } else if (key.isReadable()) {
-          log.debug("New readable channel");
           onChannelReadable(key);
         } else if (key.isWritable()) {
-          log.debug("New writable channel");
           onChannelWritable(key);
         }
       } catch (CancelledKeyException e) {
@@ -108,11 +102,8 @@ public class Server implements Exitable {
       }
   }
 
-  private void onChannelConnectable(SelectionKey key) {
-    log.debug("New connectable channel: {}", key.channel());
-  }
-
   private void onChannelAcceptable() throws IOException {
+    log.debug("New client connected");
     SocketChannel socketChannel = serverChannel.accept();
     socketChannel.configureBlocking(false);
     socketChannel.register(selector, SelectionKey.OP_READ);
@@ -156,9 +147,11 @@ public class Server implements Exitable {
     MessagesProcessor msgProccessor = MessagesProcessor.of(clientRequest);
 
     if (!msgProccessor.isPayloadValid()) {
-      log.warn("Message payload is invalid");
+      log.warn("Payload for message {} is invalid: {}", clientRequest.getPurpose(), clientRequest.getPayload());
     } else {
-      msgProccessor.setResponsePayload(proccessRequest(clientRequest));
+      Object responsePayload = proccessRequest(clientRequest);
+      log.debug(responsePayload);
+      msgProccessor.setResponsePayload(responsePayload);
     }
 
     Response response = msgProccessor.buildResponse();

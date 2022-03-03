@@ -9,7 +9,6 @@ import communication.packaging.Response;
 import exceptions.RecievedInvalidObjectException;
 import exceptions.ReconnectionTimoutException;
 import exceptions.ResponseCodeException;
-import model.CollectionWrapper;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -76,7 +75,7 @@ public class ClientExchanger implements Exchanger {
   }
 
   @Override
-  public CommandNameToInfo recieveAccessibleCommandsInfo() throws ReconnectionTimoutException, ResponseCodeException {
+  public CommandNameToInfo recieveAccessibleCommandsInfo() throws ReconnectionTimoutException, ResponseCodeException, IOException {
     checkPurposeMatch(RequestPurpose.GET_COMMANDS);
 
     Response response = recieveAndCheckResponse();
@@ -86,7 +85,7 @@ public class ClientExchanger implements Exchanger {
   }
 
   @Override
-  public ExecutionResult recieveExecutionResult() throws ReconnectionTimoutException, ResponseCodeException {
+  public ExecutionResult recieveExecutionResult() throws ReconnectionTimoutException, ResponseCodeException, IOException {
     checkPurposeMatch(RequestPurpose.EXECUTE);
 
     Response response = recieveAndCheckResponse();
@@ -109,20 +108,20 @@ public class ClientExchanger implements Exchanger {
     }
   }
 
-  private Response recieveAndCheckResponse() throws ResponseCodeException, ReconnectionTimoutException {
+  private Response recieveAndCheckResponse() throws ResponseCodeException, ReconnectionTimoutException, IOException {
     Response response = recieveWithReconnect().orElseThrow(() -> new RecievedInvalidObjectException(Response.class, "Empty response"));
     checkResponseStatus(response);
     return response;
   }
 
-  private Optional<Response> recieveWithReconnect() throws ReconnectionTimoutException {
+  private Optional<Response> recieveWithReconnect() throws ReconnectionTimoutException, IOException {
     try {
       return transceiver.recieve().map(Response.class::cast);
     } catch (IOException e) {
       // failed to read. Usually, because of server shutdown.
       reconnectOrThrowTimeout();
     }
-    return recieveWithReconnect();
+    throw new IOException("Server was unavailble. Please, repeat the request");
   }
 
   private void checkResponseStatus(Response response) throws ResponseCodeException {
