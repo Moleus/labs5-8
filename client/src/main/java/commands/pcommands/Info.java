@@ -1,10 +1,10 @@
 package commands.pcommands;
 
+import collection.CollectionFilter;
 import commands.AbstractCommand;
 import commands.CommandInfo;
 import commands.ExecutionPayload;
 import commands.ExecutionResult;
-import model.CollectionFilter;
 
 import static commands.ExecutionMode.CLIENT;
 
@@ -18,7 +18,7 @@ public final class Info extends AbstractCommand {
 
   @Override
   public ExecutionResult execute(ExecutionPayload payload) {
-    String collectionInformation = String.format("Collection of Flats: %nInit time: %s %nNumber of elements: %s%n", collectionFilter.getCreationDateTime(), collectionFilter.getSize());
+    String collectionInformation = String.format("Collection of Flats: %nInit time: %s%nVersion: %s%nNumber of elements: %s%n", collectionFilter.getCreationDateTime(), collectionFilter.getCollectionVersion(), collectionFilter.getSize());
     return ExecutionResult.valueOf(true, collectionInformation);
   }
 }

@@ -1,7 +1,7 @@
 package commands.pcommands;
 
+import collection.CollectionFilter;
 import commands.*;
-import model.CollectionFilter;
 import model.data.Flat;
 
 import java.util.Arrays;

@@ -1,11 +1,14 @@
 package communication;
 
+import collection.CollectionChangelist;
+import collection.CollectionWrapper;
 import commands.CommandNameToInfo;
 import commands.ExecutionPayload;
 import commands.ExecutionResult;
 import exceptions.ReconnectionTimoutException;
 import exceptions.ResponseCodeException;
-import model.CollectionWrapper;
+
+import java.io.IOException;
 
 public interface Exchanger {
   void requestCollectionUpdate() throws ReconnectionTimoutException;

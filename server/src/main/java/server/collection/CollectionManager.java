@@ -1,8 +1,10 @@
 package server.collection;
 
+import collection.CollectionChange;
+import collection.CollectionChangelist;
+import collection.CollectionWrapper;
 import exceptions.ElementNotFoundException;
 import lombok.extern.log4j.Log4j2;
-import model.CollectionWrapper;
 import model.data.Flat;
 import server.exceptions.CollectionCorruptedException;
 import server.exceptions.StorageAccessException;
@@ -117,6 +119,7 @@ public class CollectionManager {
 
   /**
    * Removes all entries which are less than passed {@link Flat} object.
+   *
    * @param upperBoundFlat {@link Flat} to compare with.
    * @return true if removed. False if nothing changed.
    */

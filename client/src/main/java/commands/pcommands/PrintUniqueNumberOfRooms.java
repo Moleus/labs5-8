@@ -1,10 +1,10 @@
 package commands.pcommands;
 
+import collection.CollectionFilter;
 import commands.AbstractCommand;
 import commands.CommandInfo;
 import commands.ExecutionPayload;
 import commands.ExecutionResult;
-import model.CollectionFilter;
 
 import java.util.Set;
 
