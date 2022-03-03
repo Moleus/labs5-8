@@ -16,7 +16,7 @@ public class ClientSession implements Session {
   public boolean connect() {
     try {
       socketChannel = SocketChannel.open(remoteAddress);
-      socketChannel.configureBlocking(false);
+      socketChannel.configureBlocking(true);
     } catch (IOException e) {
       return false;
     }

@@ -1,9 +1,10 @@
 package client;
 
 import commands.*;
-import communication.ClientExchanger;
+import communication.Exchanger;
 import exceptions.ReadFailedException;
 import exceptions.ReconnectionTimoutException;
+import exceptions.ResponseCodeException;
 import exceptions.ScriptExecutionException;
 import lombok.Setter;
 import model.CollectionFilter;
@@ -25,7 +26,7 @@ public class UserConsole implements Console {
   private final BufferedReader in;
   private final PrintStream out;
   private final CommandManager commandManager;
-  private final ClientExchanger exchanger;
+  private final Exchanger exchanger;
   private final CollectionFilter collectionFilter;
   private final FieldsReader fieldsReader;
 
@@ -53,7 +54,7 @@ public class UserConsole implements Console {
   private boolean isConsoleRunning = false;
   private boolean exitFlag = false;
 
-  public UserConsole(BufferedReader in, PrintStream out, CommandManager commandManager, ClientExchanger exchanger, CollectionFilter collectionFilter) {
+  public UserConsole(BufferedReader in, PrintStream out, CommandManager commandManager, Exchanger exchanger, CollectionFilter collectionFilter) {
     this.in = in;
     this.out = out;
     this.commandManager = commandManager;
@@ -65,7 +66,7 @@ public class UserConsole implements Console {
 
   private static String getWorkingDir() {
     try {
-      String fullPath =  System.getProperty("user.dir");
+      String fullPath = System.getProperty("user.dir");
       return fullPath.substring(fullPath.lastIndexOf(File.separator) + 1);
     } catch (SecurityException e) {
       return "unknown";
@@ -110,6 +111,7 @@ public class UserConsole implements Console {
 
   /**
    * Changes console input mode to read from specified file.
+   *
    * @param scriptName name of a file to read commands from.
    * @throws ScriptExecutionException if recursion of file not found.
    */
@@ -133,7 +135,7 @@ public class UserConsole implements Console {
 
       printPrompt();
 
-      fetchCollectionUpdate();
+      updateCollection();
 
       command = readCommand();
       if (command == null) return;
@@ -198,9 +200,9 @@ public class UserConsole implements Console {
     private void executeOnServer() {
       try {
         out.println("Sending command to server");
-        exchanger.createCommandRequest(payload);
+        exchanger.requestCommandExecution(payload);
         handleNewResponses();
-      } catch (IOException | ReconnectionTimoutException e) {
+      } catch (ReconnectionTimoutException e) {
         printErr("Failed to execute command on server.");
         exit();
       }
@@ -215,55 +217,22 @@ public class UserConsole implements Console {
     out.println(result.getMessage());
   }
 
-  private void fetchCollectionUpdate() {
-    if (inputState == InputState.SCRIPT) {
-      sleep(100);
-      fetchCollection();
-      return;
-    }
-    if (inputState == InputState.USER) {
-      do {
-        sleep(50);
-        fetchCollection();
-      } while (!isUserInputAvailable());
-    }
-  }
-
-  private void sleep(int millis) {
+  private void updateCollection() {
     try {
-      Thread.sleep(millis);
-    } catch (InterruptedException ignored) {
-    }
-  }
-
-  private boolean isUserInputAvailable() {
-    try {
-      if (System.in.available() > 0) return true;
-    } catch (IOException ignored) {
-    }
-    return false;
-  }
-
-  private void fetchCollection() {
-    try {
-      CollectionWrapper collectionWrapper = exchanger.fetchUpdatedCollection(false);
+      exchanger.requestCollectionUpdate();
+      CollectionWrapper collectionWrapper = exchanger.recieveCollectionWrapper();
       collectionFilter.loadCollection(collectionWrapper);
-    } catch (ClassNotFoundException | ReconnectionTimoutException e) {
-      printErr("Failed to recieve collection update: " + e.getMessage());
-    } catch (IOException ignored) {
+    } catch (ReconnectionTimoutException | ResponseCodeException e) {
+      printErr(e.getMessage());
     }
   }
 
   private void handleNewResponses() {
     try {
-      // calls blocking read
-      ExecutionResult result = exchanger.readExecutionResponse();
+      ExecutionResult result = exchanger.recieveExecutionResult();
       handleExecutionResult(result);
-    } catch (IOException ignored) {
-    } catch (ClassNotFoundException e) {
-      printErr("Failed to recieve a response: " + e.getMessage());
-    } catch (ReconnectionTimoutException e) {
-      exit();
+    } catch (ReconnectionTimoutException | ResponseCodeException e) {
+      printErr(e.getMessage());
     }
   }
 

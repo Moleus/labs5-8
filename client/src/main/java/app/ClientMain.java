@@ -6,14 +6,13 @@ import commands.CommandNameToInfo;
 import commands.pcommands.*;
 import communication.*;
 import exceptions.ReconnectionTimoutException;
+import exceptions.ResponseCodeException;
 import model.CollectionFilter;
 import utils.Console;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
-import java.util.Optional;
 
 public class ClientMain {
   public static void main(String[] args) {
@@ -22,23 +21,16 @@ public class ClientMain {
       System.out.println("Connection failed. Timeout reached.");
       return;
     }
-    System.out.println("Connected to server");
 
     Transceiver clientTransceiver = new ClientTransceiver(clientSession.getSocketChannel());
-    ClientExchanger exchanger = new ClientExchanger(clientTransceiver, clientSession);
+    Exchanger exchanger = new ClientExchanger(clientTransceiver, clientSession);
 
     CollectionFilter collectionFilter = new CollectionFilter();
     try {
       exchanger.requestCollectionUpdate();
-      collectionFilter.loadCollection(exchanger.fetchUpdatedCollection(true));
-    } catch (IOException | ClassNotFoundException | ReconnectionTimoutException e) {
+      collectionFilter.loadCollection(exchanger.recieveCollectionWrapper());
+    } catch (ReconnectionTimoutException | ResponseCodeException e) {
       System.err.println("Failed to load collection. Exiting with error: " + e.getMessage());
-      return;
-    }
-
-    Optional<CommandNameToInfo> commandsOp = getaccessibleCommandsInfo(exchanger);
-    if (commandsOp.isEmpty()) {
-      System.out.println("Can't get accessible commands stopping.");
       return;
     }
 
@@ -57,7 +49,13 @@ public class ClientMain {
         new PrintFieldDescendingNew(collectionFilter)
     );
 
-    CommandNameToInfo commandNameToInfo = commandsOp.get();
+    CommandNameToInfo commandNameToInfo;
+    try {
+      commandNameToInfo = getaccessibleCommandsInfo(exchanger);
+    } catch (ReconnectionTimoutException | ResponseCodeException e) {
+      System.out.println("Can't get accessible commands: " + e.getMessage());
+      return;
+    }
     clientCommandManager.addCommandInfos(commandNameToInfo);
 
     userConsole.run();
@@ -67,27 +65,8 @@ public class ClientMain {
     return clientSession.reconnect(15);
   }
 
-  private static void sleep(int millis) {
-    try {
-      Thread.sleep(millis);
-    } catch (InterruptedException ignored) {
-    }
-  }
-
-  private static Optional<CommandNameToInfo> getaccessibleCommandsInfo(Exchanger exchanger) {
-    int tries = 0;
-    int maxTries = 120;
-    while (tries++ < maxTries) {
-      try {
-        exchanger.requestAccessibleCommandsInfo();
-        sleep(250);
-        Optional<CommandNameToInfo> commansOp = exchanger.readaccessibleCommandsInfoResponse();
-        if (commansOp.isPresent()) return commansOp;
-      } catch (IOException | ReconnectionTimoutException e) {
-        System.out.println("Failed to request accessible commands from server. Exiting");
-        break;
-      }
-    }
-    return Optional.empty();
+  private static CommandNameToInfo getaccessibleCommandsInfo(Exchanger exchanger) throws ReconnectionTimoutException, ResponseCodeException {
+    exchanger.requestAccessibleCommandsInfo();
+    return exchanger.recieveAccessibleCommandsInfo();
   }
 }

@@ -4,14 +4,10 @@ import commands.CommandManager;
 import commands.CommandNameToInfo;
 import commands.ExecutionPayload;
 import commands.ExecutionResult;
-import communication.RequestPurpose;
-import communication.ResponseCode;
-import communication.packaging.BaseResponse;
-import communication.packaging.Message;
 import communication.packaging.Request;
 import communication.packaging.Response;
+import exceptions.RecievedInvalidObjectException;
 import lombok.extern.log4j.Log4j2;
-import model.CollectionWrapper;
 import server.collection.CollectionManager;
 import server.communication.MessagesProcessor;
 import server.communication.ServerTransceiver;
@@ -21,7 +17,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.nio.channels.*;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.Iterator;
@@ -130,12 +125,12 @@ public class Server implements Exitable {
 
   private Optional<Request> readRequest() {
     try {
-      return Optional.of((Request) ServerTransceiver.of(readableChannel).recieve());
+      return ServerTransceiver.of(readableChannel).recieve().map(Request.class::cast);
     } catch (IOException e) {
       log.warn("Client disconnected");
       closeChannel(readableChannel);
-    } catch(ClassNotFoundException e) {
-      log.warn("Error while reading Request: {}", e.getMessage());
+    } catch (RecievedInvalidObjectException e) {
+      log.error("Recieved invalid Request: {}", e.getMessage());
     }
     return Optional.empty();
   }
@@ -170,34 +165,6 @@ public class Server implements Exitable {
 
     ServerTransceiver.of(writableChannel).send(response);
     writableChannel.register(selector, SelectionKey.OP_READ);
-
-    if (clientRequest.getPurpose() == RequestPurpose.EXECUTE) {
-      writeUpdatedCollectionToAll();
-    }
-  }
-
-  private void writeUpdatedCollectionToAll() {
-    Set<SelectionKey> keys = selector.keys();
-    log.debug("Selected keys: {}", keys);
-    CollectionWrapper wrapper = collectionManager.getWrapper();
-    for (SelectionKey key : keys) {
-      writeUpdatedCollection(key, wrapper);
-    }
-  }
-
-  private void writeUpdatedCollection(SelectionKey key, CollectionWrapper wrapper) {
-    log.debug("Keys: {}", selector.keys());
-    log.debug("Sending update to {}", key.channel());
-    if (key.channel() instanceof ServerSocketChannel) return;
-    SocketChannel socketChannel = (SocketChannel) key.channel();
-    Message collectionMessage = BaseResponse.of(RequestPurpose.UPDATE_COLLECTION, ResponseCode.SUCCESS, wrapper);
-    SocketAddress remoteAddr = null;
-    try {
-      remoteAddr = socketChannel.getRemoteAddress();
-      ServerTransceiver.of(socketChannel).send(collectionMessage);
-    } catch (IOException e) {
-      log.info("Failed to sent updated collection to client {} '{}'", remoteAddr, e.getMessage());
-    }
   }
 
   private Object proccessRequest(Request request) {
