@@ -164,7 +164,8 @@ public class Server implements Exitable {
     return switch (request.getPurpose()) {
       case EXECUTE -> executeCommand((ExecutionPayload) request.getPayload().get());
       case GET_COMMANDS -> getAccessibleCommandsInfo();
-      case UPDATE_COLLECTION -> collectionManager.getWrapper();
+      case INIT_COLLECTION -> collectionManager.getNewestCollection();
+      case UPDATE_COLLECTION -> collectionManager.getChangesNewerThan((Long) request.getPayload().get());
     };
   }
 
