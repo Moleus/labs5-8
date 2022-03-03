@@ -1,5 +1,7 @@
 package client;
 
+import collection.CollectionChangelist;
+import collection.CollectionFilter;
 import commands.*;
 import communication.Exchanger;
 import exceptions.ReadFailedException;
@@ -7,8 +9,6 @@ import exceptions.ReconnectionTimoutException;
 import exceptions.ResponseCodeException;
 import exceptions.ScriptExecutionException;
 import lombok.Setter;
-import model.CollectionFilter;
-import model.CollectionWrapper;
 import model.FieldsInputMode;
 import model.FieldsReader;
 import model.data.Flat;
@@ -135,8 +135,6 @@ public class UserConsole implements Console {
 
       printPrompt();
 
-      updateCollection();
-
       command = readCommand();
       if (command == null) return;
       if (command.trim().equals("")) continue;
@@ -161,6 +159,8 @@ public class UserConsole implements Console {
           continue;
         }
       }
+
+      updateCollection();
 
       String commandName = commandInfo.getName();
       String inlineArg = inputData.inlineArg;
@@ -219,19 +219,22 @@ public class UserConsole implements Console {
 
   private void updateCollection() {
     try {
-      exchanger.requestCollectionUpdate();
-      CollectionWrapper collectionWrapper = exchanger.recieveCollectionWrapper();
-      collectionFilter.loadCollection(collectionWrapper);
-    } catch (ReconnectionTimoutException | ResponseCodeException e) {
+      exchanger.requestCollectionChanges(collectionFilter.getCollectionVersion());
+      CollectionChangelist changelist = exchanger.recieveCollectionChanges();
+      collectionFilter.applyChangelist(changelist);
+    } catch (ReconnectionTimoutException e) {
+      printErr("Exiting.");
+      exit();
+    } catch (ResponseCodeException | IOException e) {
       printErr(e.getMessage());
     }
   }
 
-  private void handleNewResponses() {
+  private void handleNewResponses() throws ReconnectionTimoutException {
     try {
       ExecutionResult result = exchanger.recieveExecutionResult();
       handleExecutionResult(result);
-    } catch (ReconnectionTimoutException | ResponseCodeException e) {
+    } catch (ResponseCodeException | IOException e) {
       printErr(e.getMessage());
     }
   }

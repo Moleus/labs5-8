@@ -1,16 +1,17 @@
 package app;
 
 import client.UserConsole;
+import collection.CollectionFilter;
 import commands.CommandManager;
 import commands.CommandNameToInfo;
 import commands.pcommands.*;
 import communication.*;
 import exceptions.ReconnectionTimoutException;
 import exceptions.ResponseCodeException;
-import model.CollectionFilter;
 import utils.Console;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 
@@ -25,11 +26,11 @@ public class ClientMain {
     Transceiver clientTransceiver = new ClientTransceiver(clientSession.getSocketChannel());
     Exchanger exchanger = new ClientExchanger(clientTransceiver, clientSession);
 
-    CollectionFilter collectionFilter = new CollectionFilter();
+    CollectionFilter collectionFilter;
     try {
-      exchanger.requestCollectionUpdate();
-      collectionFilter.loadCollection(exchanger.recieveCollectionWrapper());
-    } catch (ReconnectionTimoutException | ResponseCodeException e) {
+      exchanger.requestFullCollection();
+      collectionFilter = new CollectionFilter(exchanger.recieveFullColection());
+    } catch (ReconnectionTimoutException | ResponseCodeException | IOException e) {
       System.err.println("Failed to load collection. Exiting with error: " + e.getMessage());
       return;
     }
@@ -52,7 +53,7 @@ public class ClientMain {
     CommandNameToInfo commandNameToInfo;
     try {
       commandNameToInfo = getaccessibleCommandsInfo(exchanger);
-    } catch (ReconnectionTimoutException | ResponseCodeException e) {
+    } catch (ReconnectionTimoutException | ResponseCodeException | IOException e) {
       System.out.println("Can't get accessible commands: " + e.getMessage());
       return;
     }
@@ -65,7 +66,7 @@ public class ClientMain {
     return clientSession.reconnect(15);
   }
 
-  private static CommandNameToInfo getaccessibleCommandsInfo(Exchanger exchanger) throws ReconnectionTimoutException, ResponseCodeException {
+  private static CommandNameToInfo getaccessibleCommandsInfo(Exchanger exchanger) throws ReconnectionTimoutException, ResponseCodeException, IOException {
     exchanger.requestAccessibleCommandsInfo();
     return exchanger.recieveAccessibleCommandsInfo();
   }

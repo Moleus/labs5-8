@@ -1,4 +1,4 @@
-package model;
+package collection;
 
 import model.data.Flat;
 
@@ -9,12 +9,25 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class CollectionFilter {
-  private final Set<Flat> objectsCollection = new LinkedHashSet<>();
-  private LocalDateTime creationDateTime = LocalDateTime.now();
+  private Set<Flat> objectsCollection;
+  private Long collectionVersion;
+  private LocalDateTime creationDateTime;
+  private final ChangesApplier changesApplier;
 
-  public void loadCollection(CollectionWrapper wrapper) {
-    objectsCollection.addAll(wrapper.getCollection());
-    creationDateTime = wrapper.getCreationDateTime();
+  public CollectionFilter(CollectionWrapper collectionWrapper) {
+    loadFullCollection(collectionWrapper);
+    changesApplier = new ChangesApplier(objectsCollection);
+  }
+
+  public void loadFullCollection(CollectionWrapper collectionWrapper) {
+    objectsCollection = collectionWrapper.getCollection();
+    creationDateTime = collectionWrapper.getCreationDateTime();
+    collectionVersion = collectionWrapper.getVersion();
+  }
+
+  public void applyChangelist(CollectionChangelist changelist) {
+    collectionVersion = changelist.getLatestVersion();
+    changesApplier.apply(changelist);
   }
 
   /**
@@ -22,6 +35,13 @@ public class CollectionFilter {
    */
   public LocalDateTime getCreationDateTime() {
     return creationDateTime;
+  }
+
+  /**
+   * Returns collection version. Used in logic clock syncronization.
+   */
+  public long getCollectionVersion() {
+    return collectionVersion;
   }
 
   /**

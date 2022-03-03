@@ -28,9 +28,15 @@ public class ClientExchanger implements Exchanger {
     makeNewRequest(RequestPurpose.GET_COMMANDS, null);
   }
 
+
   @Override
-  public void requestCollectionUpdate() throws ReconnectionTimoutException {
-    makeNewRequest(RequestPurpose.UPDATE_COLLECTION, null);
+  public void requestFullCollection() throws ReconnectionTimoutException {
+    makeNewRequest(RequestPurpose.INIT_COLLECTION, null);
+  }
+
+  @Override
+  public void requestCollectionChanges(Long currentVersion) throws ReconnectionTimoutException {
+    makeNewRequest(RequestPurpose.UPDATE_COLLECTION, currentVersion);
   }
 
   @Override
