@@ -4,18 +4,19 @@ import commands.CommandNameToInfo;
 import commands.ExecutionPayload;
 import commands.ExecutionResult;
 import exceptions.ReconnectionTimoutException;
-
-import java.io.IOException;
-import java.util.Optional;
+import exceptions.ResponseCodeException;
+import model.CollectionWrapper;
 
 public interface Exchanger {
-  void requestCollectionUpdate() throws IOException;
+  void requestCollectionUpdate() throws ReconnectionTimoutException;
 
-  void createCommandRequest(ExecutionPayload payload) throws IOException, ReconnectionTimoutException;
+  void requestCommandExecution(ExecutionPayload payload) throws ReconnectionTimoutException;
 
-  ExecutionResult readExecutionResponse() throws IOException, ClassNotFoundException, ReconnectionTimoutException;
+  void requestAccessibleCommandsInfo() throws ReconnectionTimoutException;
 
-  void requestAccessibleCommandsInfo() throws IOException;
+  ExecutionResult recieveExecutionResult() throws ReconnectionTimoutException, ResponseCodeException;
 
-  Optional<CommandNameToInfo> readaccessibleCommandsInfoResponse() throws ReconnectionTimoutException;
+  CollectionWrapper recieveCollectionWrapper() throws ReconnectionTimoutException, ResponseCodeException;
+
+  CommandNameToInfo recieveAccessibleCommandsInfo() throws ReconnectionTimoutException, ResponseCodeException;
 }

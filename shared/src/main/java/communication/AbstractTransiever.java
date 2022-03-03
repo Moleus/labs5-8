@@ -1,11 +1,12 @@
 package communication;
 
 import communication.packaging.Message;
-import exceptions.ConnectionIsDownException;
+import exceptions.RecievedInvalidObjectException;
 
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.util.Optional;
 
 public abstract class AbstractTransiever implements Transceiver {
   protected SocketChannel socketChannel;
@@ -26,31 +27,35 @@ public abstract class AbstractTransiever implements Transceiver {
   }
 
   @Override
-  public abstract Message recieve() throws IOException, ClassNotFoundException, ConnectionIsDownException;
+  public abstract Optional<? extends Message> recieve() throws IOException, RecievedInvalidObjectException;
 
   @Override
   public void newSocketChannel(SocketChannel socketChannel) {
     this.socketChannel = socketChannel;
   }
 
-  protected Message readObject() throws IOException, ClassNotFoundException, ConnectionIsDownException {
+  protected Optional<Message> readObject() throws IOException {
     byte[] buffer = new byte[4096];
     Object recievedObject;
 
     int bytesRead = socketChannel.read(ByteBuffer.wrap(buffer));
-    if (bytesRead == -1) {
-      throw new ConnectionIsDownException("Connection is down");
-    }
     if (bytesRead == 0) {
-      throw new IOException("Empty stream");
+      return Optional.empty();
     }
+    //  0 = empty stream when non-blocking
+    // -1 = disconnected
 
     ObjectInputStream objectStream = new ObjectInputStream(new ByteArrayInputStream(buffer));
-    recievedObject = objectStream.readObject();
+    try {
+      recievedObject = objectStream.readObject();
+    } catch (ClassNotFoundException e) {
+      throw new RecievedInvalidObjectException(Message.class, e.getMessage());
+    }
 
     if (!(recievedObject instanceof Message messageObj)) {
-      throw new InvalidObjectException("Recieved object is not an instance of Message");
+      throw new RecievedInvalidObjectException(Message.class, recievedObject.getClass());
     }
-    return messageObj;
+    return Optional.of(messageObj);
   }
+
 }

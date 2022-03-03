@@ -3,10 +3,12 @@ package communication;
 import commands.CommandNameToInfo;
 import commands.ExecutionPayload;
 import commands.ExecutionResult;
-import communication.packaging.*;
-import exceptions.ConnectionIsDownException;
+import communication.packaging.BaseRequest;
+import communication.packaging.Request;
+import communication.packaging.Response;
 import exceptions.RecievedInvalidObjectException;
 import exceptions.ReconnectionTimoutException;
+import exceptions.ResponseCodeException;
 import model.CollectionWrapper;
 
 import java.io.IOException;
@@ -16,7 +18,6 @@ public class ClientExchanger implements Exchanger {
   private final Transceiver transceiver;
   private RequestPurpose lastRequestPurpose;
   private final Session clientSession;
-  private final int RECONNECTION_SECONDS = 15;
 
   public ClientExchanger(Transceiver transceiver, Session clientSession) {
     this.transceiver = transceiver;
@@ -24,115 +25,114 @@ public class ClientExchanger implements Exchanger {
   }
 
   @Override
-  public void requestCollectionUpdate() throws IOException {
-    lastRequestPurpose = RequestPurpose.UPDATE_COLLECTION;
-    Request request = BaseRequest.of(RequestPurpose.UPDATE_COLLECTION, null);
-    transceiver.send(request);
+  public void requestAccessibleCommandsInfo() throws ReconnectionTimoutException {
+    makeNewRequest(RequestPurpose.GET_COMMANDS, null);
   }
 
   @Override
-  public void createCommandRequest(ExecutionPayload payload) throws IOException, ReconnectionTimoutException {
-    lastRequestPurpose = RequestPurpose.EXECUTE;
-    Request request = ExecutionRequest.of(payload);
+  public void requestCollectionUpdate() throws ReconnectionTimoutException {
+    makeNewRequest(RequestPurpose.UPDATE_COLLECTION, null);
+  }
+
+  @Override
+  public void requestCommandExecution(ExecutionPayload payload) throws ReconnectionTimoutException {
+    makeNewRequest(RequestPurpose.EXECUTE, payload);
+  }
+
+  private void makeNewRequest(RequestPurpose purpose, Object payload) throws ReconnectionTimoutException {
+    lastRequestPurpose = purpose;
+    Request request = BaseRequest.of(purpose, payload);
+    sendWithReconnect(request);
+  }
+
+  private void sendWithReconnect(Request request) throws ReconnectionTimoutException {
     try {
       transceiver.send(request);
+      return;
     } catch (IOException e) {
-      if (clientSession.reconnect(RECONNECTION_SECONDS)) {
-        transceiver.newSocketChannel(clientSession.getSocketChannel());
-        System.out.println("Connection restored");
-        transceiver.send(request);
-        return;
-      }
+      reconnectOrThrowTimeout();
+    }
+    sendWithReconnect(request);
+  }
+
+  private void reconnectOrThrowTimeout() throws ReconnectionTimoutException {
+    int RECONNECTION_SECONDS = 15;
+    if (!clientSession.reconnect(RECONNECTION_SECONDS)) {
       System.out.println("Failed to connect to server");
       throw new ReconnectionTimoutException();
     }
+    transceiver.newSocketChannel(clientSession.getSocketChannel());
+    System.out.println("Connection restored. Sending request one more time.");
   }
 
   @Override
-  public ExecutionResult readExecutionResponse() throws IOException, ClassNotFoundException, ReconnectionTimoutException {
-    if (!lastRequestPurpose.equals(RequestPurpose.EXECUTE)) {
-      throw new IllegalCallerException("Last request purpose wasn't " + RequestPurpose.EXECUTE);
-    }
-    Response response;
-    clientSession.getSocketChannel().configureBlocking(true);
-    try {
-      response = (Response) transceiver.recieve();
-    } catch (ConnectionIsDownException e) {
-      if (tryToReconnect()) {
-        return readExecutionResponse();
-      }
-      System.err.println("Couldn't reconnect to server");
-      throw new ReconnectionTimoutException();
-    }
-    if (!response.getResponseCode().equals(ResponseCode.SUCCESS)) {
-      throw new IOException("Recieved response with invalid status code");
-    }
-    return (ExecutionResult) response.getPayload().orElseThrow(RecievedInvalidObjectException::new);
-  }
+  public CollectionWrapper recieveCollectionWrapper() throws ReconnectionTimoutException, ResponseCodeException {
+    checkPurposeMatch(RequestPurpose.UPDATE_COLLECTION);
 
-  public CollectionWrapper fetchUpdatedCollection(boolean block) throws IOException, ClassNotFoundException, ReconnectionTimoutException {
-    Response response;
-    clientSession.getSocketChannel().configureBlocking(block);
-    try {
-      response = (Response) transceiver.recieve();
-    } catch (ConnectionIsDownException e) {
-      if (tryToReconnect()) {
-        return fetchUpdatedCollection(block);
-      }
-      System.err.println("Couldn't reconnect to server");
-      throw new ReconnectionTimoutException();
-    }
-    if (!response.getResponseCode().equals(ResponseCode.SUCCESS)) {
-      throw new IOException("Recieved response with invalid status code");
-    }
+    Response response = recieveAndCheckResponse();
+    Object payload = readPayload(response);
 
-    Object payload = response.getPayload().orElseThrow(RecievedInvalidObjectException::new);
-
-    if (!(payload instanceof CollectionWrapper collectionWrapper)) {
-      throw new RecievedInvalidObjectException("Can't parse Response object!");
-    }
-    return collectionWrapper;
+    return castObjTo(payload, CollectionWrapper.class);
   }
 
   @Override
-  public void requestAccessibleCommandsInfo() throws IOException {
-    lastRequestPurpose = RequestPurpose.GET_COMMANDS;
-    Request request = new ClientCommandsRequest();
-    System.out.println("New request sent");
-    transceiver.send(request);
+  public CommandNameToInfo recieveAccessibleCommandsInfo() throws ReconnectionTimoutException, ResponseCodeException {
+    checkPurposeMatch(RequestPurpose.GET_COMMANDS);
+
+    Response response = recieveAndCheckResponse();
+    Object payload = readPayload(response);
+
+    return castObjTo(payload, CommandNameToInfo.class);
   }
 
   @Override
-  public Optional<CommandNameToInfo> readaccessibleCommandsInfoResponse() throws ReconnectionTimoutException {
-    Response response;
-    Object payload;
-    try {
-      response = (Response) transceiver.recieve();
-      payload = response.getPayload().orElseThrow(() -> new ClassNotFoundException("Commands Map expected"));
-    } catch (IOException | ClassNotFoundException e) {
-      return Optional.empty();
-    } catch (ConnectionIsDownException e) {
-      if (!tryToReconnect()) {
-        System.err.println("Couldn't reconnect to server");
-        throw new ReconnectionTimoutException();
-      }
-      return readaccessibleCommandsInfoResponse();
-    }
+  public ExecutionResult recieveExecutionResult() throws ReconnectionTimoutException, ResponseCodeException {
+    checkPurposeMatch(RequestPurpose.EXECUTE);
 
-    if (!response.getResponseCode().equals(ResponseCode.SUCCESS)) {
-      return Optional.empty();
-    }
-    if (!(payload instanceof CommandNameToInfo commandNameToInfo)) {
-      return Optional.empty();
-    }
-    return Optional.of(commandNameToInfo);
+    Response response = recieveAndCheckResponse();
+    Object payload = readPayload(response);
+
+    return castObjTo(payload, ExecutionResult.class);
   }
 
-  public boolean tryToReconnect() {
-    if (clientSession.reconnect(RECONNECTION_SECONDS)) {
-      transceiver.newSocketChannel(clientSession.getSocketChannel());
-      return true;
+  @SuppressWarnings("unchecked")
+  private <T> T castObjTo(Object obj, Class<T> toClass) {
+    if (!(toClass.isInstance(obj))) {
+      throw new RecievedInvalidObjectException(toClass, obj.getClass());
     }
-    return false;
+    return (T) obj;
+  }
+
+  private void checkPurposeMatch(RequestPurpose expected) {
+    if (!lastRequestPurpose.equals(expected)) {
+      throw new IllegalCallerException("Previous request purpose should be: " + expected);
+    }
+  }
+
+  private Response recieveAndCheckResponse() throws ResponseCodeException, ReconnectionTimoutException {
+    Response response = recieveWithReconnect().orElseThrow(() -> new RecievedInvalidObjectException(Response.class, "Empty response"));
+    checkResponseStatus(response);
+    return response;
+  }
+
+  private Optional<Response> recieveWithReconnect() throws ReconnectionTimoutException {
+    try {
+      return transceiver.recieve().map(Response.class::cast);
+    } catch (IOException e) {
+      // failed to read. Usually, because of server shutdown.
+      reconnectOrThrowTimeout();
+    }
+    return recieveWithReconnect();
+  }
+
+  private void checkResponseStatus(Response response) throws ResponseCodeException {
+    switch (response.getResponseCode()) {
+      case INVALID_PAYLOAD -> throw new ResponseCodeException("Invalid payload provided");
+      case UNAUTHORIZED -> throw new ResponseCodeException("Client is not authorized");
+    }
+  }
+
+  private Object readPayload(Response response) {
+    return response.getPayload().orElseThrow(() -> new RecievedInvalidObjectException(Object.class, "empty payload"));
   }
 }

@@ -4,11 +4,12 @@ import communication.AbstractTransiever;
 import communication.Transceiver;
 import communication.packaging.Message;
 import communication.packaging.Request;
+import exceptions.RecievedInvalidObjectException;
 import lombok.extern.log4j.Log4j2;
 
 import java.io.IOException;
-import java.io.InvalidObjectException;
 import java.nio.channels.SocketChannel;
+import java.util.Optional;
 
 @Log4j2
 public class ServerTransceiver extends AbstractTransiever {
@@ -21,12 +22,14 @@ public class ServerTransceiver extends AbstractTransiever {
   }
 
   @Override
-  public Request recieve() throws IOException, ClassNotFoundException {
-    Message messageObj = readObject();
-    log.info("Recieved new object from {}", socketChannel.getRemoteAddress());
-    if (!(messageObj instanceof Request requestObj)) {
-      throw new InvalidObjectException("Recieved object is not an instance of Request");
+  public Optional<Request> recieve() throws IOException {
+    return super.readObject().map(this::checkRequestInstance);
+  }
+
+  protected Request checkRequestInstance(Message messageObj) {
+    if (!(messageObj instanceof Request request)) {
+      throw new RecievedInvalidObjectException(Request.class, messageObj.getClass());
     }
-    return requestObj;
+    return request;
   }
 }
