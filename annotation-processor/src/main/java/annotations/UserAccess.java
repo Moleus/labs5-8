@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Target(ElementType.FIELD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface GreaterThan {
-  double num() default 0;
+@Retention(RetentionPolicy.SOURCE)
+public @interface UserAccess {
+  String description() default "";
 }

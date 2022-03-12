@@ -6,5 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Target(ElementType.FIELD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface NotNull {}
+@Retention(RetentionPolicy.SOURCE)
+public @interface GreaterThan {
+  double num() default 0;
+}
