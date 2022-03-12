@@ -1,6 +1,7 @@
 package commands;
 
 import lombok.Data;
+import model.ModelDto;
 
 import java.io.Serializable;
 
@@ -8,5 +9,5 @@ import java.io.Serializable;
 public class ExecutionPayload implements Serializable {
   private final String commandName;
   private final String inlineArg;
-  private final Object[] dataValues;
+  private final ModelDto dataValues;
 }

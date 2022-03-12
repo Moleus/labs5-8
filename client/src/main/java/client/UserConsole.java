@@ -4,14 +4,12 @@ import collection.CollectionChangelist;
 import collection.CollectionFilter;
 import commands.*;
 import communication.Exchanger;
-import exceptions.ReadFailedException;
-import exceptions.ReconnectionTimoutException;
-import exceptions.ResponseCodeException;
-import exceptions.ScriptExecutionException;
+import exceptions.*;
 import lombok.Setter;
-import model.FieldsInputMode;
-import model.FieldsReader;
-import model.data.Flat;
+import model.ModelDto;
+import model.builder.BuilderWrapper;
+import model.builder.ModelDtoBuilderWrapper;
+import model.data.ModelDtoBuilder;
 import utils.Console;
 
 import java.io.*;
@@ -28,7 +26,7 @@ public class UserConsole implements Console {
   private final CommandManager commandManager;
   private final Exchanger exchanger;
   private final CollectionFilter collectionFilter;
-  private final FieldsReader fieldsReader;
+  private final BuilderWrapper<ModelDto> builderWrapper;
 
   // contains username + working dir + >
   private final String userPrompt;
@@ -60,7 +58,7 @@ public class UserConsole implements Console {
     this.commandManager = commandManager;
     this.exchanger = exchanger;
     this.collectionFilter = collectionFilter;
-    this.fieldsReader = new FieldsReader(Flat.class);
+    this.builderWrapper = new ModelDtoBuilderWrapper(new ModelDtoBuilder());
     this.userPrompt = createUserPrompt(userName, getWorkingDir());
   }
 
@@ -150,14 +148,9 @@ public class UserConsole implements Console {
       CommandInfo commandInfo = inputData.commandInfo;
       boolean additionalInputNeeded = commandInfo.isHasComplexArgs();
 
-      Object[] dataValues = new Object[0];
+      ModelDto dataValues = null;
       if (additionalInputNeeded) {
-        try {
-          dataValues = readAdditionalInput();
-        } catch (ReadFailedException e) {
-          printErr(e.getMessage());
-          continue;
-        }
+        dataValues = readNewModelDto();
       }
 
       updateCollection();
@@ -345,10 +338,22 @@ public class UserConsole implements Console {
     }
   }
 
-  private Object[] readAdditionalInput() throws ReadFailedException {
-    return switch (inputState) {
-      case USER -> fieldsReader.read(in, FieldsInputMode.INTERACTIVE);
-      case SCRIPT -> fieldsReader.read(scriptReader, FieldsInputMode.SCRIPT);
-    };
+  private ModelDto readNewModelDto() throws IOException {
+    int fieldsCount = builderWrapper.getFieldsCount();
+    builderWrapper.setPosition(0);
+
+    while (builderWrapper.getPosition() < fieldsCount) {
+      System.out.printf("Enter %s: ", builderWrapper.getDescription());
+      String line = readCommand();
+      try {
+        builderWrapper.setValue(line);
+      } catch (ValueFormatException | ValueConstraintsException e) {
+        System.out.println(e.getMessage());
+        continue;
+      }
+      builderWrapper.step();
+    }
+
+    return builderWrapper.build();
   }
 }
