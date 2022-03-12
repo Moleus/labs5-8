@@ -1,10 +1,8 @@
 package model.data;
 
-import annotations.GreaterThan;
-import annotations.NotNull;
-import annotations.UserAccess;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import annotations.*;
+import lombok.Data;
+import model.Model;
 
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -16,54 +14,47 @@ import java.util.List;
  * Compared with others for sorting by a name field.
  * Equivalance is checked by an id field.
  */
-@RequiredArgsConstructor
-public final class Flat implements Comparable<Flat>, Collectible, Serializable {
+@GenModelBuilder(type = ModelType.FULL_MODEL)
+@GenDto(annotatedWith = UserAccess.class)
+@Collectible
+@Data
+public final class Flat implements Serializable, Model {
   @NotNull
   @GreaterThan
-  @Getter
   private final Integer id; // Поле не может быть null, Значение поля должно быть больше 0, Значение этого поля должно быть уникальным, Значение этого поля должно генерироваться автоматически
   @NotNull
-  @Getter
   @UserAccess(description = "flat name")
   private final String name; // Поле не может быть null, Строка не может быть пустой
 
   @NotNull
-  @Getter
   @UserAccess(description = "flat location")
   private final Coordinates coordinates; // Поле не может быть null
 
   // AutomaticGen
   @NotNull
-  @Getter
   private final LocalDate creationDate; // Поле не может быть null, Значение этого поля должно генерироваться
                                         // автоматически
   @NotNull
   @GreaterThan
-  @Getter
   @UserAccess(description = "flat area")
   private final Integer area; // Поле не может быть null, Значение поля должно быть больше 0
 
   @GreaterThan
-  @Getter
   @UserAccess(description = "number of rooms")
   private final Long numberOfRooms; // Значение поля должно быть больше 0
 
   @NotNull
-  @Getter
   @UserAccess(description = "is there furniture")
   private final Boolean furniture; // Поле не может быть null
 
   @NotNull
-  @Getter
   @UserAccess(description = "is it new")
   private final Boolean newness; // Поле не может быть null
 
-  @Getter
   @UserAccess(description = "view type")
   private final View view;
 
   @NotNull
-  @Getter
   @UserAccess(description = "information about house")
   private final House house; // Поле не может быть null
 
@@ -71,8 +62,8 @@ public final class Flat implements Comparable<Flat>, Collectible, Serializable {
    * Sort collection of Flats by name.
    */
   @Override
-  public int compareTo(Flat o) {
-    return this.getName().compareTo(o.getName());
+  public int compareTo(Model o) {
+    return this.getName().compareTo(((Flat) o).getName());
   }
 
   /**
@@ -93,15 +84,10 @@ public final class Flat implements Comparable<Flat>, Collectible, Serializable {
     return this.id;
   }
 
-  @Override
-  public String toString() {
-    return String.format("Flat{id=%d, name=%s, coordinates=%s, creationDate=%s, area=%d, numberOfRooms=%d, furniture=%b, newness=%b, view=%s, house=%s}",
-      id, name, coordinates, creationDate, area, numberOfRooms, furniture, newness, view, house);
-  }
-
   /**
    * Returns values extracted from all fields including objects.
    */
+  @Override
   public List<Object> getValuesRecursive() {
     return Arrays.asList(id, name, coordinates.getX(), coordinates.getY(), creationDate, area, numberOfRooms, furniture, newness, view, house.getName(), house.getYear(), house.getNumberOfFloors(), house.getNumberOfLifts());
   }
