@@ -8,6 +8,9 @@ repositories {
 }
 
 dependencies {
+    implementation project(':annotation-processor')
+    annotationProcessor project(':annotation-processor')
+
     implementation group: 'org.apache.commons', name: 'commons-csv', version: '1.9.0'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
@@ -15,6 +18,8 @@ dependencies {
     annotationProcessor "org.projectlombok:lombok:1.18.22"
     testAnnotationProcessor "org.projectlombok:lombok:1.18.22"
 }
+
+sourceSets.main.java.srcDirs += "$projectDir/build/generated/sources"
 
 test {
     useJUnitPlatform()
