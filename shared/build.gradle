@@ -19,8 +19,7 @@ dependencies {
     testAnnotationProcessor "org.projectlombok:lombok:1.18.22"
 }
 
-sourceSets.main.java.srcDirs += "$projectDir/build/generated/sources"
-
+sourceSets.main.java.srcDirs += "${buildDir}/generated/sources/main/java"
 test {
     useJUnitPlatform()
 }

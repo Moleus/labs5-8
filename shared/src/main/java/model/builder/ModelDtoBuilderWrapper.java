@@ -1,7 +1,7 @@
 package model.builder;
 
 import model.ModelDto;
-import model.ModelDtoBuilder;
+import model.data.ModelDtoBuilder;
 
 public class ModelDtoBuilderWrapper extends AbstractBuilderWrapper<ModelDto> {
   private final ModelDtoBuilder modelDtoBuilder;

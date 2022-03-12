@@ -2,8 +2,8 @@ package model.builder;
 
 import exceptions.ValueConstraintsException;
 import model.Model;
-import model.ModelBuilder;
 import model.ModelDto;
+import model.data.ModelBuilder;
 
 public class ModelBuilderWrapper extends AbstractBuilderWrapper<Model> {
   private final static ModelBuilder modelBuilder = new ModelBuilder();

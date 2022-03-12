@@ -10,7 +10,6 @@ repositories {
 }
 
 dependencies {
-    annotationProcessor project(':annotation-processor')
     implementation project(':annotation-processor')
     implementation project(':shared')
 
