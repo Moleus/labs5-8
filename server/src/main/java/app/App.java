@@ -2,11 +2,13 @@ package app;
 
 import commands.CommandManager;
 import lombok.extern.log4j.Log4j2;
+import model.Model;
+import model.builder.BuilderWrapper;
+import model.builder.ModelBuilderWrapper;
 import server.collection.CollectionManager;
 import server.commands.pcommands.*;
 import server.exceptions.CollectionCorruptedException;
 import server.exceptions.StorageAccessException;
-import server.model.FlatBuilder;
 import server.storage.FileStorage;
 import server.storage.Storage;
 
@@ -49,7 +51,7 @@ public class App {
       filePath = args[0];
     }
 
-    FlatBuilder flatBuilder = FlatBuilder.createInstance();
+    BuilderWrapper<Model> flatBuilder = ModelBuilderWrapper.getInstance();
     Storage storageManager = new FileStorage(filePath, flatBuilder);
     CollectionManager collectionManager = new CollectionManager(storageManager);
     try {
