@@ -5,12 +5,11 @@ import commands.CommandInfo;
 import commands.ExecutionPayload;
 import commands.ExecutionResult;
 import exceptions.ElementNotFoundException;
-import model.data.Flat;
+import exceptions.ValueConstraintsException;
+import model.Model;
+import model.ModelDto;
+import model.builder.ModelBuilderWrapper;
 import server.collection.CollectionManager;
-import server.exceptions.InvalidDataValues;
-import server.model.FlatBuilder;
-
-import java.time.LocalDate;
 
 import static commands.ExecutionMode.SERVER;
 
@@ -33,15 +32,13 @@ public final class Update extends AbstractCommand {
       return ExecutionResult.valueOf(false, "Id should be an integer");
     }
 
-    Object[] dataValues = payload.getDataValues();
+    ModelDto dataValues = payload.getDataValues();
 
     try {
-      Flat oldFlat = collectionManager.getById(id);
-      LocalDate creationDate = oldFlat.getCreationDate();
-      Flat newFlat = FlatBuilder.getInstance().buildWithCustomIdAndDate(id, creationDate, dataValues);
+      Model newModel = ModelBuilderWrapper.fromDto(dataValues);
       collectionManager.removeById(id);
-      collectionManager.add(newFlat);
-    } catch (InvalidDataValues e) {
+      collectionManager.add(newModel);
+    } catch (ValueConstraintsException e) {
       return ExecutionResult.valueOf(false, e.getMessage());
     } catch (ElementNotFoundException e) {
       return ExecutionResult.valueOf(false, "Element with id " + id + " doesn't exist");

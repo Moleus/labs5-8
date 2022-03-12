@@ -1,13 +1,13 @@
 package collection;
 
-import model.data.Flat;
+import model.Model;
 
 import java.util.Set;
 
 public class ChangesApplier {
-  private final Set<Flat> target;
+  private final Set<Model> target;
 
-  public ChangesApplier(Set<Flat> target) {
+  public ChangesApplier(Set<Model> target) {
     this.target = target;
   }
 

@@ -1,13 +1,14 @@
 package server.commands.pcommands;
+
+import commands.AbstractCommand;
 import commands.CommandInfo;
 import commands.ExecutionPayload;
 import commands.ExecutionResult;
+import exceptions.ValueConstraintsException;
+import model.Model;
+import model.ModelDto;
+import model.builder.ModelBuilderWrapper;
 import server.collection.CollectionManager;
-import commands.AbstractCommand;
-
-import server.model.FlatBuilder;
-import model.data.Flat;
-import server.exceptions.InvalidDataValues;
 
 import static commands.ExecutionMode.SERVER;
 
@@ -21,12 +22,12 @@ public final class Add extends AbstractCommand {
   
   @Override
   public ExecutionResult execute(ExecutionPayload payload) {
-    Object[] dataValues = payload.getDataValues();
+    ModelDto dataValues = payload.getDataValues();
 
     try {
-      Flat newFlat = FlatBuilder.getInstance().buildAccessible(dataValues);
+      Model newFlat = ModelBuilderWrapper.fromDto(dataValues);
       collectionManager.add(newFlat);
-    } catch (InvalidDataValues e) {
+    } catch (ValueConstraintsException e) {
       return ExecutionResult.valueOf(false, e.getMessage());
     }
 

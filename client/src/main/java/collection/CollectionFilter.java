@@ -1,5 +1,6 @@
 package collection;
 
+import model.Model;
 import model.data.Flat;
 
 import java.time.LocalDateTime;
@@ -9,7 +10,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class CollectionFilter {
-  private Set<Flat> objectsCollection;
+  private Set<Model> objectsCollection;
   private Long collectionVersion;
   private LocalDateTime creationDateTime;
   private final ChangesApplier changesApplier;
@@ -58,21 +59,21 @@ public class CollectionFilter {
    *
    * @param filter string to lookup in names.
    */
-  public Flat[] filterContainsName(String filter) {
-    return objectsCollection.stream().sorted().filter(flat -> flat.getName().contains(filter)).toArray(Flat[]::new);
+  public Model[] filterContainsName(String filter) {
+    return objectsCollection.stream().sorted().filter(flat -> ((Flat) flat).getName().contains(filter)).toArray(Model[]::new);
   }
 
   /**
    * Returns a {@link Set} of unique {@link Long} values got by {@link Flat#getNumberOfRooms()} from each entry.
    */
   public Set<Long> getUniqueNumberOfRooms() {
-    return objectsCollection.stream().map(Flat::getNumberOfRooms).collect(Collectors.toSet());
+    return objectsCollection.stream().map(flat -> ((Flat) flat).getNumberOfRooms()).collect(Collectors.toSet());
   }
 
   /**
    * Returns an array of {@link Boolean} values in descending order got by {@link Flat#getNewness()} from each entry.
    */
   public Boolean[] getFieldDescendingNew() {
-    return objectsCollection.stream().sorted(Comparator.reverseOrder()).map(Flat::getNewness).toArray(Boolean[]::new);
+    return objectsCollection.stream().sorted(Comparator.reverseOrder()).map(flat -> ((Flat) flat).getNewness()).toArray(Boolean[]::new);
   }
 }

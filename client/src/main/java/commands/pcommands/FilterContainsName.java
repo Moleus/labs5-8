@@ -2,7 +2,7 @@ package commands.pcommands;
 
 import collection.CollectionFilter;
 import commands.*;
-import model.data.Flat;
+import model.Model;
 
 import java.util.Arrays;
 
@@ -17,7 +17,7 @@ public final class FilterContainsName extends AbstractCommand {
   @Override
   public ExecutionResult execute(ExecutionPayload payload) {
     String filter = payload.getInlineArg();
-    Flat[] elements = collectionFilter.filterContainsName(filter);
+    Model[] elements = collectionFilter.filterContainsName(filter);
     String message = Arrays.toString(elements);
     return ExecutionResult.valueOf(true, message);
   }

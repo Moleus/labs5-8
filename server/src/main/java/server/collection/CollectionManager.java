@@ -5,7 +5,7 @@ import collection.CollectionChangelist;
 import collection.CollectionWrapper;
 import exceptions.ElementNotFoundException;
 import lombok.extern.log4j.Log4j2;
-import model.data.Flat;
+import model.Model;
 import server.exceptions.CollectionCorruptedException;
 import server.exceptions.StorageAccessException;
 import server.storage.Storage;
@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @Log4j2
 public class CollectionManager {
   //  Set s = Collections.synchronizedSet(new LinkedHashSet(...));
-  private final Set<Flat> objectsCollection = new LinkedHashSet<>();
+  private final Set<Model> objectsCollection = new LinkedHashSet<>();
   private LocalDateTime creationDateTime = LocalDateTime.now();
   private final CollectionChangelist changelist = new CollectionChangelist(0L, new TreeMap<>());
   private final Storage storageManager;
@@ -56,17 +56,18 @@ public class CollectionManager {
    * @throws StorageAccessException if storage is not accessible.
    */
   public void loadCollection() throws CollectionCorruptedException, StorageAccessException {
-    AbstractMap.SimpleEntry<LocalDateTime, Set<Flat>> dateToCollection = storageManager.loadCollection();
+    AbstractMap.SimpleEntry<LocalDateTime, Set<Model>> dateToCollection = storageManager.loadCollection();
     creationDateTime = dateToCollection.getKey();
     this.objectsCollection.addAll(dateToCollection.getValue());
   }
 
   /**
-   * Adds new {@link Flat} to collection.
+   * Adds new {@link Model} to collection.
    * Throws {@link IllegalArgumentException} if object is already in collection.
-   * @param object Flat instance
+   *
+   * @param object Model instance
    */
-  public void add(Flat object) {
+  public void add(Model object) {
     if (!objectsCollection.add(object)) {
       throw new IllegalArgumentException("Trying to add dublicate object");
     }
@@ -83,11 +84,11 @@ public class CollectionManager {
   }
 
   /**
-   * Returns max {@link Flat} from collection.
+   * Returns max {@link Model} from collection.
    *
    * @throws exceptions.ElementNotFoundException if collection is empty.
    */
-  public Flat getMax() throws exceptions.ElementNotFoundException {
+  public Model getMax() throws exceptions.ElementNotFoundException {
     if (objectsCollection.isEmpty()) {
       throw new exceptions.ElementNotFoundException("Can't get max. Collection is empty");
     }
@@ -95,11 +96,11 @@ public class CollectionManager {
   }
 
   /**
-   * Returns min {@link Flat} from collection.
+   * Returns min {@link Model} from collection.
    *
    * @throws exceptions.ElementNotFoundException if collection is empty.
    */
-  public Flat getMin() throws exceptions.ElementNotFoundException {
+  public Model getMin() throws exceptions.ElementNotFoundException {
     if (objectsCollection.isEmpty()) {
       throw new exceptions.ElementNotFoundException("Can't get min. Collection is empty");
     }
@@ -107,21 +108,22 @@ public class CollectionManager {
   }
 
   /**
-   * Returns {@link Flat} from collection by id.
-   * @param id Id to get {@link Flat} object from collection.
+   * Returns {@link Model} from collection by id.
+   *
+   * @param id Id to get {@link Model} object from collection.
    * @throws ElementNotFoundException if there is no entry with such id in collection.
    */
-  public Flat getById(Integer id) throws ElementNotFoundException {
+  public Model getById(Integer id) throws ElementNotFoundException {
     return objectsCollection.stream().filter(flat -> Objects.equals(id, flat.getId())).findAny().orElseThrow(() -> new ElementNotFoundException("No element with such id in collection"));
   }
 
   /**
-   * Removes {@link Flat} from collection by id.
-   * @param id Id to remove {@link Flat} object from collection.
+   * Removes {@link Model} from collection by id.
+   * @param id Id to remove {@link Model} object from collection.
    * @throws ElementNotFoundException if there is no entry with such id in collection.
    */
   public void removeById(Integer id) throws ElementNotFoundException {
-    Predicate<Flat> filter = flat -> Objects.equals(id, flat.getId());
+    Predicate<Model> filter = flat -> Objects.equals(id, flat.getId());
     addToChangelist(getMatches(filter), DiffAction.REMOVE);
 
     if (!objectsCollection.removeIf(filter)) {
@@ -130,23 +132,23 @@ public class CollectionManager {
   }
 
   /**
-   * Removes all entries which are less than passed {@link Flat} object.
+   * Removes all entries which are less than passed {@link Model} object.
    *
-   * @param upperBoundFlat {@link Flat} to compare with.
+   * @param upperBoundModel {@link Model} to compare with.
    * @return true if removed. False if nothing changed.
    */
-  public boolean removeLower(Flat upperBoundFlat) {
-    Predicate<Flat> filter = flat -> flat.compareTo(upperBoundFlat) < 0;
+  public boolean removeLower(Model upperBoundModel) {
+    Predicate<Model> filter = flat -> flat.compareTo(upperBoundModel) < 0;
     addToChangelist(getMatches(filter), DiffAction.REMOVE);
     return objectsCollection.removeIf(filter);
   }
 
-  private Set<Flat> getMatches(Predicate<Flat> filter) {
-    Map<Boolean, List<Flat>> changedToList = objectsCollection.stream().collect(Collectors.partitioningBy(filter));
+  private Set<Model> getMatches(Predicate<Model> filter) {
+    Map<Boolean, List<Model>> changedToList = objectsCollection.stream().collect(Collectors.partitioningBy(filter));
     return Set.copyOf(changedToList.get(Boolean.TRUE));
   }
 
-  private void addToChangelist(Set<Flat> changes, DiffAction action) {
+  private void addToChangelist(Set<Model> changes, DiffAction action) {
     if (changes.isEmpty()) {
       return;
     }

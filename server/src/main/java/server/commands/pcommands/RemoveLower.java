@@ -1,14 +1,11 @@
 package server.commands.pcommands;
 
-import commands.CommandInfo;
-import commands.ExecutionMode;
-import commands.ExecutionPayload;
-import commands.ExecutionResult;
-import server.exceptions.InvalidDataValues;
-import model.data.Flat;
+import commands.*;
+import exceptions.ValueConstraintsException;
+import model.Model;
+import model.ModelDto;
+import model.builder.ModelBuilderWrapper;
 import server.collection.CollectionManager;
-import commands.AbstractCommand;
-import server.model.FlatBuilder;
 
 public final class RemoveLower extends AbstractCommand {
   private final CollectionManager collectionManager;
@@ -20,12 +17,12 @@ public final class RemoveLower extends AbstractCommand {
   
   @Override
   public ExecutionResult execute(ExecutionPayload payload) {
-    Object[] dataValues = payload.getDataValues();
+    ModelDto dataValues = payload.getDataValues();
 
-    Flat upperBoundFlat;
+    Model upperBoundFlat;
     try {
-      upperBoundFlat = FlatBuilder.getInstance().buildAccessible(dataValues);
-    } catch (InvalidDataValues e) {
+      upperBoundFlat = ModelBuilderWrapper.fromDto(dataValues);
+    } catch (ValueConstraintsException e) {
       return ExecutionResult.valueOf(false, e.getMessage());
     }
     if (collectionManager.removeLower(upperBoundFlat)) {

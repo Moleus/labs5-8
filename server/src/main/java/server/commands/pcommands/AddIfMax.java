@@ -5,10 +5,11 @@ import commands.CommandInfo;
 import commands.ExecutionPayload;
 import commands.ExecutionResult;
 import exceptions.ElementNotFoundException;
-import model.data.Flat;
+import exceptions.ValueConstraintsException;
+import model.Model;
+import model.ModelDto;
+import model.builder.ModelBuilderWrapper;
 import server.collection.CollectionManager;
-import server.exceptions.InvalidDataValues;
-import server.model.FlatBuilder;
 
 import static commands.ExecutionMode.SERVER;
 
@@ -22,16 +23,16 @@ public final class AddIfMax extends AbstractCommand {
   
   @Override
   public ExecutionResult execute(ExecutionPayload payload) {
-    Object[] dataValues = payload.getDataValues();
+    ModelDto dataValues = payload.getDataValues();
 
     try {
-      Flat newFlat = FlatBuilder.getInstance().buildAccessible(dataValues);
-      Flat maxFlat = collectionManager.getMax();
-      if (newFlat.compareTo(maxFlat) > 0) {
-        collectionManager.add(newFlat);
+      Model newModel = ModelBuilderWrapper.fromDto(dataValues);
+      Model maxModel = collectionManager.getMax();
+      if (newModel.compareTo(maxModel) > 0) {
+        collectionManager.add(newModel);
         return ExecutionResult.valueOf(true, "added new element in collection");
       }
-    } catch (InvalidDataValues | ElementNotFoundException e) {
+    } catch (ElementNotFoundException | ValueConstraintsException e) {
       return ExecutionResult.valueOf(false, e.getMessage());
     }
 
