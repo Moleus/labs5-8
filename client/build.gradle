@@ -1,0 +1,42 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'io.freefair.lombok' version '6.3.0'
+    id 'com.github.johnrengelman.shadow' version '5.2.0'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    annotationProcessor project(':annotation-processor')
+    implementation project(':annotation-processor')
+    implementation project(':shared')
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+
+    annotationProcessor "org.projectlombok:lombok:1.18.22"
+    testAnnotationProcessor "org.projectlombok:lombok:1.18.22"
+}
+
+mainClassName = 'app.ClientMain'
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'app.ClientMain'
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
+
+run {
+    standardInput = System.in
+}
+
+application {
+    mainClass = 'app.ClientMain'
+}
