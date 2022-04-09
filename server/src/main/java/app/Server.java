@@ -32,7 +32,7 @@ public class Server implements Exitable {
 
   private final int port;
   private final CommandManager commandManager;
-  private final CollectionManager collectionManager;
+  private final CollectionManager<Flat> collectionManager;
   private final BufferedReader bufferedReader;
 
   private final Selector selector;
@@ -42,7 +42,7 @@ public class Server implements Exitable {
 
   private final Map<SocketChannel, Request> socketToRequest = new ConcurrentHashMap<>();
 
-  public Server(int port, CommandManager commandManager, CollectionManager collectionManager) throws IOException {
+  public Server(int port, CommandManager commandManager, CollectionManager<Flat> collectionManager) throws IOException {
     this.port = port;
     this.commandManager = commandManager;
     this.collectionManager = collectionManager;
@@ -165,7 +165,7 @@ public class Server implements Exitable {
     return switch (request.getPurpose()) {
       case EXECUTE -> executeCommand((ExecutionPayload) request.getPayload().get());
       case GET_COMMANDS -> getAccessibleCommandsInfo();
-      case INIT_COLLECTION -> collectionManager.getNewestCollection();
+      case INIT_COLLECTION -> collectionManager.getFullCollection();
       case UPDATE_COLLECTION -> collectionManager.getChangesNewerThan((Long) request.getPayload().get());
     };
   }
