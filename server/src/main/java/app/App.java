@@ -41,22 +41,12 @@ import java.io.IOException;
 @Log4j2
 public class App {
   public static void main(String[] args) {
-    final String DEFAULT_COLLECTION_PATH = "collection.csv";
-    String filePath;
+    FlatRepository repository = Bootstrap.getFlatRepository();
+    CollectionManager<Flat> collectionManager = new GenericCollectionManager<>(new FlatChangesTracker(), repository);
 
-    if (args.length != 1) {
-      System.out.printf("Please, specify path to collection file (single argument).%nLoading from a default location: '%s'%n", DEFAULT_COLLECTION_PATH);
-      filePath = DEFAULT_COLLECTION_PATH;
-    } else {
-      filePath = args[0];
-    }
-
-    BuilderWrapper<Model> flatBuilder = ModelBuilderWrapper.getInstance();
-    Storage storageManager = new FileStorage(filePath, flatBuilder);
-    CollectionManager collectionManager = new CollectionManager(storageManager);
     try {
       collectionManager.loadCollection();
-    } catch (CollectionCorruptedException | StorageAccessException e) {
+    } catch (StorageAccessException e) {
       System.out.printf("Failed to load collection.%n%s %n", e.getMessage());
     }
 
