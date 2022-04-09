@@ -1,14 +1,31 @@
 package collection;
 
-import lombok.Data;
-import model.Model;
+import lombok.Getter;
+import model.data.Model;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.Set;
 
-@Data(staticConstructor = "of")
-public
-class CollectionChange implements Serializable {
-  private final Set<Model> removed;
-  private final Set<Model> added;
+@Getter
+public class CollectionChange<T extends Model> implements Serializable {
+  private final Set<T> removed;
+  private final Set<T> added;
+
+  CollectionChange(Set<T> removed, Set<T> added) {
+    this.removed = removed;
+    this.added = added;
+  }
+
+  public static <T extends Model> CollectionChange<T> remove(Set<T> removed) {
+    return new CollectionChange<>(removed, Collections.emptySet());
+  }
+
+  public static <T extends Model> CollectionChange<T> add(Set<T> added) {
+    return new CollectionChange<>(Collections.emptySet(), added);
+  }
+
+  public static <T extends Model> CollectionChange<T> update(Set<T> updated) {
+    return new CollectionChange<>(updated, updated);
+  }
 }

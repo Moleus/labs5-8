@@ -63,14 +63,13 @@ public class App {
     // Save - only server
 
     commandManager.registerCommands(
-        new Add(collectionManager),  // add new element to collection
-        new Update(collectionManager),  // modify existing element in collection
-        new RemoveById(collectionManager),  // remove from collection
-        new Clear(collectionManager),  // remove all elements from collection
-        new Save(collectionManager),  // save collection in storage
-        new AddIfMax(collectionManager),  // add new element if it's the greatest
-        new AddIfMin(collectionManager),  // add new element if it's the least
-        new RemoveLower(collectionManager)  // remove all less than given
+        new Add<>(collectionManager),  // add new element to collection
+        new Update<>(collectionManager),  // modify existing element in collection
+        new RemoveById<>(collectionManager),  // remove from collection
+        new Clear<>(collectionManager),  // remove all elements from collection
+        new AddIfMax<>(collectionManager),  // add new element if it's the greatest
+        new AddIfMin<>(collectionManager),  // add new element if it's the least
+        new RemoveLower<>(collectionManager)  // remove all less than given
     );
 
     try {

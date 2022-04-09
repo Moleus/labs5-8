@@ -5,18 +5,18 @@ import commands.CommandInfo;
 import commands.ExecutionPayload;
 import commands.ExecutionResult;
 import exceptions.ElementNotFoundException;
-import exceptions.ValueConstraintsException;
-import model.Model;
 import model.ModelDto;
-import model.builder.ModelBuilderWrapper;
+import model.data.Model;
+import org.modelmapper.MappingException;
 import server.collection.CollectionManager;
+import server.collection.DtoToModelMapper;
 
 import static commands.ExecutionMode.SERVER;
 
-public final class AddIfMin extends AbstractCommand {
-  private final CollectionManager collectionManager;
+public final class AddIfMin<T extends Model> extends AbstractCommand {
+  private final CollectionManager<T> collectionManager;
 
-  public AddIfMin(CollectionManager collectionManager) {
+  public AddIfMin(CollectionManager<T> collectionManager) {
     super(CommandInfo.of("add_if_min", "Add new element if it's the least in collection", true, 0, true, SERVER));
     this.collectionManager = collectionManager;
   }
@@ -26,13 +26,13 @@ public final class AddIfMin extends AbstractCommand {
     ModelDto dataValues = payload.getDataValues();
 
     try {
-      Model newModel = ModelBuilderWrapper.fromDto(dataValues);
-      Model minModel = collectionManager.getMin();
+      T newModel = DtoToModelMapper.fromDto(dataValues);
+      T minModel = collectionManager.getMin();
       if (newModel.compareTo(minModel) < 0) {
         collectionManager.add(newModel);
         return ExecutionResult.valueOf(true, "added new element in collection");
       }
-    } catch (ElementNotFoundException | ValueConstraintsException e) {
+    } catch (ElementNotFoundException | MappingException e) {
       return ExecutionResult.valueOf(false, e.getMessage());
     }
 

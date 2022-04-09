@@ -1,7 +1,7 @@
 package collection;
 
-import model.Model;
 import model.data.Flat;
+import model.data.Model;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -10,23 +10,23 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class CollectionFilter {
-  private Set<Model> objectsCollection;
+  private Set<Flat> objectsCollection;
   private Long collectionVersion;
   private LocalDateTime creationDateTime;
-  private final ChangesApplier changesApplier;
+  private final ChangesApplier<Flat> changesApplier;
 
-  public CollectionFilter(CollectionWrapper collectionWrapper) {
+  public CollectionFilter(CollectionWrapper<Flat> collectionWrapper) {
     loadFullCollection(collectionWrapper);
-    changesApplier = new ChangesApplier(objectsCollection);
+    changesApplier = new ChangesApplier<>(objectsCollection);
   }
 
-  public void loadFullCollection(CollectionWrapper collectionWrapper) {
+  public void loadFullCollection(CollectionWrapper<Flat> collectionWrapper) {
     objectsCollection = collectionWrapper.getCollection();
     creationDateTime = collectionWrapper.getCreationDateTime();
     collectionVersion = collectionWrapper.getVersion();
   }
 
-  public void applyChangelist(CollectionChangelist changelist) {
+  public void applyChangelist(CollectionChangelist<Flat> changelist) {
     collectionVersion = changelist.getLatestVersion();
     changesApplier.apply(changelist);
   }
@@ -60,20 +60,20 @@ public class CollectionFilter {
    * @param filter string to lookup in names.
    */
   public Model[] filterContainsName(String filter) {
-    return objectsCollection.stream().sorted().filter(flat -> ((Flat) flat).getName().contains(filter)).toArray(Model[]::new);
+    return objectsCollection.stream().sorted().filter(flat -> flat.getName().contains(filter)).toArray(Model[]::new);
   }
 
   /**
    * Returns a {@link Set} of unique {@link Long} values got by {@link Flat#getNumberOfRooms()} from each entry.
    */
   public Set<Long> getUniqueNumberOfRooms() {
-    return objectsCollection.stream().map(flat -> ((Flat) flat).getNumberOfRooms()).collect(Collectors.toSet());
+    return objectsCollection.stream().map(Flat::getNumberOfRooms).collect(Collectors.toSet());
   }
 
   /**
    * Returns an array of {@link Boolean} values in descending order got by {@link Flat#getNewness()} from each entry.
    */
   public Boolean[] getFieldDescendingNew() {
-    return objectsCollection.stream().sorted(Comparator.reverseOrder()).map(flat -> ((Flat) flat).getNewness()).toArray(Boolean[]::new);
+    return objectsCollection.stream().sorted(Comparator.reverseOrder()).map(Flat::getNewness).toArray(Boolean[]::new);
   }
 }

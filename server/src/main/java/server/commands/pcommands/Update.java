@@ -31,15 +31,10 @@ public final class Update<T extends Model> extends AbstractCommand {
     }
 
     ModelDto dataValues = payload.getDataValues();
-
-    try {
-      Model newModel = ModelBuilderWrapper.fromDto(dataValues);
-      collectionManager.removeById(id);
-      collectionManager.add(newModel);
-    } catch (ValueConstraintsException e) {
-      return ExecutionResult.valueOf(false, e.getMessage());
-    } catch (ElementNotFoundException e) {
-      return ExecutionResult.valueOf(false, "Element with id " + id + " doesn't exist");
+    T newModel = DtoToModelMapper.fromDto(dataValues);
+    newModel.setId(id);
+    if (!collectionManager.update(newModel)) {
+      return ExecutionResult.valueOf(false, "Element with id " + id + " not updated");
     }
 
     return ExecutionResult.valueOf(true, "item updated");
