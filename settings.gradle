@@ -8,4 +8,6 @@
  */
 
 rootProject.name = 'lab5'
-include 'shared', 'client', 'server', 'annotation-processor'
+include 'shared', 'client', 'server'
+include 'annotation-processor'
+include 'perfORM'

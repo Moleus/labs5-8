@@ -1,0 +1,40 @@
+# git ls-files --others --exclude-from=.git/info/exclude
+# Lines that start with '#' are comments.
+# For a project mostly in C, the following would be a good set of
+# exclude patterns (uncomment them if you want to use them):
+# *.[oa]
+# *~
+
+.*
+!.gitignore
+!.github/
+!.gitlab-ci.yml
+
+.idea/
+
+# my files
+diagram/
+logs/
+
+
+### Java ###
+*.class
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+### Gradle ###
+.gradle
+gradlew.bat
+**/build/
+!src/**/build/
+
+**/out/
+
+# Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
+!gradle-wrapper.jar
+
+# Ignore vscode settings
+settings.json
