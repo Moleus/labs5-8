@@ -1,13 +1,12 @@
 package model.data;
 
 import annotations.*;
+import lombok.Builder;
 import lombok.Data;
-import model.Model;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Objects;
 
 /**
  * Immutable object class used as an entry in collection.
@@ -17,46 +16,54 @@ import java.util.List;
 @GenModelBuilder(type = ModelType.FULL_MODEL)
 @GenDto(annotatedWith = UserAccess.class)
 @Collectible
+//@Table(name="flats")
+//@Entity
+@Builder
 @Data
 public final class Flat implements Serializable, Model {
   @NotNull
+//  @Id
+//  @GeneratedValue(strategy=GenerationType.SEQUENCE)
   @GreaterThan
-  private final Integer id; // Поле не может быть null, Значение поля должно быть больше 0, Значение этого поля должно быть уникальным, Значение этого поля должно генерироваться автоматически
+  private long id; // Поле не может быть null, Значение поля должно быть больше 0, Значение этого поля должно быть уникальным, Значение этого поля должно генерироваться автоматически
+
   @NotNull
+//  @Column(name="FLAT_NAME", length=, nullable=, unique)
   @UserAccess(description = "flat name")
-  private final String name; // Поле не может быть null, Строка не может быть пустой
+  private String name; // Поле не может быть null, Строка не может быть пустой
 
   @NotNull
   @UserAccess(description = "flat location")
-  private final Coordinates coordinates; // Поле не может быть null
+  private Coordinates coordinates; // Поле не может быть null
 
   // AutomaticGen
   @NotNull
-  private final LocalDate creationDate; // Поле не может быть null, Значение этого поля должно генерироваться
-                                        // автоматически
+  private LocalDate creationDate; // Поле не может быть null, Значение этого поля должно генерироваться
+  // автоматически
   @NotNull
   @GreaterThan
   @UserAccess(description = "flat area")
-  private final Integer area; // Поле не может быть null, Значение поля должно быть больше 0
+  private Integer area; // Поле не может быть null, Значение поля должно быть больше 0
 
   @GreaterThan
   @UserAccess(description = "number of rooms")
-  private final Long numberOfRooms; // Значение поля должно быть больше 0
+  private Long numberOfRooms; // Значение поля должно быть больше 0
 
   @NotNull
   @UserAccess(description = "is there furniture")
-  private final Boolean furniture; // Поле не может быть null
+  private Boolean furniture; // Поле не может быть null
 
   @NotNull
   @UserAccess(description = "is it new")
-  private final Boolean newness; // Поле не может быть null
+  private Boolean newness; // Поле не может быть null
 
+  //  @Enumerated(EnumType.STRING)
   @UserAccess(description = "view type")
-  private final View view;
+  private View view;
 
   @NotNull
   @UserAccess(description = "information about house")
-  private final House house; // Поле не может быть null
+  private House house; // Поле не может быть null
 
   /**
    * Sort collection of Flats by name.
@@ -73,7 +80,7 @@ public final class Flat implements Serializable, Model {
   public boolean equals(Object o) {
     if (!(o instanceof Flat of)) return false;
     if (this == o) return true;
-    return this.getId().equals(of.getId());
+    return Objects.equals(this.getId(), (of.getId()));
   }
 
   /**
@@ -81,14 +88,6 @@ public final class Flat implements Serializable, Model {
    */
   @Override
   public int hashCode() {
-    return this.id;
-  }
-
-  /**
-   * Returns values extracted from all fields including objects.
-   */
-  @Override
-  public List<Object> getValuesRecursive() {
-    return Arrays.asList(id, name, coordinates.getX(), coordinates.getY(), creationDate, area, numberOfRooms, furniture, newness, view, house.getName(), house.getYear(), house.getNumberOfFloors(), house.getNumberOfLifts());
+    return (int) this.id;
   }
 }

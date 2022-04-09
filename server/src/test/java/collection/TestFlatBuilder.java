@@ -2,11 +2,11 @@ package collection;
 
 import exceptions.ValueConstraintsException;
 import exceptions.ValueFormatException;
-import model.Model;
 import model.builder.ModelBuilderWrapper;
 import model.data.Coordinates;
 import model.data.Flat;
 import model.data.House;
+import model.data.Model;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -19,7 +19,18 @@ public class TestFlatBuilder {
     final House house = new House(HOUSE_NAME, HOUSE_YEAR, HOUSE_FLOORS, HOUSE_LIFTS);
 
     Object[] allParams = {ID, NAME, COORD_X, COORD_Y, DATE, AREA, ROOMS, HAS_FURNITURE, IS_NEW, VIEW, HOUSE_NAME, HOUSE_YEAR, HOUSE_FLOORS, HOUSE_LIFTS};
-    Flat correctFlat = new Flat(ID, NAME, coordinates, DATE, AREA, ROOMS, HAS_FURNITURE, IS_NEW, VIEW, house);
+    Flat correctFlat = Flat.builder()
+        .id(ID)
+        .name(NAME)
+        .coordinates(coordinates)
+        .creationDate(DATE)
+        .area(AREA)
+        .numberOfRooms(ROOMS)
+        .furniture(HAS_FURNITURE)
+        .newness(IS_NEW)
+        .view(VIEW)
+        .house(house)
+        .build();
 
     Flat testFlat = (Flat) buildFlat(allParams);
     assertEquals(correctFlat, testFlat);

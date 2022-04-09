@@ -5,7 +5,7 @@ import model.data.View;
 import java.time.LocalDate;
 
 public class FlatValues {
-  public static final Integer ID = 1;
+  public static final long ID = 1;
   public static final String NAME = "flatName";
   public static final Integer AREA = 12;
   public static final Long ROOMS = 12L;
