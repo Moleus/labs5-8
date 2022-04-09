@@ -5,18 +5,19 @@ import commands.CommandInfo;
 import commands.ExecutionPayload;
 import commands.ExecutionResult;
 import exceptions.ElementNotFoundException;
+import model.data.Model;
 import server.collection.CollectionManager;
 
 import static commands.ExecutionMode.SERVER;
 
-public final class RemoveById extends AbstractCommand {
-  private final CollectionManager collectionManager;
+public final class RemoveById<T extends Model> extends AbstractCommand {
+  private final CollectionManager<T> collectionManager;
 
-  public RemoveById(CollectionManager collectionManager) {
+  public RemoveById(CollectionManager<T> collectionManager) {
     super(CommandInfo.of("remove_by_id", "remove an element with {id} from collection", true, 1, false, SERVER));
     this.collectionManager = collectionManager;
   }
-  
+
   @Override
   public ExecutionResult execute(ExecutionPayload payload) {
     String idStr = payload.getInlineArg();

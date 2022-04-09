@@ -2,25 +2,18 @@ package app;
 
 import commands.CommandManager;
 import lombok.extern.log4j.Log4j2;
-import model.Model;
-import model.builder.BuilderWrapper;
-import model.builder.ModelBuilderWrapper;
+import model.data.Flat;
+import perform.bootstrap.Bootstrap;
+import perform.database.repository.FlatRepository;
 import server.collection.CollectionManager;
+import server.collection.FlatChangesTracker;
+import server.collection.GenericCollectionManager;
 import server.commands.pcommands.*;
-import server.exceptions.CollectionCorruptedException;
 import server.exceptions.StorageAccessException;
-import server.storage.FileStorage;
-import server.storage.Storage;
 
 import java.io.IOException;
 
 /* TODO list:
- * LAB6:
- * 1. Обработка отключения сервера (https://github.com/1MikhailStepanov1/LabSixClient/issues/14)
- * 2. Response class (https://github.com/1MikhailStepanov1/LabSixClient/issues/6) (https://github.com/rimnvd/lab6/issues/3)
- * 3. Реализовать Response с помощью Stream API (https://github.com/rimnvd/lab6/issues/5)
- * 4. Не использовать Thread (https://github.com/1MikhailStepanov1/LabSixServer/issues/4)
- *
  * LAB7:
  * 1. Хэшировать пароль (https://github.com/CrazyChris3310/Lab7/issues/4)
  * 2. Блокировка не имеет смысла (https://github.com/CrazyChris3310/Lab7/issues/3)
@@ -32,7 +25,15 @@ import java.io.IOException;
  * Important:
  * 1. in lab8 client should have full information about stored collection.
  * 2. remove any owned entry from collection from gui
- * 3. edit seperate fields of object in collection
+ * 3. edit separate fields of object in collection
+ *
+ *
+ *
+ * Write-through
+ * запись в бд и в память
+ * чтение из памяти
+ *
+ * синтетический адаптер между запросами к бд builderWrapper
  */
 
 /**

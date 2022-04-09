@@ -8,6 +8,7 @@ import communication.packaging.Request;
 import communication.packaging.Response;
 import exceptions.RecievedInvalidObjectException;
 import lombok.extern.log4j.Log4j2;
+import model.data.Flat;
 import server.collection.CollectionManager;
 import server.communication.MessagesProcessor;
 import server.communication.ServerTransceiver;
