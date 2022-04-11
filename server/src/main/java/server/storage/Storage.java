@@ -1,6 +1,6 @@
 package server.storage;
 
-import model.Model;
+import model.data.Model;
 import server.exceptions.CollectionCorruptedException;
 import server.exceptions.StorageAccessException;
 

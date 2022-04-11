@@ -2,7 +2,7 @@ package commands.pcommands;
 
 import collection.CollectionFilter;
 import commands.*;
-import model.Model;
+import model.data.Model;
 
 import java.util.Arrays;
 

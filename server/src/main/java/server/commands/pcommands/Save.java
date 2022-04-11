@@ -1,31 +1,31 @@
 package server.commands.pcommands;
 
+import commands.AbstractCommand;
 import commands.CommandInfo;
 import commands.ExecutionPayload;
 import commands.ExecutionResult;
-import server.exceptions.StorageAccessException;
+import model.data.Model;
 import server.collection.CollectionManager;
-import commands.AbstractCommand;
 
 import static commands.ExecutionMode.SERVER;
 
-public final class Save extends AbstractCommand {
-  private final CollectionManager collectionManager;
+/**
+ * Saves user collection in storage
+ *
+ * @deprecated This class is no longer acceptable to save a collection.
+ * New entities are directly inserted in DB table and a collection is used as a cache.
+ */
+@Deprecated(since = "lab7")
+public final class Save<T extends Model> extends AbstractCommand {
+  private final CollectionManager<T> collectionManager;
 
-  public Save(CollectionManager collectionManager) {
+  public Save(CollectionManager<T> collectionManager) {
     super(CommandInfo.of("save", "Save collection in a storage", false, 0, false, SERVER));
     this.collectionManager = collectionManager;
   }
-  
+
   @Override
   public ExecutionResult execute(ExecutionPayload payload) {
-    try {
-      collectionManager.saveCollection();
-    } catch (StorageAccessException e) {
-      return ExecutionResult.valueOf(false, e.getMessage());
-    }
-
-    return ExecutionResult.valueOf(true, "Ok");
+    return ExecutionResult.valueOf(false, "DEPRECATED");
   }
 }
-
