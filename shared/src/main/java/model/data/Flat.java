@@ -1,15 +1,11 @@
 package model.data;
 
+import annotations.Collectible;
 import annotations.GenDto;
-import annotations.GenModelBuilder;
-import annotations.ModelType;
 import annotations.UserAccess;
-import com.sun.istack.NotNull;
-import lombok.Builder;
 import lombok.Data;
 import perform.annotations.*;
 
-import javax.persistence.Id;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Objects;
@@ -19,12 +15,10 @@ import java.util.Objects;
  * Compared with others for sorting by a name field.
  * Equivalance is checked by an id field.
  */
-@GenModelBuilder(type = ModelType.FULL_MODEL)
 @GenDto(annotatedWith = UserAccess.class)
 @Collectible
 @Table(name = "flats")
 @Entity
-@Builder
 @Data
 public final class Flat implements Serializable, Model {
 
@@ -44,6 +38,7 @@ public final class Flat implements Serializable, Model {
 
   @NotNull
   @UserAccess(description = "flat location")
+  @Embedded
   private Coordinates coordinates; // Поле не может быть null
 
   // AutomaticGen
@@ -73,6 +68,7 @@ public final class Flat implements Serializable, Model {
 
   @NotNull
   @UserAccess(description = "information about house")
+  @Embedded
   private House house; // Поле не может быть null
 
   /**
