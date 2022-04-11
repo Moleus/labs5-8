@@ -1,9 +1,9 @@
 package processor.factories;
 
-import annotations.Collectible;
 import annotations.GenModelBuilder;
 import com.squareup.javapoet.ClassName;
 import model.GenericModel;
+import perform.annotations.Collectible;
 import processor.generators.BuilderGenerator;
 import processor.generators.ModelBuilderGenerator;
 import processor.generators.ModelDtoBuilderGenerator;

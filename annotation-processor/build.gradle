@@ -11,6 +11,7 @@ repositories {
 
 dependencies {
     implementation fileTree(dir: 'build/libs', include: ['*.jar'])
+    compileOnly project(":perfORM")
 
     implementation 'com.squareup:javapoet:1.13.0'
 

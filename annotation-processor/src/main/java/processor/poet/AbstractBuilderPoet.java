@@ -1,12 +1,12 @@
 package processor.poet;
 
-import annotations.GreaterThan;
-import annotations.NotNull;
 import annotations.UserAccess;
 import com.squareup.javapoet.*;
 import exceptions.ValueConstraintsException;
 import model.FieldDetails;
 import model.GenericModelBuilder;
+import perform.annotations.GreaterThan;
+import perform.annotations.NotNull;
 import utils.PoetUtils;
 import utils.Utils;
 

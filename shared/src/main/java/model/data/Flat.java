@@ -1,9 +1,15 @@
 package model.data;
 
-import annotations.*;
+import annotations.GenDto;
+import annotations.GenModelBuilder;
+import annotations.ModelType;
+import annotations.UserAccess;
+import com.sun.istack.NotNull;
 import lombok.Builder;
 import lombok.Data;
+import perform.annotations.*;
 
+import javax.persistence.Id;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Objects;
@@ -16,13 +22,17 @@ import java.util.Objects;
 @GenModelBuilder(type = ModelType.FULL_MODEL)
 @GenDto(annotatedWith = UserAccess.class)
 @Collectible
-//@Table(name="flats")
-//@Entity
+@Table(name = "flats")
+@Entity
 @Builder
 @Data
 public final class Flat implements Serializable, Model {
+
+  @ForeignKey(tableName = "users")
+  private long userId;
+
   @NotNull
-//  @Id
+  @Id
 //  @GeneratedValue(strategy=GenerationType.SEQUENCE)
   @GreaterThan
   private long id; // Поле не может быть null, Значение поля должно быть больше 0, Значение этого поля должно быть уникальным, Значение этого поля должно генерироваться автоматически

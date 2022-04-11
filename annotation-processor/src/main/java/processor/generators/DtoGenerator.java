@@ -1,6 +1,5 @@
 package processor.generators;
 
-import annotations.Collectible;
 import annotations.GenDto;
 import annotations.GenModelBuilder;
 import annotations.ModelType;
@@ -8,6 +7,7 @@ import com.squareup.javapoet.*;
 import lombok.Data;
 import model.GenericModel;
 import model.ModelDto;
+import perform.annotations.Collectible;
 import utils.CompileUtils;
 import utils.PoetUtils;
 

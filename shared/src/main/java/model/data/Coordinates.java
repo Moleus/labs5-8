@@ -1,10 +1,10 @@
 package model.data;
 
-import annotations.Collectible;
-import annotations.GreaterThan;
-import annotations.NotNull;
 import annotations.UserAccess;
 import lombok.Data;
+import perform.annotations.Collectible;
+import perform.annotations.GreaterThan;
+import perform.annotations.NotNull;
 
 import java.io.Serializable;
 
