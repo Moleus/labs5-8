@@ -1,10 +1,12 @@
 package perform.database.table.column;
 
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.text.CaseUtils;
 import perform.annotations.ForeignKey;
 import perform.annotations.GreaterThan;
 import perform.annotations.Id;
 import perform.mapping.properties.FieldProperty;
+import perform.mapping.table.Constraints;
 import perform.util.PreparedStatementUtil;
 
 import java.lang.annotation.Annotation;
@@ -23,7 +25,7 @@ public class ColumnCreator<T> {
   public ColumnCreator(FieldProperty<T> fieldProperty, String namePrefix) {
     this.field = fieldProperty;
     this.annotations = List.of(fieldProperty.getAnnotations());
-    this.columnName = namePrefix + fieldProperty.getColumnName();
+    this.columnName = CaseUtils.toCamelCase(namePrefix + " " + fieldProperty.getColumnName(), false);
     this.relationalColumn = new RelationalColumn<>(columnName);
   }
 
@@ -49,8 +51,12 @@ public class ColumnCreator<T> {
         log.debug("Annotation {} is not a constraint", annotation);
         continue;
       }
-      fillConstraintParams(constraint);
+      processAnnotations(annotation, constraint);
       columnConstraints.add(constraint);
+    }
+    if (relationalColumn.isId()) {
+      // Remove other constraints
+      columnConstraints.removeIf(c -> !(c.getName().equals(Constraints.PRIMARY_KEY.getConstraint().getName())));
     }
     this.relationalColumn.setConstraints(columnConstraints);
   }
@@ -59,31 +65,17 @@ public class ColumnCreator<T> {
     return SqlConstraints.getBy(annotation.annotationType());
   }
 
-  private void fillConstraintParams(Constraint constraint) {
-    processAnnotation(field.getAnnotation(GreaterThan.class), constraint);
-//    processAnnotation(field.getAnnotation(NotNull.class));
-//    processAnnotation(field.getAnnotation(Unique.class));
-    processAnnotation(field.getAnnotation(Id.class));
-    processAnnotation(field.getAnnotation(ForeignKey.class), constraint);
-  }
-
-  private void processAnnotation(GreaterThan annotation, Constraint constraint) {
+  private void processAnnotations(Annotation annotation, Constraint constraint) {
     // TODO: check that field type is numeric
-    if (annotation != null) {
-      String expression = columnName + " > " + annotation.num();
+    if (annotation instanceof GreaterThan greaterThan) {
+      String expression = columnName + " > " + greaterThan.num();
       constraint.addExpression(expression);
     }
-  }
-
-  private void processAnnotation(Id annotation) {
-    if (annotation != null) {
+    if (annotation instanceof Id) {
       this.relationalColumn.setId(true);
     }
-  }
-
-  private void processAnnotation(ForeignKey annotation, Constraint constraint) {
-    if (annotation != null) {
-      String otherTableName = annotation.tableName();
+    if (annotation instanceof ForeignKey foreignKey) {
+      String otherTableName = foreignKey.tableName();
       constraint.addParameter(otherTableName);
     }
   }

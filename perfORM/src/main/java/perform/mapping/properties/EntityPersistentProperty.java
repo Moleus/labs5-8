@@ -1,22 +1,24 @@
 package perform.mapping.properties;
 
+import org.reflections.Reflections;
 import perform.annotations.Embeddable;
 import perform.annotations.Table;
 import perform.exception.BeanIntrospectionException;
 import perform.exception.DuplicateKeyException;
 
-import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
-import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.util.*;
+
+import static org.reflections.ReflectionUtils.Fields;
 
 public class EntityPersistentProperty<T> implements EntityProperty<T> {
   private final Class<T> entityType;
-  private BeanInfo beanInfo;
+  private Reflections reflections;
   private final List<FieldProperty<?>> properties = new ArrayList<>();
-  private final Map<FieldProperty<?>, EntityProperty<?>> fieldToEmbeddedEntity = new HashMap<>();
+  private final Map<FieldProperty<?>, EntityProperty<?>> fieldToEmbeddedEntity = new LinkedHashMap<>();
 
   private FieldProperty<?> idProperty;
   private boolean isEmbeddable;
@@ -33,13 +35,9 @@ public class EntityPersistentProperty<T> implements EntityProperty<T> {
   }
 
   private void initializeBeanInfo() {
-    try {
-      beanInfo = Introspector.getBeanInfo(entityType);
-      isEmbeddable = Optional.ofNullable(findAnnotation(Embeddable.class)).isPresent();
-      tableName = Optional.ofNullable(findAnnotation(Table.class)).map(Table::name).orElse(entityType.getName());
-    } catch (IntrospectionException e) {
-      throw new BeanIntrospectionException(entityType, "Initialization of persistent entity failed", e);
-    }
+    reflections = new Reflections();
+    isEmbeddable = Optional.ofNullable(findAnnotation(Embeddable.class)).isPresent();
+    tableName = Optional.ofNullable(findAnnotation(Table.class)).map(Table::name).orElse(entityType.getName());
   }
 
   private <A extends Annotation> A findAnnotation(Class<A> annotation) {
@@ -47,12 +45,8 @@ public class EntityPersistentProperty<T> implements EntityProperty<T> {
   }
 
   private void initProperties() {
-    for (PropertyDescriptor descriptor : beanInfo.getPropertyDescriptors()) {
-      Class<?> fieldType = descriptor.getPropertyType();
-      if (Class.class.equals(fieldType)) {
-        continue;  // skip first 'Class' property
-      }
-      FieldProperty<?> property = new FieldPersistentProperty<>(descriptor, entityType);
+    for (Field field : reflections.get(Fields.of(entityType))) {
+      FieldProperty<?> property = createFieldProperty(field);
       if (property.isId()) {
         if (idProperty != null) {
           throw new DuplicateKeyException(entityType, "Id");
@@ -60,9 +54,19 @@ public class EntityPersistentProperty<T> implements EntityProperty<T> {
         idProperty = property;
       }
       if (property.isEmbedded()) {
-        fieldToEmbeddedEntity.put(property, EntityPersistentProperty.of(fieldType));
+        fieldToEmbeddedEntity.put(property, EntityPersistentProperty.of(field.getType()));
       }
       properties.add(property);
+    }
+  }
+
+  private FieldProperty<?> createFieldProperty(Field field) {
+    try {
+      return new FieldPersistentProperty<>(
+          new PropertyDescriptor(field.getName(), entityType),
+          entityType);
+    } catch (IntrospectionException e) {
+      throw new BeanIntrospectionException(entityType, "on field creation", e);
     }
   }
 

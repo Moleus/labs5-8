@@ -7,16 +7,16 @@ import perform.util.PreparedStatementUtil;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.sql.JDBCType;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.function.Predicate;
 
 public class EntityToRowMapper<T> {
   private final EntityProperty<T> entityProperty;
 
-  private T entity;
-  private FieldProperty<?> property;
+  private PreparedStatement ps;
+  private int index;
 
   public EntityToRowMapper(EntityProperty<T> entityProperty) {
     this.entityProperty = entityProperty;
@@ -28,30 +28,36 @@ public class EntityToRowMapper<T> {
    * @return next (unfilled) position in prepared statement.
    */
   public int mapEntity(T entity, PreparedStatement ps) {
-    this.entity = entity;
-    // create new resultSet or receive it via args.
-
-    // get field getters and types;
-    List<FieldProperty<?>> properties = entityProperty.getProperties();
-    properties.removeIf(FieldProperty::isId);  // id is generated automatically by db
-    for (int i = 1; i < properties.size(); i++) {
-      this.property = properties.get(i - 1);
-      setField(ps, i);
-    }
-    return properties.size() + 1;
+    this.index = 1;
+    this.ps = ps;
+    mapEntity(entity, entityProperty);
+    return index + 1;
   }
 
-  private void setField(PreparedStatement ps, int index) {
-    Object value = retrieveValue();
-    JDBCType jdbcType = PreparedStatementUtil.getSqlType(property.getType());
+  @SuppressWarnings("unchecked")
+  private <U> void mapEntity(U entity, EntityProperty<U> entityProperty) {
+    List<FieldProperty<?>> properties = entityProperty.getProperties().stream().filter(Predicate.not(FieldProperty::isId)).toList();
+    for (FieldProperty<?> property : properties) {
+      if (property.isEmbedded()) {
+        EntityProperty embeddedProperty = entityProperty.getEmbeddedBy(property);
+        mapEntity(retrieveValue(entity, property), embeddedProperty);
+        continue;
+      }
+      setValue(entity, property);
+      index++;
+    }
+  }
+
+  private <E, F> void setValue(E entity, FieldProperty<F> property) {
+    Object value = retrieveValue(entity, property);
     try {
-      PreparedStatementUtil.setValue(ps, index, jdbcType, value);
+      PreparedStatementUtil.setValue(ps, index, value);
     } catch (SQLException e) {
       e.printStackTrace();
     }
   }
 
-  private Object retrieveValue() {
+  private <E, F> Object retrieveValue(E entity, FieldProperty<F> property) {
     Method getter = property.getGetter();
     try {
       return getter.invoke(entity);
