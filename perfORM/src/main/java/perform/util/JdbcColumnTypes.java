@@ -27,7 +27,7 @@ public enum JdbcColumnTypes {
 
   @SuppressWarnings({"unchecked", "rawtypes"})
   public static <T> T castUncommonType(Object value, Class<T> type) {
-    if (type.isAssignableFrom(Enum.class)) {
+    if (Enum.class.isAssignableFrom(type)) {
       // TODO: catch ClassCastException if String in table is malformed.
       return (T) Enum.valueOf((Class<Enum>) type, (String) value);
     }
