@@ -1,6 +1,8 @@
-package perform.mapping;
+package perform.mapping.mappers;
 
 import perform.exception.PerformException;
+import perform.mapping.properties.EntityProperty;
+import perform.mapping.properties.FieldProperty;
 import perform.util.BeanUtil;
 import perform.util.JdbcColumnTypes;
 
@@ -15,14 +17,12 @@ import java.sql.SQLException;
  * @param <T> entity type
  */
 public class EntityRowMapper<T> implements RowMapper<T> {
-  private final Class<T> mappedClass;
-  private final EntityClassesRegistry entitiesRegistry;
+  private final EntityProperty<T> entityProperty;
 
   private ResultSet resultSet;
 
-  public EntityRowMapper(Class<T> mappedClass, EntityClassesRegistry entitiesRegistry) {
-    this.mappedClass = mappedClass;
-    this.entitiesRegistry = entitiesRegistry;
+  public EntityRowMapper(EntityProperty<T> entityProperty) {
+    this.entityProperty = entityProperty;
   }
 
   /**
@@ -32,12 +32,11 @@ public class EntityRowMapper<T> implements RowMapper<T> {
   @Override
   public T mapRow(ResultSet rs) {
     this.resultSet = rs;
-    return createEntityFrom(mappedClass);
+    return createEntityFrom(entityProperty);
   }
 
-  private <E> E createEntityFrom(Class<E> clazz) {
-    E mappedObject = BeanUtil.instantiateClass(clazz);
-    EntityPersistentProperty<E> entityProperty = entitiesRegistry.getEntityProperty(clazz);
+  private <E> E createEntityFrom(EntityProperty<E> entityProperty) {
+    E mappedObject = BeanUtil.instantiateClass(entityProperty.getType());
 
     for (FieldProperty property : entityProperty.getProperties()) {
       String setterName = property.getSetter().getName();

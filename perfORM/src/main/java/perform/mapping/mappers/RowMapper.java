@@ -1,4 +1,4 @@
-package perform.mapping;
+package perform.mapping.mappers;
 
 import java.sql.ResultSet;
 

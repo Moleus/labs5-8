@@ -1,7 +1,7 @@
 package perform.database.table;
 
 import lombok.Data;
-import perform.database.table.column.ColumnDescription;
+import perform.database.table.column.RelationalColumn;
 import perform.util.StringUtil;
 
 import java.util.List;
@@ -11,11 +11,11 @@ import java.util.List;
  * Represent one table in Database.
  */
 @Data
-public class TableDescription {
+public class RelationalTable {
   private final String tableName;
-  private List<ColumnDescription> columns;
+  private List<RelationalColumn> columns;
 
-  public TableDescription(String tableName) {
+  public RelationalTable(String tableName) {
     this.tableName = tableName;
   }
 

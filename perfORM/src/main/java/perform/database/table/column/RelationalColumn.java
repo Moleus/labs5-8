@@ -3,6 +3,7 @@ package perform.database.table.column;
 import lombok.Data;
 import perform.util.StringUtil;
 
+import java.sql.JDBCType;
 import java.util.List;
 
 /**
@@ -10,14 +11,17 @@ import java.util.List;
  * Represents one column in Database table.
  */
 @Data
-public class ColumnDescription {
+public class RelationalColumn {
   private final String columnName;
-  private DataType dataType;
+  private JDBCType dataType;
+  private Class<?> javaType;
+  private boolean isId = false;
   private List<Constraint> constraints;
 
   @Override
   public String toString() {
     String sqlConstraints = StringUtil.join(" ", constraints);
-    return StringUtil.join(" ", columnName, dataType.toString(), sqlConstraints);
+    String sqlType = isId ? "SERIAL" : dataType.name();
+    return StringUtil.join(" ", columnName, sqlType, sqlConstraints);
   }
 }
