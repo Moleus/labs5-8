@@ -1,46 +1,44 @@
 package perform.database.table.column;
 
 import lombok.extern.log4j.Log4j2;
-import perform.annotations.*;
-import perform.mapping.table.ClassToSqlMapper;
-import perform.mapping.table.DataTypes;
+import perform.annotations.ForeignKey;
+import perform.annotations.GreaterThan;
+import perform.annotations.Id;
+import perform.mapping.properties.FieldProperty;
+import perform.util.PreparedStatementUtil;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
+import java.sql.JDBCType;
 import java.util.ArrayList;
 import java.util.List;
 
 @Log4j2
-public class ColumnConstructor {
-  private final Field field;
-  private final Annotation[] annotations;
+public class ColumnCreator {
+  private final FieldProperty field;
+  private final List<Annotation> annotations;
 
   private final String columnName;
-  private final ColumnDescription columnDescription;
+  private final RelationalColumn relationalColumn;
 
-  public ColumnConstructor(Field annotatedField) {
-    this.field = annotatedField;
-    this.annotations = annotatedField.getDeclaredAnnotations();
-    this.columnName = getColumnName();
-    this.columnDescription = new ColumnDescription(columnName);
+  public ColumnCreator(FieldProperty fieldProperty, String namePrefix) {
+    this.field = fieldProperty;
+    this.annotations = List.of(fieldProperty.getAnnotations());
+    this.columnName = namePrefix + fieldProperty.getColumnName();
+    this.relationalColumn = new RelationalColumn(columnName);
   }
 
-  public ColumnDescription createColumn() {
+  public RelationalColumn createColumn() {
     calculateDataType();
     calculateConstraints();
-    return columnDescription;
-  }
-
-  private String getColumnName() {
-    Column annotation = field.getAnnotation(Column.class);
-    String columnName = annotation == null ? field.getName() : annotation.name();
-    if (columnName.isEmpty()) throw new IllegalArgumentException("Column name can't be empty.");
-    return columnName;
+    return relationalColumn;
   }
 
   private void calculateDataType() {
-    DataType sqlDataType = ClassToSqlMapper.getDataType(field.getType());
-    this.columnDescription.setDataType(sqlDataType);
+    Class<T> fieldType = field.getType();
+    this.relationalColumn.setJavaType(fieldType);
+
+    JDBCType sqlDataType = PreparedStatementUtil.getSqlType(fieldType);
+    this.relationalColumn.setDataType(sqlDataType);
   }
 
   private void calculateConstraints() {
@@ -54,17 +52,17 @@ public class ColumnConstructor {
       fillConstraintParams(constraint);
       columnConstraints.add(constraint);
     }
-    this.columnDescription.setConstraints(columnConstraints);
+    this.relationalColumn.setConstraints(columnConstraints);
   }
 
   private Constraint getConstraintType(Annotation annotation) {
-    return ClassToSqlMapper.getConstraintType(annotation.annotationType());
+    return SqlConstraints.getBy(annotation.annotationType());
   }
 
   private void fillConstraintParams(Constraint constraint) {
     processAnnotation(field.getAnnotation(GreaterThan.class), constraint);
-    processAnnotation(field.getAnnotation(NotNull.class));
-    processAnnotation(field.getAnnotation(Unique.class));
+//    processAnnotation(field.getAnnotation(NotNull.class));
+//    processAnnotation(field.getAnnotation(Unique.class));
     processAnnotation(field.getAnnotation(Id.class));
     processAnnotation(field.getAnnotation(ForeignKey.class), constraint);
   }
@@ -77,21 +75,9 @@ public class ColumnConstructor {
     }
   }
 
-  private void processAnnotation(NotNull annotation) {
-    if (annotation != null) {
-      // No additional parameters or expression needed for NOT NULL constraint.
-    }
-  }
-
-  private void processAnnotation(Unique annotation) {
-    if (annotation != null) {
-      // No additional parameters or expression needed for UNIQUE constraint.
-    }
-  }
-
   private void processAnnotation(Id annotation) {
     if (annotation != null) {
-      this.columnDescription.setDataType(DataTypes.SERIAL.getDataType());
+      this.relationalColumn.setId(true);
     }
   }
 
