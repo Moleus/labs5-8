@@ -1,5 +1,6 @@
 package perform.database.table;
 
+import org.apache.commons.text.CaseUtils;
 import perform.database.table.column.ColumnCreator;
 import perform.database.table.column.RelationalColumn;
 import perform.exception.DuplicateKeyException;
@@ -40,9 +41,9 @@ public class TableProvider<T> {
     List<RelationalColumn<?>> columns = new ArrayList<>();
     for (FieldProperty<?> field : entityProperty.getProperties()) {
       if (field.isEmbedded()) {
-        String nextPrefix = namePrefix + field.getEmbeddedPrefix();
+        String nextPrefix = CaseUtils.toCamelCase(namePrefix + " " + field.getEmbeddedPrefix(), false);
         EntityProperty<?> embeddedEntity = entityProperty.getEmbeddedBy(field);
-        createColumnsFromEntity(embeddedEntity, nextPrefix);
+        columns.addAll(createColumnsFromEntity(embeddedEntity, nextPrefix));
         continue;
       }
       RelationalColumn<?> column = createColumn(field, namePrefix);
