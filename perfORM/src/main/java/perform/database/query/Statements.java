@@ -31,7 +31,7 @@ public class Statements {
 
     String commaSepNames = String.join(", ", columnNames);
     String commaSepQMarks = String.join(", ", Collections.nCopies(columnNames.size(), "?"));
-    this.INSERT = "INSERT INTO " + tableName + " " + commaSepNames + " VALUES (" + commaSepQMarks + ")";
+    this.INSERT = "INSERT INTO " + tableName + " (" + commaSepNames + ") VALUES (" + commaSepQMarks + ")";
     this.UPDATE_TEMPLATE = "UPDATE " + tableName + " SET (" + commaSepNames + ") = (" + commaSepQMarks + ") WHERE %s = ?";
   }
 
