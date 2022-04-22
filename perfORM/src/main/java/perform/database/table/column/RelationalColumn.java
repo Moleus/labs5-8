@@ -11,10 +11,10 @@ import java.util.List;
  * Represents one column in Database table.
  */
 @Data
-public class RelationalColumn {
+public class RelationalColumn<T> {
   private final String columnName;
   private JDBCType dataType;
-  private Class<?> javaType;
+  private Class<T> javaType;
   private boolean isId = false;
   private List<Constraint> constraints;
 

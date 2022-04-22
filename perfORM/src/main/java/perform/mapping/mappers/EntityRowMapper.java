@@ -38,7 +38,7 @@ public class EntityRowMapper<T> implements RowMapper<T> {
   private <E> E createEntityFrom(EntityProperty<E> entityProperty) {
     E mappedObject = BeanUtil.instantiateClass(entityProperty.getType());
 
-    for (FieldProperty property : entityProperty.getProperties()) {
+    for (FieldProperty<?> property : entityProperty.getProperties()) {
       String setterName = property.getSetter().getName();
       Object value = readFrom(property);
       populateInstance(mappedObject, setterName, value);
@@ -46,20 +46,23 @@ public class EntityRowMapper<T> implements RowMapper<T> {
     return mappedObject;
   }
 
-  private Object readFrom(FieldProperty property) {
+  private <F> F readFrom(FieldProperty<F> property) {
     if (property.isEmbedded()) {
-      return createEntityFrom(property.getType());
+      // Because we call the method from a root Entity it allows only 2 levels of embedding.
+      return createEntityFrom(entityProperty.getEmbeddedBy(property));
     }
 
     try {
       Object value = getPropertyValue(property);
+      // At this moment there is only one type that differs from table representation:
+      //    Enum is stored as String in table, so must be converted here to correct type.
       return JdbcColumnTypes.castUncommonType(value, property.getType());
     } catch (SQLException e) {
       throw new PerformException("Failed to read value from property", e);
     }
   }
 
-  private Object getPropertyValue(FieldProperty property) throws SQLException {
+  private Object getPropertyValue(FieldProperty<?> property) throws SQLException {
     Class<?> jdbcType = JdbcColumnTypes.INSTANCE.resolvePrimitiveType(property.getType());
     return resultSet.getObject(property.getColumnName(), jdbcType);
   }

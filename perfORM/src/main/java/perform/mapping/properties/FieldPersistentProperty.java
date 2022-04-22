@@ -12,7 +12,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Optional;
 
-public class FieldPersistentProperty implements FieldProperty {
+public class FieldPersistentProperty<T> implements FieldProperty<T> {
   private final PropertyDescriptor propertyDescriptor;
   private Field field;
   private Annotation[] annotations;
@@ -28,7 +28,7 @@ public class FieldPersistentProperty implements FieldProperty {
   private Method getter;
   private Method setter;
 
-  private Class<?> type;
+  private Class<T> type;
   private final Class<?> ownerClass;
 
   public FieldPersistentProperty(String propertyName, Class<?> ownerClass) {
@@ -53,7 +53,6 @@ public class FieldPersistentProperty implements FieldProperty {
     this.isEmbedded = Optional.ofNullable(findAnnotation(Embedded.class)).isPresent();
     this.embeddedPrefix = Optional.ofNullable(findAnnotation(Embedded.class)).map(Embedded::prefix).orElse("");
 
-    this.type = propertyDescriptor.getPropertyType();
     this.annotations = field.getAnnotations();
     this.getter = propertyDescriptor.getReadMethod();
     this.setter = propertyDescriptor.getWriteMethod();
@@ -67,11 +66,15 @@ public class FieldPersistentProperty implements FieldProperty {
     }
   }
 
+  @SuppressWarnings("unchecked")
   private void initFieldProp() {
     try {
       field = ownerClass.getDeclaredField(name);
+      type = (Class<T>) propertyDescriptor.getPropertyType();
     } catch (NoSuchFieldException e) {
       throw new BeanIntrospectionException(ownerClass, "Couldn't find a field by name [" + name + "]", e);
+    } catch (ClassCastException e) {
+      throw new BeanIntrospectionException(ownerClass, "Field name [" + name + "] doesn't match provided Type [" + field.getDeclaringClass() + "]", e);
     }
   }
 
@@ -95,7 +98,7 @@ public class FieldPersistentProperty implements FieldProperty {
   }
 
   @Override
-  public Class<?> getType() {
+  public Class<T> getType() {
     return type;
   }
 

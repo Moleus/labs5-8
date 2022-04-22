@@ -13,7 +13,7 @@ import java.util.List;
 @Data
 public class RelationalTable {
   private final String tableName;
-  private List<RelationalColumn> columns;
+  private List<RelationalColumn<?>> columns;
 
   public RelationalTable(String tableName) {
     this.tableName = tableName;

@@ -3,7 +3,7 @@ package perform.mapping.properties;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
-public interface FieldProperty extends Property {
+public interface FieldProperty<T> extends Property<T> {
   boolean isId();
 
   String getColumnName();

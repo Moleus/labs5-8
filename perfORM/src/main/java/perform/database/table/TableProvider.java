@@ -12,16 +12,16 @@ import java.util.List;
 /**
  * Creates a {@link RelationalTable} by an {@link EntityProperty}.
  */
-public class TableProvider {
-  private final EntityProperty entityProperty;
+public class TableProvider<T> {
+  private final EntityProperty<T> entityProperty;
   @SuppressWarnings("FieldCanBeLocal")
   private final String tableName;
   private final RelationalTable entityTable;
 
-  private RelationalColumn primaryColumn;
+  private RelationalColumn<?> primaryColumn;
   private final List<String> usedColumnNames = new ArrayList<>();
 
-  public TableProvider(EntityProperty entityProperty) {
+  public TableProvider(EntityProperty<T> entityProperty) {
     this.entityProperty = entityProperty;
     this.tableName = entityProperty.getTableName();
     this.entityTable = new RelationalTable(tableName);
@@ -36,23 +36,23 @@ public class TableProvider {
     entityTable.setColumns(createColumnsFromEntity(entityProperty, ""));
   }
 
-  private List<RelationalColumn> createColumnsFromEntity(EntityProperty entityProperty, String namePrefix) {
-    List<RelationalColumn> columns = new ArrayList<>();
-    for (FieldProperty field : entityProperty.getProperties()) {
+  private List<RelationalColumn<?>> createColumnsFromEntity(EntityProperty<?> entityProperty, String namePrefix) {
+    List<RelationalColumn<?>> columns = new ArrayList<>();
+    for (FieldProperty<?> field : entityProperty.getProperties()) {
       if (field.isEmbedded()) {
         String nextPrefix = namePrefix + field.getEmbeddedPrefix();
         EntityProperty<?> embeddedEntity = entityProperty.getEmbeddedBy(field);
         createColumnsFromEntity(embeddedEntity, nextPrefix);
         continue;
       }
-      RelationalColumn column = createColumn(field, namePrefix);
+      RelationalColumn<?> column = createColumn(field, namePrefix);
       checkDuplicates(column);
       columns.add(column);
     }
     return columns;
   }
 
-  private void checkDuplicates(RelationalColumn column) {
+  private void checkDuplicates(RelationalColumn<?> column) {
     if (column.isId()) {
       if (primaryColumn != null) {
         throw new DuplicateKeyException(entityProperty.getType(), "Id");
@@ -66,8 +66,8 @@ public class TableProvider {
     usedColumnNames.add(columnName);
   }
 
-  private RelationalColumn createColumn(FieldProperty field, String namePrefix) {
-    ColumnCreator columnCreator = new ColumnCreator(field, namePrefix);
+  private <F> RelationalColumn<F> createColumn(FieldProperty<F> field, String namePrefix) {
+    ColumnCreator<F> columnCreator = new ColumnCreator<>(field, namePrefix);
     return columnCreator.createColumn();
   }
 }

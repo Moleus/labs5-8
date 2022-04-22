@@ -13,21 +13,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Log4j2
-public class ColumnCreator {
-  private final FieldProperty field;
+public class ColumnCreator<T> {
+  private final FieldProperty<T> field;
   private final List<Annotation> annotations;
 
   private final String columnName;
-  private final RelationalColumn relationalColumn;
+  private final RelationalColumn<T> relationalColumn;
 
-  public ColumnCreator(FieldProperty fieldProperty, String namePrefix) {
+  public ColumnCreator(FieldProperty<T> fieldProperty, String namePrefix) {
     this.field = fieldProperty;
     this.annotations = List.of(fieldProperty.getAnnotations());
     this.columnName = namePrefix + fieldProperty.getColumnName();
-    this.relationalColumn = new RelationalColumn(columnName);
+    this.relationalColumn = new RelationalColumn<>(columnName);
   }
 
-  public RelationalColumn createColumn() {
+  public RelationalColumn<T> createColumn() {
     calculateDataType();
     calculateConstraints();
     return relationalColumn;

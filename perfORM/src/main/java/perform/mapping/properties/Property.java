@@ -1,7 +1,7 @@
 package perform.mapping.properties;
 
-public interface Property {
+public interface Property<T> {
   String getName();
 
-  Class<?> getType();
+  Class<T> getType();
 }

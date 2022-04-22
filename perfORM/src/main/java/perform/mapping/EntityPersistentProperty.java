@@ -10,23 +10,25 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
-public class EntityPersistentProperty<T> implements EntityProperty {
+public class EntityPersistentProperty<T> implements EntityProperty<T> {
   private final Class<T> entityType;
   private BeanInfo beanInfo;
   private final List<FieldProperty> properties = new ArrayList<>();
 
-  private FieldProperty idProperty;
+  private FieldProperty<?> idProperty;
   private boolean isEmbeddable;
   private String tableName;
 
-  public EntityPersistentProperty(Class<T> entityType) {
+  private EntityPersistentProperty(Class<T> entityType) {
     this.entityType = entityType;
     initializeBeanInfo();
     initProperties();
+  }
+
+  public static <U> EntityPersistentProperty<U> of(Class<U> entityType) {
+    return new EntityPersistentProperty<>(entityType);
   }
 
   private void initializeBeanInfo() {
@@ -45,7 +47,11 @@ public class EntityPersistentProperty<T> implements EntityProperty {
 
   private void initProperties() {
     for (PropertyDescriptor descriptor : beanInfo.getPropertyDescriptors()) {
-      FieldProperty property = new FieldPersistentProperty(descriptor, entityType);
+      Class<?> fieldType = descriptor.getPropertyType();
+      if (Class.class.equals(fieldType)) {
+        continue;  // skip first 'Class' property
+      }
+      FieldProperty<?> property = new FieldPersistentProperty<>(descriptor, entityType);
       if (property.isId()) {
         if (idProperty != null) {
           throw new DuplicateKeyException(entityType, "Id");
@@ -62,7 +68,7 @@ public class EntityPersistentProperty<T> implements EntityProperty {
   }
 
   @Override
-  public Class<?> getType() {
+  public Class<T> getType() {
     return entityType;
   }
 
@@ -77,12 +83,12 @@ public class EntityPersistentProperty<T> implements EntityProperty {
   }
 
   @Override
-  public FieldProperty getIdProperty() {
+  public FieldProperty<?> getIdProperty() {
     return idProperty;
   }
 
   @Override
-  public List<FieldProperty> getProperties() {
+  public List<FieldProperty<?>> getProperties() {
     return List.copyOf(properties);
   }
 
