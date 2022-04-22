@@ -9,7 +9,9 @@ public interface EntityProperty<T> extends Property<T> {
 
   FieldProperty<?> getIdProperty();
 
-  List<FieldProperty> getProperties();
+  List<FieldProperty<?>> getProperties();
+
+  <F> EntityProperty<F> getEmbeddedBy(FieldProperty<F> fieldProperty);
 
   int getColumnsCount();
 }

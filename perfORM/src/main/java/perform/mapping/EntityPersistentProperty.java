@@ -15,7 +15,8 @@ import java.util.*;
 public class EntityPersistentProperty<T> implements EntityProperty<T> {
   private final Class<T> entityType;
   private BeanInfo beanInfo;
-  private final List<FieldProperty> properties = new ArrayList<>();
+  private final List<FieldProperty<?>> properties = new ArrayList<>();
+  private final Map<FieldProperty<?>, EntityProperty<?>> fieldToEmbeddedEntity = new HashMap<>();
 
   private FieldProperty<?> idProperty;
   private boolean isEmbeddable;
@@ -58,6 +59,9 @@ public class EntityPersistentProperty<T> implements EntityProperty<T> {
         }
         idProperty = property;
       }
+      if (property.isEmbedded()) {
+        fieldToEmbeddedEntity.put(property, EntityPersistentProperty.of(fieldType));
+      }
       properties.add(property);
     }
   }
@@ -90,6 +94,12 @@ public class EntityPersistentProperty<T> implements EntityProperty<T> {
   @Override
   public List<FieldProperty<?>> getProperties() {
     return List.copyOf(properties);
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public <F> EntityProperty<F> getEmbeddedBy(FieldProperty<F> fieldProperty) {
+    return (EntityProperty<F>) fieldToEmbeddedEntity.get(fieldProperty);
   }
 
   @Override
