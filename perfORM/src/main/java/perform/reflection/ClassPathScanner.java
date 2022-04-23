@@ -6,17 +6,24 @@ import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
 
 import java.lang.annotation.Annotation;
+import java.util.Collection;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ClassPathScanner {
   private final Reflections reflections;
 
-  public ClassPathScanner(String rootPackage) {
-    ConfigurationBuilder configuration = ConfigurationBuilder.build(ClassPathScanner.class.getClassLoader());
+  public ClassPathScanner(String... rootPackages) {
+    ConfigurationBuilder configuration = ConfigurationBuilder.build(ClassPathScanner.class.getPackageName());
 
-    configuration = configuration.forPackages(rootPackage);
-    configuration = configuration.setUrls(ClasspathHelper.forPackage(rootPackage));
-    configuration = configuration.filterInputsBy(new FilterBuilder().includePackage(rootPackage));
+    configuration = configuration.forPackages(rootPackages);
+    configuration = configuration.setUrls(Stream.of(rootPackages).map(ClasspathHelper::forPackage).flatMap(Collection::stream).collect(Collectors.toList()));
+    FilterBuilder fb = new FilterBuilder();
+    for (String rootPackage : rootPackages) {
+      fb.includePackage(rootPackage);
+    }
+    configuration = configuration.filterInputsBy(fb);
 
     reflections = new Reflections(configuration);
   }

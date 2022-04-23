@@ -14,10 +14,10 @@ public class RepositoryDiscovery {
     this.classPathScanner = classPathScanner;
   }
 
-  public Set<RepositoryMetaData<?>> discover() {
-    Set<RepositoryMetaData<?>> metaData = new HashSet<>();
+  public Set<RepositoryMetaData<?, ?>> discover() {
+    Set<RepositoryMetaData<?, ?>> metaData = new HashSet<>();
     repositories = classPathScanner.getSubTypesOf(CrudRepository.class);
-    for (Class<? extends CrudRepository<?>> repo : repositories) {
+    for (Class<? extends CrudRepository> repo : repositories) {
       metaData.add(new RepositoryMetaData<>(repo));
     }
     return metaData;

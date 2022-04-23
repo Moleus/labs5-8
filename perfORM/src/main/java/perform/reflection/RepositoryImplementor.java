@@ -6,34 +6,41 @@ import net.bytebuddy.implementation.MethodCall;
 import net.bytebuddy.matcher.ElementMatchers;
 import perform.database.repository.CrudRepository;
 import perform.database.repository.GenericRepositoryOperations;
+import perform.mapping.properties.EntityProperty;
 
 import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-public class RepositoryImplementor<T, R extends CrudRepository<?>> {
-  private final RepositoryMetaData<R> metaData;
+import static net.bytebuddy.matcher.ElementMatchers.named;
+import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
+
+public class RepositoryImplementor<T, R extends CrudRepository<T>> {
+  private final RepositoryMetaData<T, R> metaData;
   private final Class<R> repoType;
+  private final EntityProperty<T> entityProperty;
   private final GenericRepositoryOperations<T> genericRepositoryOperations;
-  private Set<Method> methods;
   private DynamicType.Builder<R> builder;
 
 
-  public RepositoryImplementor(RepositoryMetaData<R> metaData, GenericRepositoryOperations<T> genericRepositoryOperations) {
+  public RepositoryImplementor(RepositoryMetaData<T, R> metaData, GenericRepositoryOperations<T> genericRepositoryOperations) {
     this.metaData = metaData;
     this.repoType = metaData.getRepoType();
+    this.entityProperty = metaData.getEntityProperty();
     this.genericRepositoryOperations = genericRepositoryOperations;
   }
 
   public Class<? extends R> implement() {
-    this.builder = new ByteBuddy().subclass(repoType).name(repoType.getSimpleName() + "Repository");
+    this.builder = new ByteBuddy().subclass(repoType).name(repoType.getSimpleName() + "Impl");
     implementDefaultMethods(metaData.getDefaultMethods());
-    implementFindByMethods(metaData.getFindByMethods());
+    implementFindByMethods(metaData.getParamToFindByMethod());
     return builder.make().load(repoType.getClassLoader()).getLoaded();
   }
 
   private void implementDefaultMethods(Set<Method> defaultMethods) {
     for (Method method : defaultMethods) {
-      processDefaultMethod(DefaultCrudMethods.valueOf(method.getName()));
+      processDefaultMethod(DefaultCrudMethods.fromString(method.getName()));
     }
   }
 
@@ -49,25 +56,58 @@ public class RepositoryImplementor<T, R extends CrudRepository<?>> {
   private void implementFindAll() {
     String name = DefaultCrudMethods.FIND_ALL.toString();
     try {
-      Method genericFindAllMethod = genericRepositoryOperations.getClass().getDeclaredMethod("findAll");
-      builder = builder.method(ElementMatchers.named(name))
-          .intercept(MethodCall.invoke(genericFindAllMethod));
+      Method genericFindAllMethod = genericRepositoryOperations.getClass().getDeclaredMethod(name);
+      builder = builder.method(named(name).and(ElementMatchers.returns(List.class)).and(takesArguments(0)))
+          .intercept(MethodCall.invoke(genericFindAllMethod).on(genericRepositoryOperations));
     } catch (NoSuchMethodException e) {
       throw new RuntimeException(e);
     }
   }
 
   private void implementSave() {
+    String name = DefaultCrudMethods.SAVE.toString();
+    try {
+      Method genericFindAllMethod = genericRepositoryOperations.getClass().getDeclaredMethod(name, Object.class);
+      builder = builder.method(named(name))
+          .intercept(MethodCall.invoke(genericFindAllMethod).on(genericRepositoryOperations).withAllArguments());
+    } catch (NoSuchMethodException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private void implementUpdate() {
+    String name = DefaultCrudMethods.UPDATE.toString();
+    interceptByMethodName(name);
   }
 
   private void implementDelete() {
+    String name = DefaultCrudMethods.DELETE.toString();
+    interceptByMethodName(name);
   }
 
-  private void implementFindByMethods(Set<Method> findByMethods) {
-    for (Method method : findByMethods) {
+  private void interceptByMethodName(String name) {
+    try {
+      Method genericDeleteMethod = genericRepositoryOperations.getClass().getDeclaredMethod(name, Object.class, String.class, Method.class);
+      String columnName = entityProperty.getIdProperty().getColumnName();
+      Method getter = entityProperty.getIdProperty().getGetter();
+      builder = builder.method(named(name))
+          .intercept(MethodCall.invoke(genericDeleteMethod)
+              .on(genericRepositoryOperations).withAllArguments().with(columnName).with(getter));
+    } catch (NoSuchMethodException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private void implementFindByMethods(Map<String, Method> findByMethods) {
+    for (Map.Entry<String, Method> colNameToMethod : findByMethods.entrySet()) {
+      String columnName = colNameToMethod.getKey();
+      String methodName = colNameToMethod.getValue().getName();
+      //   genericRepositoryOperations.genericFindBy() // value + columnName
+      builder.method(named(methodName))
+          .intercept(MethodCall.invoke(named("genericFindBy"))
+              .on(genericRepositoryOperations)
+              .withAllArguments()
+              .with(columnName));
     }
   }
 }

@@ -1,7 +1,6 @@
 package perform.reflection;
 
 import lombok.Getter;
-import org.apache.commons.lang3.EnumUtils;
 import perform.database.repository.CrudRepository;
 import perform.database.repository.GenericRepositoryOperations;
 import perform.exception.InvalidRepositoryException;
@@ -13,8 +12,8 @@ import perform.util.MethodUtil;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Stream;
 
 /**
  * Collect information about EntityRepository interface which implements {@link perform.database.repository.CrudRepository}.
@@ -25,22 +24,23 @@ import java.util.Set;
  * Note: generic implementations for default methods, such as update/delete/findAll are in
  * a separate class {@link GenericRepositoryOperations}
  */
-public class RepositoryMetaData<R extends CrudRepository<?>> {
+public class RepositoryMetaData<T, R extends CrudRepository<T>> {
   @Getter
-  private final EntityProperty<?> entityProperty;
+  private final EntityProperty<T> entityProperty;
   @Getter
   private final Class<R> repoType;
-  private final Method[] declaredMethods;
+  private final List<Method> declaredMethods = new ArrayList<>();
 
   @Getter
-  private final Set<Method> findByMethods = new HashSet<>();
+  private final Map<String, Method> paramToFindByMethod = new HashMap<>();
   @Getter
   private final Set<Method> defaultMethods = new HashSet<>();
 
   public RepositoryMetaData(Class<R> repoType) {
     this.repoType = repoType;
-    declaredMethods = repoType.getDeclaredMethods();
-    Class<?> entityType = getEntityType();
+    declaredMethods.addAll(List.of(repoType.getDeclaredMethods()));
+    declaredMethods.addAll(List.of(repoType.getInterfaces()[0].getDeclaredMethods()));
+    Class<T> entityType = getEntityType();
     this.entityProperty = EntitiesPropertyRegistry.INSTANCE.getEntityProperty(entityType);
     groupMethods();
   }
@@ -55,7 +55,7 @@ public class RepositoryMetaData<R extends CrudRepository<?>> {
     String methodName = method.getName();
     if (MethodUtil.isFind(method)) {
       processFindByMethod(method);
-    } else if (EnumUtils.isValidEnum(DefaultCrudMethods.class, methodName)) {
+    } else if (Stream.of(DefaultCrudMethods.values()).anyMatch(n -> n.toString().equals(methodName))) {
       defaultMethods.add(method);
     } else {
       throw new InvalidRepositoryException("Unknown method: [" + methodName + "]", repoType);
@@ -64,7 +64,8 @@ public class RepositoryMetaData<R extends CrudRepository<?>> {
 
   private void processFindByMethod(Method method) {
     MethodUtil.checkFindMethod(entityProperty, method);
-    findByMethods.add(method);
+    String columnName = MethodUtil.getFindSuffix(method.getName()).toLowerCase();
+    paramToFindByMethod.put(columnName, method);
   }
 
   /**
@@ -73,7 +74,7 @@ public class RepositoryMetaData<R extends CrudRepository<?>> {
    * <p>
    * note: It's package-private for tests only
    */
-  Class<?> getEntityType() {
+  Class<T> getEntityType() {
     Type[] superInterfaces = repoType.getGenericInterfaces();
     if (superInterfaces.length != 1) {
       throw new PerformException("Repository [" + repoType.getSimpleName() + "] must extend only one CrudRepository");
@@ -82,6 +83,6 @@ public class RepositoryMetaData<R extends CrudRepository<?>> {
     if (!(crudRepoInterface.getRawType().equals(CrudRepository.class))) {
       throw new PerformException("Repository [" + repoType.getSimpleName() + "] must extend CrudRepository interface");
     }
-    return (Class<?>) crudRepoInterface.getActualTypeArguments()[0];
+    return (Class<T>) crudRepoInterface.getActualTypeArguments()[0];
   }
 }
