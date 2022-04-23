@@ -9,12 +9,14 @@ import perform.database.connection.ConnectionProviderInitiator;
 import perform.database.query.Statements;
 import perform.database.repository.CrudRepository;
 import perform.database.repository.GenericRepositoryOperations;
+import perform.exception.PerformException;
 import perform.mapping.EntitiesPropertyRegistry;
 import perform.mapping.mappers.EntityRowMapper;
 import perform.mapping.mappers.EntityToRowMapper;
 import perform.mapping.properties.EntityProperty;
 import perform.reflection.*;
 
+import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,24 +25,24 @@ import java.util.Set;
 
 @Log4j2
 public class Bootstrap {
-  public static final String PACKAGE_NAME = "perform";
-  private final ClassPathScanner classPathScanner = new ClassPathScanner(PACKAGE_NAME);
+  public static final String[] PACKAGES_NAMES = {"model.data", "server.generated.repository", "user"};
+
+  private final ClassPathScanner classPathScanner = new ClassPathScanner(PACKAGES_NAMES);
   private final EntitiesPropertyRegistry registry = EntitiesPropertyRegistry.INSTANCE;
 
   private PreparedStatementProvider psProvider;
   private final Map<Class<?>, CrudRepository<?>> entityToRepo = new HashMap<>();
-  private TablesManager tablesManager;
-  private Set<EntityProperty<?>> allEntities;
   private final Map<EntityProperty<?>, GenericRepositoryOperations<?>> repoOperations = new HashMap<>();
+  private TablesManager tablesManager;
 
   public Bootstrap() {
+    initDbConnection();
     registerEntities();
     implementRepositories();
-    initDbConnection();
   }
 
   @SuppressWarnings("unchecked")
-  public <R, T extends CrudRepository<T>> R getRepository(Class<T> entityType) {
+  public <T, R extends CrudRepository<T>> R getRepository(Class<T> entityType) {
     return (R) entityToRepo.get(entityType);
   }
 
@@ -54,10 +56,16 @@ public class Bootstrap {
   private void registerEntities() {
     EntitiesRegistration registration = new EntitiesRegistration(classPathScanner, registry);
     registration.registryEntities();
+    prepareMetaEntities();
+    createMissingTables();
+  }
+
+  private void createMissingTables() {
+    tablesManager.createMissingTables();
   }
 
   private void prepareMetaEntities() {
-    this.allEntities = registry.getAll();
+    Set<EntityProperty<?>> allEntities = registry.getAll();
     this.tablesManager = new TablesManager(registry.getAll(), psProvider);
     for (EntityProperty<?> entityProperty : allEntities) {
       repoOperations.put(entityProperty,
@@ -73,13 +81,20 @@ public class Bootstrap {
 
   private void implementRepositories() {
     RepositoryDiscovery discovery = new RepositoryDiscovery(classPathScanner);
-    for (RepositoryMetaData<?> metaData : discovery.discover()) {
+    for (RepositoryMetaData<?, ?> metaData : discovery.discover()) {
       implementRepo(metaData);
     }
   }
 
-  private void implementRepo(RepositoryMetaData<?> metaData) {
-    EntityProperty<?> entityProperty = metaData.getEntityProperty();
-    RepositoryImplementor<?, ?> repositoryImplementor = new RepositoryImplementor<>(metaData, repoOperations.get(entityProperty));
+  private <T, R extends CrudRepository<T>> void implementRepo(RepositoryMetaData<T, R> metaData) {
+    EntityProperty<T> entityProperty = metaData.getEntityProperty();
+    RepositoryImplementor<T, R> repositoryImplementor = new RepositoryImplementor<>(
+        metaData,
+        (GenericRepositoryOperations<T>) repoOperations.get(entityProperty));
+    try {
+      entityToRepo.put(entityProperty.getType(), repositoryImplementor.implement().getDeclaredConstructor().newInstance());
+    } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+      throw new PerformException("Failed to create a new Instance of [" + entityProperty.getName() + "] Repository");
+    }
   }
 }
