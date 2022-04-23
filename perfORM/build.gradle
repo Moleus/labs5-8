@@ -1,0 +1,29 @@
+plugins {
+    id 'java'
+    id 'io.freefair.lombok' version '6.3.0'
+    id "net.bytebuddy.byte-buddy-gradle-plugin" version "1.12.9"
+}
+
+version 'unspecified'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.apache.logging.log4j:log4j-core:2.17.1'
+    implementation 'org.apache.logging.log4j:log4j-api:2.17.1'
+    implementation 'org.reflections:reflections:0.10.2'
+    implementation 'org.apache.commons:commons-lang3:3.0'
+    implementation 'net.bytebuddy:byte-buddy:1.12.9'
+
+    annotationProcessor "org.projectlombok:lombok:1.18.22"
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+    testImplementation 'org.assertj:assertj-core:3.11.1'
+}
+
+test {
+    useJUnitPlatform()
+}
