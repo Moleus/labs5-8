@@ -1,5 +1,6 @@
 package server.collection;
 
+import collection.CollectionChangelist;
 import collection.CollectionWrapper;
 import exceptions.ElementNotFoundException;
 import model.data.Model;
@@ -31,12 +32,13 @@ public class GenericCollectionManager<T extends Model, R extends CrudRepository<
    * @param object Model instance
    */
   @Override
-  public void add(T object) {
-    entityRepository.save(object);
+  public long add(T object) {
+    long id = entityRepository.save(object);
     if (!objectsCollection.add(object)) {
       throw new IllegalArgumentException("Trying to add dublicate object");
     }
     changesTracker.track(Set.of(object), DiffAction.ADD);
+    return id;
   }
 
   @Override
@@ -135,7 +137,15 @@ public class GenericCollectionManager<T extends Model, R extends CrudRepository<
    */
   @Override
   public CollectionWrapper<T> getFullCollection() {
-    return CollectionWrapper.of(new LinkedHashSet<>(objectsCollection), creationDateTime, changesTracker.getNewest().getVersion());
+    return CollectionWrapper.of(new LinkedHashSet<>(objectsCollection), creationDateTime, changesTracker.getLatestVersion());
+  }
+
+  /**
+   * Returns changelist with changes whose version is newer than specified parameter.
+   */
+  @Override
+  public CollectionChangelist<T> getChangesNewerThan(long version) {
+    return changesTracker.getNewerThan(version);
   }
 
   /**

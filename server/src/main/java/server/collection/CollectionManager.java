@@ -1,15 +1,18 @@
 package server.collection;
 
+import collection.CollectionChangelist;
 import collection.CollectionWrapper;
 import exceptions.ElementNotFoundException;
 import model.data.Model;
 
 public interface CollectionManager<T extends Model> {
-  void add(T entity);
+  long add(T entity);
 
   boolean update(T entity);
 
   CollectionWrapper<T> getFullCollection();
+
+  CollectionChangelist<T> getChangesNewerThan(long version);
 
   void loadCollection();
 

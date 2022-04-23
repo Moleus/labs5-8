@@ -2,14 +2,13 @@ package server.collection;
 
 import collection.CollectionChange;
 import collection.CollectionChangelist;
-import collection.CollectionWrapper;
 import model.data.Model;
 
 import java.util.List;
 import java.util.Set;
 
 public interface ChangesTracker<T extends Model> {
-  CollectionWrapper<T> getNewest();
+  long getLatestVersion();
 
   CollectionChangelist<T> getNewerThan(long version);
 
