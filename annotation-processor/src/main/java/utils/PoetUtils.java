@@ -1,8 +1,8 @@
 package utils;
 
+import annotations.Collectible;
 import com.squareup.javapoet.TypeName;
 import lombok.Getter;
-import perform.annotations.Collectible;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
