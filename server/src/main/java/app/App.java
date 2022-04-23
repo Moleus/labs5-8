@@ -4,12 +4,14 @@ import commands.CommandManager;
 import lombok.extern.log4j.Log4j2;
 import model.data.Flat;
 import perform.bootstrap.Bootstrap;
-import perform.database.repository.FlatRepository;
+import server.authorization.User;
+import server.authorization.UserManager;
 import server.collection.CollectionManager;
 import server.collection.FlatChangesTracker;
 import server.collection.GenericCollectionManager;
 import server.commands.pcommands.*;
-import server.exceptions.StorageAccessException;
+import server.generated.repository.FlatRepository;
+import server.generated.repository.UserRepository;
 
 import java.io.IOException;
 

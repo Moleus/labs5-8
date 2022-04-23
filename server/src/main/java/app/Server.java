@@ -9,6 +9,7 @@ import communication.packaging.Response;
 import exceptions.RecievedInvalidObjectException;
 import lombok.extern.log4j.Log4j2;
 import model.data.Flat;
+import server.authorization.UserManager;
 import server.collection.CollectionManager;
 import server.communication.MessagesProcessor;
 import server.communication.ServerTransceiver;
@@ -33,6 +34,7 @@ public class Server implements Exitable {
   private final int port;
   private final CommandManager commandManager;
   private final CollectionManager<Flat> collectionManager;
+  private final UserManager userManager;
   private final BufferedReader bufferedReader;
 
   private final Selector selector;
@@ -42,10 +44,15 @@ public class Server implements Exitable {
 
   private final Map<SocketChannel, Request> socketToRequest = new ConcurrentHashMap<>();
 
-  public Server(int port, CommandManager commandManager, CollectionManager<Flat> collectionManager) throws IOException {
+  public Server(
+      int port,
+      CommandManager commandManager,
+      CollectionManager<Flat> collectionManager,
+      UserManager userManager) throws IOException {
     this.port = port;
     this.commandManager = commandManager;
     this.collectionManager = collectionManager;
+    this.userManager = userManager;
     this.bufferedReader = new BufferedReader(new InputStreamReader(System.in));
     selector = initSelector();
   }

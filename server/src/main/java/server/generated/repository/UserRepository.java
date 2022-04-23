@@ -5,6 +5,6 @@ import perform.database.repository.CrudRepository;
 import server.authorization.User;
 
 @Repository
-public interface UserReopsitory extends CrudRepository<User> {
+public interface UserRepository extends CrudRepository<User> {
   User findByLogin(String login);
 }
