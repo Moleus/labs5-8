@@ -84,6 +84,15 @@ public class FlatRepositoryImpl implements FlatRepository {
     }
   }
 
+  @Override
+  public void deleteAll() {
+    try (PreparedStatement ps = psProvider.prepareStatement(statements.deleteAll())) {
+      ps.execute();
+    } catch (SQLException e) {
+      throw new PerformException("Failed to delete all Flats from table: " + e.getMessage());
+    }
+  }
+
   private static void existsOrThrow(ResultSet resultSet) throws SQLException {
     if (!resultSet.next()) {
       throw new SQLException();
