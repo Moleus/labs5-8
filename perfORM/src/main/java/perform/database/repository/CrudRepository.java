@@ -27,4 +27,9 @@ public interface CrudRepository<T> {
    * Deletes an entity from a table
    */
   void delete(T entity);
+
+  /**
+   * Deletes all entity from a table
+   */
+  void deleteAll();
 }
