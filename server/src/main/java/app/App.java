@@ -7,8 +7,6 @@ import perform.bootstrap.Bootstrap;
 import server.authorization.User;
 import server.authorization.UserManager;
 import server.collection.CollectionManager;
-import server.collection.FlatChangesTracker;
-import server.collection.GenericCollectionManager;
 import server.commands.pcommands.*;
 import server.generated.repository.FlatRepository;
 import server.generated.repository.UserRepository;
@@ -44,14 +42,14 @@ import java.io.IOException;
 @Log4j2
 public class App {
   public static void main(String[] args) {
-    FlatRepository repository = Bootstrap.getFlatRepository();
-    CollectionManager<Flat> collectionManager = new GenericCollectionManager<>(new FlatChangesTracker(), repository);
+    Bootstrap bootstrap = new Bootstrap();
+    FlatRepository flatRepository = bootstrap.getRepository(Flat.class);
+    UserRepository userRepository = bootstrap.getRepository(User.class);
+    CollectionManager<Flat> collectionManager = new FlatsCollectionManager(flatRepository);
 
-    try {
-      collectionManager.loadCollection();
-    } catch (StorageAccessException e) {
-      System.out.printf("Failed to load collection.%n%s %n", e.getMessage());
-    }
+    UserManager userManager = new UserManager(userRepository);
+
+    collectionManager.loadCollection();
 
     CommandManager commandManager = new CommandManager();
     // to server:
@@ -75,14 +73,11 @@ public class App {
     );
 
     try {
-      Server server = new Server(2222, commandManager, collectionManager);
+      Server server = new Server(2222, commandManager, collectionManager, userManager);
       server.run();
-      collectionManager.saveCollection();
       log.info("Collection saved successfully");
     } catch (IOException e) {
       e.printStackTrace();
-    } catch (StorageAccessException e) {
-      log.error("Failed to save collection: {}", e.getMessage());
     }
   }
 }
