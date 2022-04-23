@@ -1,5 +1,6 @@
 package perform.database.repository;
 
+import net.bytebuddy.implementation.bind.annotation.Argument;
 import perform.database.PreparedStatementProvider;
 import perform.database.query.Statements;
 import perform.exception.PerformException;
@@ -7,6 +8,8 @@ import perform.mapping.mappers.EntityRowMapper;
 import perform.mapping.mappers.EntityToRowMapper;
 import perform.util.PreparedStatementUtil;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.sql.JDBCType;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -31,7 +34,7 @@ public class GenericRepositoryOperations<T> {
     this.fromEntityMapper = fromEntityMapper;
   }
 
-  public T genericFindBy(Object value, String columnName) {
+  public T genericFindBy(@Argument(0) Object value, String columnName) {
     try (PreparedStatement ps = psProvider.prepareStatement(statements.selectBy(columnName))) {
       setValue(ps, 1, value);
       ResultSet resultSet = ps.executeQuery();
@@ -42,12 +45,13 @@ public class GenericRepositoryOperations<T> {
     }
   }
 
-  public boolean genericUpdate(T entity, String columnName, Object value) {
+  public boolean update(@Argument(0) T entity, String columnName, Method getter) {
     try (PreparedStatement ps = psProvider.prepareStatement(statements.updateBy(columnName))) {
       int nextIndex = fromEntityMapper.mapEntity(entity, ps);
-      setValue(ps, nextIndex, value);
+      Object idValue = getter.invoke(entity);
+      setValue(ps, nextIndex, idValue);
       return executeUpdate(ps);
-    } catch (SQLException e) {
+    } catch (SQLException | IllegalAccessException | InvocationTargetException e) {
       throw new PerformException("Failed to update Entity by [" + columnName + "]", e);
     }
   }
@@ -66,16 +70,18 @@ public class GenericRepositoryOperations<T> {
     return entities;
   }
 
-  public void delete(T entity, String columnName, Object value) {
+  public void delete(@Argument(0) T entity, String columnName, Method getter) {
+    Object idValue = null;
     try (PreparedStatement ps = psProvider.prepareStatement(statements.deleteBy(columnName))) {
-      setValue(ps, 1, value);
+      idValue = getter.invoke(entity);
+      setValue(ps, 1, idValue);
       ps.execute();
-    } catch (SQLException e) {
-      throw new PerformException("Failed to delete [" + entity + "] by column [" + columnName + "]" + e.getMessage());
+    } catch (SQLException | IllegalAccessException | InvocationTargetException e) {
+      throw new PerformException("Failed to delete entity with value [" + idValue + "] by column [" + columnName + "]" + e.getMessage());
     }
   }
 
-  public long save(T entity) {
+  public long save(@Argument(0) T entity) {
     PreparedStatement ps = psProvider.prepareStatement(statements.insert());
     fromEntityMapper.mapEntity(entity, ps);
     if (!executeUpdate(ps)) {
@@ -88,7 +94,7 @@ public class GenericRepositoryOperations<T> {
     try {
       return ps.executeUpdate() != 0;
     } catch (SQLException e) {
-      throw new PerformException("Entity update failed");
+      throw new PerformException("Entity update failed", e);
     }
   }
 
