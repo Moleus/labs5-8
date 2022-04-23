@@ -129,7 +129,7 @@ public class Server implements Exitable {
       log.warn("Client disconnected");
       closeChannel(readableChannel);
     } catch (RecievedInvalidObjectException e) {
-      log.error("Recieved invalid Request: {}", e.getMessage());
+      log.error("Received invalid Request: {}", e.getMessage());
     }
     return Optional.empty();
   }
@@ -152,23 +152,23 @@ public class Server implements Exitable {
   private void onChannelWritable(SelectionKey key) throws IOException {
     SocketChannel writableChannel = (SocketChannel) key.channel();
     Request clientRequest = socketToRequest.get(writableChannel);
-    MessagesProcessor msgProccessor = MessagesProcessor.of(clientRequest);
+    MessagesProcessor msgProcessor = MessagesProcessor.of(clientRequest);
 
-    if (!msgProccessor.isPayloadValid()) {
+    if (!msgProcessor.isPayloadValid()) {
       log.warn("Payload for message {} is invalid: {}", clientRequest.getPurpose(), clientRequest.getPayload());
     } else {
-      Object responsePayload = proccessRequest(clientRequest);
+      Object responsePayload = processRequest(clientRequest);
       log.debug(responsePayload);
-      msgProccessor.setResponsePayload(responsePayload);
+      msgProcessor.setResponsePayload(responsePayload);
     }
 
-    Response response = msgProccessor.buildResponse();
+    Response response = msgProcessor.buildResponse();
 
     ServerTransceiver.of(writableChannel).send(response);
     writableChannel.register(selector, SelectionKey.OP_READ);
   }
 
-  private Object proccessRequest(Request request) {
+  private Object processRequest(Request request) {
     return switch (request.getPurpose()) {
       case EXECUTE -> executeCommand((ExecutionPayload) request.getPayload().get());
       case GET_COMMANDS -> getAccessibleCommandsInfo();
