@@ -4,8 +4,6 @@ import collection.CollectionWrapper;
 import exceptions.ElementNotFoundException;
 import model.data.Model;
 import perform.database.repository.CrudRepository;
-import server.exceptions.CollectionCorruptedException;
-import server.exceptions.StorageAccessException;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -59,6 +57,7 @@ public class GenericCollectionManager<T extends Model> implements CollectionMana
   public void clear() {
     changesTracker.track(filter(t -> true), DiffAction.REMOVE);
     objectsCollection.clear();
+    entityRepository.deleteAll();
   }
 
   /**
@@ -127,7 +126,6 @@ public class GenericCollectionManager<T extends Model> implements CollectionMana
     return objectsCollection.removeIf(predicate);
   }
 
-  @Override
   private Set<T> filter(Predicate<T> predicate) {
     return objectsCollection.stream().filter(predicate).collect(Collectors.toUnmodifiableSet());
   }
@@ -142,14 +140,9 @@ public class GenericCollectionManager<T extends Model> implements CollectionMana
 
   /**
    * Loads collection from storage.
-   *
-   * @throws CollectionCorruptedException if some data in storage is missing or can't be parsed to create new collection object.
-   * @throws StorageAccessException       if storage is not accessible.
    */
   @Override
   public void loadCollection() {
     this.objectsCollection.addAll(entityRepository.findAll());
-    creationDateTime = collectionWrapper.getCreationDateTime();
-    this.objectsCollection.addAll(collectionWrapper.getCollection());
   }
 }
