@@ -14,13 +14,13 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public class GenericCollectionManager<T extends Model, R extends CrudRepository<T>> implements CollectionManager<T> {
+public class GenericCollectionManager<T extends Model> implements CollectionManager<T> {
   private final Set<T> objectsCollection = new LinkedHashSet<>();
   private final ChangesTracker<T> changesTracker;
-  private final R entityRepository;
+  private final CrudRepository<T> entityRepository;
   private LocalDateTime creationDateTime = LocalDateTime.now();
 
-  public GenericCollectionManager(ChangesTracker<T> changesTracker, R entityRepository) {
+  public GenericCollectionManager(ChangesTracker<T> changesTracker, CrudRepository<T> entityRepository) {
     this.changesTracker = changesTracker;
     this.entityRepository = entityRepository;
   }
