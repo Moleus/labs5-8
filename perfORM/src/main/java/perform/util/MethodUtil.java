@@ -50,7 +50,7 @@ public class MethodUtil {
     return parameters[0];
   }
 
-  private static String getFindSuffix(String name) {
+  public static String getFindSuffix(String name) {
     return name.replace(FIND_BY_PREFIX, "");
   }
 }
