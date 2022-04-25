@@ -9,5 +9,6 @@ import java.io.Serializable;
 public class ExecutionPayload implements Serializable {
   private final String commandName;
   private final String inlineArg;
+  private final char[] maskedInput;
   private final ModelDto dataValues;
 }

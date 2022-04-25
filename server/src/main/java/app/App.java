@@ -4,12 +4,13 @@ import commands.CommandManager;
 import lombok.extern.log4j.Log4j2;
 import model.data.Flat;
 import perform.bootstrap.Bootstrap;
-import server.authorization.User;
 import server.authorization.UserManager;
 import server.collection.CollectionManager;
+import server.collection.FlatsCollectionManager;
 import server.commands.pcommands.*;
 import server.generated.repository.FlatRepository;
 import server.generated.repository.UserRepository;
+import user.User;
 
 import java.io.IOException;
 

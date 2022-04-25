@@ -2,7 +2,7 @@ package communication;
 
 import communication.packaging.Message;
 import communication.packaging.Response;
-import exceptions.RecievedInvalidObjectException;
+import exceptions.ReceivedInvalidObjectException;
 
 import java.io.IOException;
 import java.nio.channels.SocketChannel;
@@ -20,7 +20,7 @@ public class ClientTransceiver extends AbstractTransiever {
 
   protected Response checkResponseInstance(Message messageObj) {
     if (!(messageObj instanceof Response response)) {
-      throw new RecievedInvalidObjectException(Response.class, messageObj.getClass());
+      throw new ReceivedInvalidObjectException(Response.class, messageObj.getClass());
     }
     return response;
   }

@@ -8,18 +8,21 @@ import commands.ExecutionResult;
 import communication.packaging.BaseRequest;
 import communication.packaging.Request;
 import communication.packaging.Response;
-import exceptions.RecievedInvalidObjectException;
-import exceptions.ReconnectionTimoutException;
-import exceptions.ResponseCodeException;
+import exceptions.InvalidCredentialsException;
+import exceptions.ReceivedInvalidObjectException;
+import exceptions.ReconnectionTimeoutException;
 import model.data.Model;
+import user.User;
 
 import java.io.IOException;
 import java.util.Optional;
 
 public class ClientExchanger<T extends Model> implements Exchanger<T> {
   private final Transceiver transceiver;
-  private RequestPurpose lastRequestPurpose;
   private final Session clientSession;
+
+  private User user;
+  private RequestPurpose lastRequestPurpose;
 
   public ClientExchanger(Transceiver transceiver, Session clientSession) {
     this.transceiver = transceiver;
@@ -27,13 +30,12 @@ public class ClientExchanger<T extends Model> implements Exchanger<T> {
   }
 
   @Override
-  public void requestAccessibleCommandsInfo() throws ReconnectionTimoutException {
+  public void requestAccessibleCommandsInfo() {
     makeNewRequest(RequestPurpose.GET_COMMANDS, null);
   }
 
-
   @Override
-  public void requestFullCollection() throws ReconnectionTimoutException {
+  public void requestFullCollection() {
     makeNewRequest(RequestPurpose.INIT_COLLECTION, null);
   }
 
@@ -43,17 +45,30 @@ public class ClientExchanger<T extends Model> implements Exchanger<T> {
   }
 
   @Override
-  public void requestCommandExecution(ExecutionPayload payload) throws ReconnectionTimoutException {
-    makeNewRequest(RequestPurpose.EXECUTE, payload);
+  public void requestCommandExecution(ExecutionPayload payload) {
+    makeNewRequest(RequestPurpose.CHANGE_COLLECTION, payload);
   }
 
-  private void makeNewRequest(RequestPurpose purpose, Object payload) throws ReconnectionTimoutException {
+  @Override
+  public void requestLogin(User user) {
+    this.user = user;
+    makeNewRequest(RequestPurpose.LOGIN, null);
+  }
+
+
+  @Override
+  public void requestRegister(User user) {
+    this.user = user;
+    makeNewRequest(RequestPurpose.REGISTER, null);
+  }
+
+  private void makeNewRequest(RequestPurpose purpose, Object payload) {
     lastRequestPurpose = purpose;
-    Request request = BaseRequest.of(purpose, payload);
+    Request request = BaseRequest.of(purpose, payload, user);
     sendWithReconnect(request);
   }
 
-  private void sendWithReconnect(Request request) throws ReconnectionTimoutException {
+  private void sendWithReconnect(Request request) {
     try {
       transceiver.send(request);
       return;
@@ -63,17 +78,17 @@ public class ClientExchanger<T extends Model> implements Exchanger<T> {
     sendWithReconnect(request);
   }
 
-  private void reconnectOrThrowTimeout() throws ReconnectionTimoutException {
+  private void reconnectOrThrowTimeout() {
     int RECONNECTION_SECONDS = 15;
     if (!clientSession.reconnect(RECONNECTION_SECONDS)) {
       System.out.println("Failed to connect to server");
-      throw new ReconnectionTimoutException();
+      throw new ReconnectionTimeoutException();
     }
     transceiver.newSocketChannel(clientSession.getSocketChannel());
   }
 
   @Override
-  public CollectionWrapper<T> receiveFullCollection() throws ReconnectionTimoutException, ResponseCodeException, IOException {
+  public CollectionWrapper<T> receiveFullCollection() throws InvalidCredentialsException, IOException {
     checkPurposeMatch(RequestPurpose.INIT_COLLECTION);
 
     Response response = receiveAndCheckResponse();
@@ -93,7 +108,7 @@ public class ClientExchanger<T extends Model> implements Exchanger<T> {
   }
 
   @Override
-  public CommandNameToInfo receiveAccessibleCommandsInfo() throws ReconnectionTimoutException, ResponseCodeException, IOException {
+  public CommandNameToInfo receiveAccessibleCommandsInfo() throws InvalidCredentialsException, IOException {
     checkPurposeMatch(RequestPurpose.GET_COMMANDS);
 
     Response response = receiveAndCheckResponse();
@@ -103,8 +118,8 @@ public class ClientExchanger<T extends Model> implements Exchanger<T> {
   }
 
   @Override
-  public ExecutionResult receiveExecutionResult() throws ReconnectionTimoutException, ResponseCodeException, IOException {
-    checkPurposeMatch(RequestPurpose.EXECUTE);
+  public ExecutionResult receiveExecutionResult() throws InvalidCredentialsException, IOException {
+    checkPurposeMatch(RequestPurpose.CHANGE_COLLECTION);
 
     Response response = receiveAndCheckResponse();
     Object payload = readPayload(response);
@@ -112,10 +127,22 @@ public class ClientExchanger<T extends Model> implements Exchanger<T> {
     return castObjTo(payload, ExecutionResult.class);
   }
 
+  @Override
+  public void validateLogin() throws InvalidCredentialsException, IOException {
+    checkPurposeMatch(RequestPurpose.LOGIN);
+    receiveAndCheckResponse();
+  }
+
+  @Override
+  public void validateRegister() throws InvalidCredentialsException, IOException {
+    checkPurposeMatch(RequestPurpose.REGISTER);
+    receiveAndCheckResponse();
+  }
+
   @SuppressWarnings("unchecked")
   private <U> U castObjTo(Object obj, Class<U> toClass) {
     if (!(toClass.isInstance(obj))) {
-      throw new RecievedInvalidObjectException(toClass, obj.getClass());
+      throw new ReceivedInvalidObjectException(toClass, obj.getClass());
     }
     return (U) obj;
   }
@@ -126,30 +153,30 @@ public class ClientExchanger<T extends Model> implements Exchanger<T> {
     }
   }
 
-  private Response receiveAndCheckResponse() throws ResponseCodeException, ReconnectionTimoutException, IOException {
-    Response response = receiveWithReconnect().orElseThrow(() -> new RecievedInvalidObjectException(Response.class, "Empty response"));
+  private Response receiveAndCheckResponse() throws InvalidCredentialsException, IOException {
+    Response response = receiveWithReconnect().orElseThrow(() -> new ReceivedInvalidObjectException(Response.class, "Empty response"));
     checkResponseStatus(response);
     return response;
   }
 
-  private Optional<Response> receiveWithReconnect() throws ReconnectionTimoutException, IOException {
+  private Optional<Response> receiveWithReconnect() throws IOException {
     try {
       return transceiver.recieve().map(Response.class::cast);
     } catch (IOException e) {
       // failed to read. Usually, because of server shutdown.
       reconnectOrThrowTimeout();
     }
-    throw new IOException("Server was unavailble. Please, repeat the request");
+    throw new IOException("Server was unavailable. Please, repeat the request");
   }
 
-  private void checkResponseStatus(Response response) throws ResponseCodeException {
+  private void checkResponseStatus(Response response) throws InvalidCredentialsException {
     switch (response.getResponseCode()) {
-      case INVALID_PAYLOAD -> throw new ResponseCodeException("Invalid payload provided");
-      case UNAUTHORIZED -> throw new ResponseCodeException("Client is not authorized");
+      case INVALID_PAYLOAD -> throw new IllegalArgumentException("Invalid payload provided to server");
+      case AUTH_FAILED -> throw new InvalidCredentialsException();
     }
   }
 
   private Object readPayload(Response response) {
-    return response.getPayload().orElseThrow(() -> new RecievedInvalidObjectException(Object.class, "empty payload"));
+    return response.getPayload().orElseThrow(() -> new ReceivedInvalidObjectException(Object.class, "empty payload"));
   }
 }

@@ -1,6 +1,7 @@
 package server.authorization;
 
 import server.generated.repository.UserRepository;
+import user.User;
 
 public class UserManager {
   public UserRepository userRepository;

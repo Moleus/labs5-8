@@ -1,15 +1,15 @@
 package app;
 
+import client.Console;
 import client.UserConsole;
 import collection.CollectionFilter;
 import commands.CommandManager;
 import commands.CommandNameToInfo;
 import commands.pcommands.*;
 import communication.*;
-import exceptions.ReconnectionTimoutException;
+import exceptions.InvalidCredentialsException;
 import exceptions.ResponseCodeException;
 import model.data.Flat;
-import utils.Console;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -37,6 +37,7 @@ public class ClientMain {
     PrintStream writer = new PrintStream(System.out);
     CommandManager clientCommandManager = new CommandManager();
     Console userConsole = new UserConsole(writer, clientCommandManager, exchanger, collectionFilter);
+    Authenticator authenticator = new ClientAuthenticator(exchanger);
 
     clientCommandManager.registerCommands(
         new Help(clientCommandManager),
@@ -45,7 +46,9 @@ public class ClientMain {
         new Info(collectionFilter),
         new FilterContainsName(collectionFilter),
         new PrintUniqueNumberOfRooms(collectionFilter),
-        new PrintFieldDescendingNew(collectionFilter)
+        new PrintFieldDescendingNew(collectionFilter),
+        new Login(authenticator),
+        new Register(authenticator)
     );
 
     CommandNameToInfo commandNameToInfo;
