@@ -11,11 +11,12 @@ import communication.packaging.Response;
 import exceptions.RecievedInvalidObjectException;
 import exceptions.ReconnectionTimoutException;
 import exceptions.ResponseCodeException;
+import model.data.Model;
 
 import java.io.IOException;
 import java.util.Optional;
 
-public class ClientExchanger implements Exchanger {
+public class ClientExchanger<T extends Model> implements Exchanger<T> {
   private final Transceiver transceiver;
   private RequestPurpose lastRequestPurpose;
   private final Session clientSession;
@@ -72,51 +73,51 @@ public class ClientExchanger implements Exchanger {
   }
 
   @Override
-  public CollectionWrapper recieveFullColection() throws ReconnectionTimoutException, ResponseCodeException, IOException {
+  public CollectionWrapper<T> receiveFullCollection() throws ReconnectionTimoutException, ResponseCodeException, IOException {
     checkPurposeMatch(RequestPurpose.INIT_COLLECTION);
 
-    Response response = recieveAndCheckResponse();
+    Response response = receiveAndCheckResponse();
     Object payload = readPayload(response);
 
     return castObjTo(payload, CollectionWrapper.class);
   }
 
   @Override
-  public CollectionChangelist recieveCollectionChanges() throws ReconnectionTimoutException, ResponseCodeException, IOException {
+  public CollectionChangelist<T> receiveCollectionChanges() throws ReconnectionTimoutException, ResponseCodeException, IOException {
     checkPurposeMatch(RequestPurpose.UPDATE_COLLECTION);
 
-    Response response = recieveAndCheckResponse();
+    Response response = receiveAndCheckResponse();
     Object payload = readPayload(response);
 
     return castObjTo(payload, CollectionChangelist.class);
   }
 
   @Override
-  public CommandNameToInfo recieveAccessibleCommandsInfo() throws ReconnectionTimoutException, ResponseCodeException, IOException {
+  public CommandNameToInfo receiveAccessibleCommandsInfo() throws ReconnectionTimoutException, ResponseCodeException, IOException {
     checkPurposeMatch(RequestPurpose.GET_COMMANDS);
 
-    Response response = recieveAndCheckResponse();
+    Response response = receiveAndCheckResponse();
     Object payload = readPayload(response);
 
     return castObjTo(payload, CommandNameToInfo.class);
   }
 
   @Override
-  public ExecutionResult recieveExecutionResult() throws ReconnectionTimoutException, ResponseCodeException, IOException {
+  public ExecutionResult receiveExecutionResult() throws ReconnectionTimoutException, ResponseCodeException, IOException {
     checkPurposeMatch(RequestPurpose.EXECUTE);
 
-    Response response = recieveAndCheckResponse();
+    Response response = receiveAndCheckResponse();
     Object payload = readPayload(response);
 
     return castObjTo(payload, ExecutionResult.class);
   }
 
   @SuppressWarnings("unchecked")
-  private <T> T castObjTo(Object obj, Class<T> toClass) {
+  private <U> U castObjTo(Object obj, Class<U> toClass) {
     if (!(toClass.isInstance(obj))) {
       throw new RecievedInvalidObjectException(toClass, obj.getClass());
     }
-    return (T) obj;
+    return (U) obj;
   }
 
   private void checkPurposeMatch(RequestPurpose expected) {
@@ -125,13 +126,13 @@ public class ClientExchanger implements Exchanger {
     }
   }
 
-  private Response recieveAndCheckResponse() throws ResponseCodeException, ReconnectionTimoutException, IOException {
-    Response response = recieveWithReconnect().orElseThrow(() -> new RecievedInvalidObjectException(Response.class, "Empty response"));
+  private Response receiveAndCheckResponse() throws ResponseCodeException, ReconnectionTimoutException, IOException {
+    Response response = receiveWithReconnect().orElseThrow(() -> new RecievedInvalidObjectException(Response.class, "Empty response"));
     checkResponseStatus(response);
     return response;
   }
 
-  private Optional<Response> recieveWithReconnect() throws ReconnectionTimoutException, IOException {
+  private Optional<Response> receiveWithReconnect() throws ReconnectionTimoutException, IOException {
     try {
       return transceiver.recieve().map(Response.class::cast);
     } catch (IOException e) {
