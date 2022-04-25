@@ -2,7 +2,6 @@ package server.collection;
 
 import collection.CollectionChange;
 import collection.CollectionChangelist;
-import collection.CollectionWrapper;
 import model.data.Flat;
 
 import java.util.List;
@@ -13,8 +12,8 @@ public class FlatChangesTracker implements ChangesTracker<Flat> {
   private final CollectionChangelist<Flat> changelist = new CollectionChangelist<>(0L, new TreeMap<>());
 
   @Override
-  public CollectionWrapper<Flat> getNewest() {
-    return null;
+  public long getLatestVersion() {
+    return changelist.getLatestVersion();
   }
 
   @Override
