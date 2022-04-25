@@ -7,10 +7,11 @@ import commands.ExecutionPayload;
 import commands.ExecutionResult;
 import exceptions.ReconnectionTimoutException;
 import exceptions.ResponseCodeException;
+import model.data.Model;
 
 import java.io.IOException;
 
-public interface Exchanger {
+public interface Exchanger<T extends Model> {
   void requestFullCollection() throws ReconnectionTimoutException;
 
   void requestCollectionChanges(Long currentVersion) throws ReconnectionTimoutException;
@@ -19,11 +20,11 @@ public interface Exchanger {
 
   void requestAccessibleCommandsInfo() throws ReconnectionTimoutException;
 
-  CollectionChangelist recieveCollectionChanges() throws ReconnectionTimoutException, ResponseCodeException, IOException;
+  CollectionChangelist<T> receiveCollectionChanges() throws ReconnectionTimoutException, ResponseCodeException, IOException;
 
-  CollectionWrapper recieveFullColection() throws ReconnectionTimoutException, ResponseCodeException, IOException;
+  CollectionWrapper<T> receiveFullCollection() throws ReconnectionTimoutException, ResponseCodeException, IOException;
 
-  ExecutionResult recieveExecutionResult() throws ReconnectionTimoutException, ResponseCodeException, IOException;
+  ExecutionResult receiveExecutionResult() throws ReconnectionTimoutException, ResponseCodeException, IOException;
 
-  CommandNameToInfo recieveAccessibleCommandsInfo() throws ReconnectionTimoutException, ResponseCodeException, IOException;
+  CommandNameToInfo receiveAccessibleCommandsInfo() throws ReconnectionTimoutException, ResponseCodeException, IOException;
 }
