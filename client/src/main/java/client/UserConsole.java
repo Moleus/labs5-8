@@ -9,7 +9,13 @@ import lombok.Setter;
 import model.ModelDto;
 import model.builder.BuilderWrapper;
 import model.builder.ModelDtoBuilderWrapper;
+import model.data.Flat;
 import model.data.ModelDtoBuilder;
+import org.jline.reader.EndOfFileException;
+import org.jline.reader.LineReader;
+import org.jline.reader.LineReaderBuilder;
+import org.jline.terminal.Terminal;
+import org.jline.terminal.TerminalBuilder;
 import utils.Console;
 
 import java.io.*;
@@ -21,10 +27,9 @@ import java.util.TreeSet;
  * This class creates interactive prompt, reads user input, checks commands and sends request to manager.
  */
 public class UserConsole implements Console {
-  private final BufferedReader in;
   private final PrintStream out;
   private final CommandManager commandManager;
-  private final Exchanger exchanger;
+  private final Exchanger<Flat> exchanger;
   private final CollectionFilter collectionFilter;
   private final BuilderWrapper<ModelDto> builderWrapper;
 
@@ -40,7 +45,7 @@ public class UserConsole implements Console {
   private static final String USER_PROMPT_SUFFIX = "> ";
   private static final String SCRIPT_PROMPT_SUFFIX = "$ ";
 
-
+  private LineReader lineReader;
   @Setter
   private BufferedReader scriptReader = null;
 
@@ -52,14 +57,24 @@ public class UserConsole implements Console {
   private boolean isConsoleRunning = false;
   private boolean exitFlag = false;
 
-  public UserConsole(BufferedReader in, PrintStream out, CommandManager commandManager, Exchanger exchanger, CollectionFilter collectionFilter) {
-    this.in = in;
+  public UserConsole(PrintStream out, CommandManager commandManager, Exchanger<Flat> exchanger, CollectionFilter collectionFilter) {
     this.out = out;
     this.commandManager = commandManager;
     this.exchanger = exchanger;
     this.collectionFilter = collectionFilter;
     this.builderWrapper = new ModelDtoBuilderWrapper(new ModelDtoBuilder());
     this.userPrompt = createUserPrompt(userName, getWorkingDir());
+    initTerminal();
+  }
+
+  private void initTerminal() {
+    try {
+      Terminal terminal = TerminalBuilder.terminal();
+      this.lineReader = LineReaderBuilder.builder().terminal(terminal).build();
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to initialize console", e);
+    }
+
   }
 
   private static String getWorkingDir() {
@@ -97,6 +112,8 @@ public class UserConsole implements Console {
       commandLoop();
     } catch (IOException e) {
       out.println("User console exited with IO exception");
+    } catch (EndOfFileException e) {
+      out.println("Pressed Ctrl+D");
     }
     out.println("Console closed");
     isConsoleRunning = false;
@@ -131,8 +148,6 @@ public class UserConsole implements Console {
     while (true) {
       if (exitFlag) return;
 
-      printPrompt();
-
       command = readCommand();
       if (command == null) return;
       if (command.trim().equals("")) continue;
@@ -146,18 +161,19 @@ public class UserConsole implements Console {
       }
 
       CommandInfo commandInfo = inputData.commandInfo;
-      boolean additionalInputNeeded = commandInfo.isHasComplexArgs();
 
       ModelDto dataValues = null;
-      if (additionalInputNeeded) {
-        dataValues = readNewModelDto();
+      char[] maskedInput = null;
+      switch (commandInfo.getType()) {
+        case REQUIRES_DTO -> dataValues = readNewModelDto();
+        case AUTHENTICATION -> maskedInput = readMaskedInput();
       }
 
       updateCollection();
 
       String commandName = commandInfo.getName();
       String inlineArg = inputData.inlineArg;
-      ExecutionPayload payload = ExecutionPayload.of(commandName, inlineArg, dataValues);
+      ExecutionPayload payload = ExecutionPayload.of(commandName, inlineArg, maskedInput, dataValues);
       CommandExecutor commandExecutor = new CommandExecutor(commandInfo, payload);
       commandExecutor.executeCommand();
     }
@@ -178,13 +194,13 @@ public class UserConsole implements Console {
       ExecutionMode mode = commandInfo.getExecutionMode();
       switch (mode) {
         case SERVER -> executeOnServer();
-        case CLIENT -> executeLocaly();
+        case CLIENT -> executeLocally();
       }
     }
 
-    private void executeLocaly() {
+    private void executeLocally() {
       if (!commandManager.isRegistered(commandName)) {
-        throw new IllegalArgumentException("Command can't be executed localy");
+        throw new IllegalArgumentException("Command can't be executed locally");
       }
       ExecutionResult result = commandManager.executeCommand(payload);
       handleExecutionResult(result);
@@ -213,7 +229,7 @@ public class UserConsole implements Console {
   private void updateCollection() {
     try {
       exchanger.requestCollectionChanges(collectionFilter.getCollectionVersion());
-      CollectionChangelist changelist = exchanger.recieveCollectionChanges();
+      CollectionChangelist<Flat> changelist = exchanger.receiveCollectionChanges();
       collectionFilter.applyChangelist(changelist);
     } catch (ReconnectionTimoutException e) {
       printErr("Exiting.");
@@ -225,7 +241,7 @@ public class UserConsole implements Console {
 
   private void handleNewResponses() throws ReconnectionTimoutException {
     try {
-      ExecutionResult result = exchanger.recieveExecutionResult();
+      ExecutionResult result = exchanger.receiveExecutionResult();
       handleExecutionResult(result);
     } catch (ResponseCodeException | IOException e) {
       printErr(e.getMessage());
@@ -237,6 +253,7 @@ public class UserConsole implements Console {
       case USER:
         return readUserCommand();
       case SCRIPT:
+        out.println(scriptPrompt);
         String command = readCommandFromScript();
         if (command != null) {
           out.println(command);
@@ -248,15 +265,8 @@ public class UserConsole implements Console {
     return readUserCommand();
   }
 
-  private String readUserCommand() throws IOException {
-    return readLine(in, 100);
-  }
-
-  private void printPrompt() {
-    switch (inputState) {
-      case USER -> out.print(userPrompt);
-      case SCRIPT -> out.println(scriptPrompt);
-    }
+  private String readUserCommand() {
+    return lineReader.readLine(userPrompt);
   }
 
   private String readCommandFromScript() throws IOException {
@@ -317,7 +327,7 @@ public class UserConsole implements Console {
       }
 
       // if element input needed: call FieldsReader.
-      if (commandInfo.isHasComplexArgs()) {
+      if (commandInfo.getType() == CommandType.REQUIRES_DTO) {
         if (commandInfo.getArgsCount() == 1 && !inlineArg.matches("\\d+")) {
           throw new IllegalArgumentException("Command argument should be an integer");
         }
@@ -336,6 +346,10 @@ public class UserConsole implements Console {
       }
       return Optional.of(nameToInfo.get(commandName));
     }
+  }
+
+  private char[] readMaskedInput() {
+    return lineReader.readLine("Enter password: ", '*').toCharArray();
   }
 
   private ModelDto readNewModelDto() throws IOException {
