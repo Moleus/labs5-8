@@ -10,6 +10,7 @@ import perform.service.Configurable;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.SQLException;
+import java.util.Map;
 import java.util.Properties;
 
 @Log4j2
@@ -49,10 +50,11 @@ public class DriverManagerConnectionProvider implements ConnectionProvider, Conf
       throw new PerformException(errorMessage);
     }
     Driver driver = tryToLoadDriver(configurationValues.getProperty(AvailableSettings.DRIVER));
+    Properties connectionProperties = getConnectionProperties(configurationValues);
     if (driver != null) {
-      return new DriverConnectionCreator(driver, url, configurationValues);
+      return new DriverConnectionCreator(driver, url, connectionProperties);
     }
-    return new DriverManagerConnectionCreator(url, configurationValues);
+    return new DriverManagerConnectionCreator(url, connectionProperties);
   }
 
   private Driver tryToLoadDriver(String driverClassName) {
@@ -70,4 +72,29 @@ public class DriverManagerConnectionProvider implements ConnectionProvider, Conf
     }
   }
 
+  /**
+   * Return only properties which are needed for JDBC connection.
+   * They start with 'perform.connection'.
+   *
+   * @param properties global configuration properties to choose from
+   */
+  private static Properties getConnectionProperties(Properties properties) {
+    Properties connectionProps = new Properties();
+    for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+      if (!(entry.getKey() instanceof String key) || !(entry.getValue() instanceof String value)) {
+        continue;
+      }
+      if (!key.startsWith(AvailableSettings.CONNECTION_PREFIX)) {
+        continue;
+      }
+      if (key.equals(AvailableSettings.CONNECTION_PREFIX)) {
+        continue;
+      }
+      connectionProps.setProperty(
+          key.substring(AvailableSettings.CONNECTION_PREFIX.length() + 1),
+          value
+      );
+    }
+    return connectionProps;
+  }
 }
