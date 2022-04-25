@@ -51,7 +51,7 @@ public class FieldPersistentProperty<T> implements FieldProperty<T> {
     this.columnName = Optional.ofNullable(findAnnotation(Column.class)).map(Column::name).orElse(this.name);
 
     this.isEmbedded = Optional.ofNullable(findAnnotation(Embedded.class)).isPresent();
-    this.embeddedPrefix = Optional.ofNullable(findAnnotation(Embedded.class)).map(Embedded::prefix).orElse("");
+    this.embeddedPrefix = Optional.ofNullable(findAnnotation(Embedded.class)).map(a -> "".equals(a.prefix()) ? name : a.prefix()).orElse(this.name);
 
     this.annotations = field.getAnnotations();
     this.getter = propertyDescriptor.getReadMethod();
