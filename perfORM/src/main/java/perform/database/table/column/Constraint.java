@@ -12,10 +12,6 @@ public class Constraint {
   private final List<String> parameters = new ArrayList<>();
   private final List<String> expressions = new ArrayList<>();
 
-  public static Constraint copyOf(Constraint toCopy) {
-    return new Constraint(toCopy.getName());
-  }
-
   public void addParameter(String param) {
     parameters.add(param);
   }
