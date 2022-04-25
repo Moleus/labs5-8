@@ -13,7 +13,7 @@ public final class Environment implements AvailableSettings {
   static {
     GLOBAL_PROPERTIES = new Properties();
 
-    try (InputStream stream = Environment.class.getResourceAsStream("perform.properties")) {
+    try (InputStream stream = Environment.class.getClassLoader().getResourceAsStream("perform.properties")) {
       GLOBAL_PROPERTIES.load(stream);
       log.debug("Properties loaded from 'perform.properties': {}", ConfigurationHelper.hideSensitive(GLOBAL_PROPERTIES, PASS));
 
