@@ -1,9 +1,6 @@
 package server.commands.pcommands;
 
-import commands.AbstractCommand;
-import commands.CommandInfo;
-import commands.ExecutionPayload;
-import commands.ExecutionResult;
+import commands.*;
 import model.ModelDto;
 import model.data.Model;
 import org.modelmapper.MappingException;
@@ -16,7 +13,7 @@ public final class Add<T extends Model> extends AbstractCommand {
   private final CollectionManager<T> collectionManager;
 
   public Add(CollectionManager<T> collectionManager) {
-    super(CommandInfo.of("add", "Adds created object into the collection.", true, 0, true, SERVER));
+    super(CommandInfo.of("add", "Adds created object into the collection.", true, 0, CommandType.REQUIRES_DTO, SERVER));
     this.collectionManager = collectionManager;
   }
 

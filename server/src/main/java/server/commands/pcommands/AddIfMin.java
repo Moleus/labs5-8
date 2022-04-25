@@ -1,9 +1,6 @@
 package server.commands.pcommands;
 
-import commands.AbstractCommand;
-import commands.CommandInfo;
-import commands.ExecutionPayload;
-import commands.ExecutionResult;
+import commands.*;
 import exceptions.ElementNotFoundException;
 import model.ModelDto;
 import model.data.Model;
@@ -17,7 +14,7 @@ public final class AddIfMin<T extends Model> extends AbstractCommand {
   private final CollectionManager<T> collectionManager;
 
   public AddIfMin(CollectionManager<T> collectionManager) {
-    super(CommandInfo.of("add_if_min", "Add new element if it's the least in collection", true, 0, true, SERVER));
+    super(CommandInfo.of("add_if_min", "Add new element if it's the least in collection", true, 0, CommandType.REQUIRES_DTO, SERVER));
     this.collectionManager = collectionManager;
   }
 

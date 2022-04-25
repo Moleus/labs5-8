@@ -8,7 +8,7 @@ public final class ExecuteScript extends AbstractCommand {
   private final ScriptExecutor executor;
 
   public ExecuteScript(ScriptExecutor executor) {
-    super(CommandInfo.of("execute_script", "Run all commands from specified file", true, 1, false, ExecutionMode.CLIENT));
+    super(CommandInfo.of("execute_script", "Run all commands from specified file", true, 1, CommandType.OTHER, ExecutionMode.CLIENT));
     this.executor = executor;
   }
   

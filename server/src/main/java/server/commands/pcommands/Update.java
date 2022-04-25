@@ -1,9 +1,6 @@
 package server.commands.pcommands;
 
-import commands.AbstractCommand;
-import commands.CommandInfo;
-import commands.ExecutionPayload;
-import commands.ExecutionResult;
+import commands.*;
 import model.ModelDto;
 import model.data.Model;
 import server.collection.CollectionManager;
@@ -15,7 +12,7 @@ public final class Update<T extends Model> extends AbstractCommand {
   private final CollectionManager<T> collectionManager;
 
   public Update(CollectionManager<T> collectionManager) {
-    super(CommandInfo.of("update", "Modify an existing element in collection", true, 1, true, SERVER));
+    super(CommandInfo.of("update", "Modify an existing element in collection", true, 1, CommandType.REQUIRES_DTO, SERVER));
     this.collectionManager = collectionManager;
   }
 

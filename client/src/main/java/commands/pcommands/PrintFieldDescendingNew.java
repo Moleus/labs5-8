@@ -1,10 +1,7 @@
 package commands.pcommands;
 
 import collection.CollectionFilter;
-import commands.AbstractCommand;
-import commands.CommandInfo;
-import commands.ExecutionPayload;
-import commands.ExecutionResult;
+import commands.*;
 
 import java.util.Arrays;
 
@@ -14,7 +11,7 @@ public final class PrintFieldDescendingNew extends AbstractCommand {
   private final CollectionFilter collectionManager;
 
   public PrintFieldDescendingNew(CollectionFilter collectionFilter) {
-    super(CommandInfo.of("print_field_descending_new", "Print 'new' values in descending order", true, 0, false, CLIENT));
+    super(CommandInfo.of("print_field_descending_new", "Print 'new' values in descending order", true, 0, CommandType.OTHER, CLIENT));
     this.collectionManager = collectionFilter;
   }
 

@@ -1,9 +1,6 @@
 package server.commands.pcommands;
 
-import commands.AbstractCommand;
-import commands.CommandInfo;
-import commands.ExecutionPayload;
-import commands.ExecutionResult;
+import commands.*;
 import exceptions.ElementNotFoundException;
 import model.data.Model;
 import server.collection.CollectionManager;
@@ -14,7 +11,7 @@ public final class RemoveById<T extends Model> extends AbstractCommand {
   private final CollectionManager<T> collectionManager;
 
   public RemoveById(CollectionManager<T> collectionManager) {
-    super(CommandInfo.of("remove_by_id", "remove an element with {id} from collection", true, 1, false, SERVER));
+    super(CommandInfo.of("remove_by_id", "remove an element with {id} from collection", true, 1, CommandType.OTHER, SERVER));
     this.collectionManager = collectionManager;
   }
 

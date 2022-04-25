@@ -31,7 +31,7 @@ final public class CommandInfo implements Serializable {
   /**
    * Returns true if additional user input required, otherwise - false.
    */
-  private final boolean hasComplexArgs;
+  private final CommandType type;
 
   /**
    * Returns execution mode.

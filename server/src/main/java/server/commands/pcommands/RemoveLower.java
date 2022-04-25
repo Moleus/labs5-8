@@ -10,7 +10,7 @@ public final class RemoveLower<T extends Model> extends AbstractCommand {
   private final CollectionManager<T> collectionManager;
 
   public RemoveLower(CollectionManager<T> collectionManager) {
-    super(CommandInfo.of("remove_lower", "Remove elements less than given", true, 0, true, ExecutionMode.SERVER));
+    super(CommandInfo.of("remove_lower", "Remove elements less than given", true, 0, CommandType.REQUIRES_DTO, ExecutionMode.SERVER));
     this.collectionManager = collectionManager;
   }
 

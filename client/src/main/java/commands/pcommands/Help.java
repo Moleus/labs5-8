@@ -8,7 +8,7 @@ public final class Help extends AbstractCommand {
   private final CommandManager commandManager;
 
   public Help(CommandManager commandManager) {
-    super(CommandInfo.of("help", "Shows info about accessible commands", true, 0, false, ExecutionMode.CLIENT));
+    super(CommandInfo.of("help", "Shows info about accessible commands", true, 0, CommandType.OTHER, ExecutionMode.CLIENT));
     this.commandManager = commandManager;
   }
 

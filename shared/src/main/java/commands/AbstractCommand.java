@@ -33,19 +33,25 @@ public abstract class AbstractCommand implements Command, Serializable {
     return info.isUserAccessible();
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public final int getArgsCount() {
     return info.getArgsCount();
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public final boolean isHasComplexArgs() {
-    return info.isHasComplexArgs();
+  public final CommandType getType() {
+    return info.getType();
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public CommandInfo getInfo() {
     return info;

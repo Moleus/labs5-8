@@ -1,10 +1,7 @@
 package commands.pcommands;
 
 import collection.CollectionFilter;
-import commands.AbstractCommand;
-import commands.CommandInfo;
-import commands.ExecutionPayload;
-import commands.ExecutionResult;
+import commands.*;
 
 import java.util.Set;
 
@@ -14,7 +11,7 @@ public final class PrintUniqueNumberOfRooms extends AbstractCommand {
   private final CollectionFilter collectionFilter;
 
   public PrintUniqueNumberOfRooms(CollectionFilter collectionManager) {
-    super(CommandInfo.of("print_unique_number_of_rooms", "Print set of 'numberOfRooms' values", true, 0, false, CLIENT));
+    super(CommandInfo.of("print_unique_number_of_rooms", "Print set of 'numberOfRooms' values", true, 0, CommandType.OTHER, CLIENT));
     this.collectionFilter = collectionManager;
   }
 

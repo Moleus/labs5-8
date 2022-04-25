@@ -1,9 +1,6 @@
 package server.commands.pcommands;
 
-import commands.AbstractCommand;
-import commands.CommandInfo;
-import commands.ExecutionPayload;
-import commands.ExecutionResult;
+import commands.*;
 import exceptions.ElementNotFoundException;
 import model.ModelDto;
 import model.data.Model;
@@ -17,7 +14,7 @@ public final class AddIfMax<T extends Model> extends AbstractCommand {
   private final CollectionManager<T> collectionManager;
 
   public AddIfMax(CollectionManager<T> collectionManager) {
-    super(CommandInfo.of("add_if_max", "Add new element if it's the greatest in collection", true, 0, true, SERVER));
+    super(CommandInfo.of("add_if_max", "Add new element if it's the greatest in collection", true, 0, CommandType.REQUIRES_DTO, SERVER));
     this.collectionManager = collectionManager;
   }
 

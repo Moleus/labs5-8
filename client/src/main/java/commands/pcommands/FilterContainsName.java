@@ -10,7 +10,7 @@ public final class FilterContainsName extends AbstractCommand {
   private final CollectionFilter collectionFilter;
 
   public FilterContainsName(CollectionFilter collectionFilter) {
-    super(CommandInfo.of("filter_contains_name", "Print elements with specified string in names", true, 1, false, ExecutionMode.CLIENT));
+    super(CommandInfo.of("filter_contains_name", "Print elements with specified string in names", true, 1, CommandType.OTHER, ExecutionMode.CLIENT));
     this.collectionFilter = collectionFilter;
   }
 

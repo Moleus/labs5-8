@@ -1,9 +1,6 @@
 package server.commands.pcommands;
 
-import commands.AbstractCommand;
-import commands.CommandInfo;
-import commands.ExecutionPayload;
-import commands.ExecutionResult;
+import commands.*;
 import model.data.Model;
 import server.collection.CollectionManager;
 
@@ -20,7 +17,7 @@ public final class Save<T extends Model> extends AbstractCommand {
   private final CollectionManager<T> collectionManager;
 
   public Save(CollectionManager<T> collectionManager) {
-    super(CommandInfo.of("save", "Save collection in a storage", false, 0, false, SERVER));
+    super(CommandInfo.of("save", "Save collection in a storage", false, 0, CommandType.OTHER, SERVER));
     this.collectionManager = collectionManager;
   }
 
