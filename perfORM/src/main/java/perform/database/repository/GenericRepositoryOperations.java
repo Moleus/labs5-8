@@ -10,7 +10,6 @@ import perform.util.PreparedStatementUtil;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.sql.JDBCType;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -99,8 +98,7 @@ public class GenericRepositoryOperations<T> {
   }
 
   private void setValue(PreparedStatement ps, int index, Object value) throws SQLException {
-    JDBCType jdbcType = PreparedStatementUtil.getSqlType(value.getClass());
-    PreparedStatementUtil.setValue(ps, index, jdbcType, value);
+    PreparedStatementUtil.setValue(ps, index, value);
   }
 
   private static void existsOrThrow(ResultSet resultSet) throws SQLException {
