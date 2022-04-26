@@ -7,6 +7,7 @@ import model.data.Model;
 import org.modelmapper.MappingException;
 import server.collection.CollectionManager;
 import server.collection.DtoToModelMapper;
+import user.User;
 
 import static commands.ExecutionMode.SERVER;
 
@@ -21,12 +22,13 @@ public final class AddIfMax<T extends Model> extends AbstractCommand {
   @Override
   public ExecutionResult execute(ExecutionPayload payload) {
     ModelDto modelDto = payload.getData();
+    User user = payload.getUser();
 
     try {
       T newModel = DtoToModelMapper.fromDto(modelDto);
       T maxModel = collectionManager.getMax();
       if (newModel.compareTo(maxModel) > 0) {
-        collectionManager.add(newModel);
+        collectionManager.add(newModel, user);
         return ExecutionResult.valueOf(true, "added new element in collection");
       }
     } catch (ElementNotFoundException | MappingException e) {

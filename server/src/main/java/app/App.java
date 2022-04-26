@@ -46,9 +46,9 @@ public class App {
     Bootstrap bootstrap = new Bootstrap();
     FlatRepository flatRepository = bootstrap.getRepository(Flat.class);
     UserRepository userRepository = bootstrap.getRepository(User.class);
-    CollectionManager<Flat> collectionManager = new FlatsCollectionManager(flatRepository);
 
     UserManager userManager = new UserManager(userRepository);
+    CollectionManager<Flat> collectionManager = new FlatsCollectionManager(flatRepository, userManager);
 
     collectionManager.loadCollection();
 

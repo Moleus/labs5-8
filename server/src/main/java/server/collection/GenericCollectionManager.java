@@ -3,6 +3,7 @@ package server.collection;
 import collection.CollectionChangelist;
 import collection.CollectionWrapper;
 import exceptions.ElementNotFoundException;
+import model.data.Flat;
 import model.data.Model;
 import perform.database.repository.CrudRepository;
 import user.User;
@@ -19,7 +20,7 @@ public abstract class GenericCollectionManager<T extends Model> implements Colle
   protected final Set<T> objectsCollection = new LinkedHashSet<>();
   private final ChangesTracker<T> changesTracker;
   private final CrudRepository<T> entityRepository;
-  private LocalDateTime creationDateTime = LocalDateTime.now();
+  private final LocalDateTime creationDateTime = LocalDateTime.now();
 
   public GenericCollectionManager(ChangesTracker<T> changesTracker, CrudRepository<T> entityRepository) {
     this.changesTracker = changesTracker;
@@ -32,8 +33,7 @@ public abstract class GenericCollectionManager<T extends Model> implements Colle
    *
    * @param object Model instance
    */
-  @Override
-  public long add(T object) {
+  protected long add(T object) {
     long id = entityRepository.save(object);
     if (!objectsCollection.add(object)) {
       throw new IllegalArgumentException("Trying to add dublicate object");
@@ -59,9 +59,13 @@ public abstract class GenericCollectionManager<T extends Model> implements Colle
   @Override
   public void clear(User user) {
     changesTracker.track(filter(isOwner(user)), DiffAction.REMOVE);
-    objectsCollection.clear();
-    entityRepository.deleteAll();
+    for (T entity : objectsCollection.stream().filter(isOwner(user)).toList()) {
+      objectsCollection.remove(entity);
+      entityRepository.delete(entity);
+    }
   }
+
+  public abstract long add(Flat entity, User user);
 
   protected abstract Predicate<T> isOwner(User user);
 
@@ -110,11 +114,11 @@ public abstract class GenericCollectionManager<T extends Model> implements Colle
    */
   @Override
   public void removeById(long id, User user) throws ElementNotFoundException {
-    Predicate<T> filter = flat -> Objects.equals(id, flat.getId());
-    changesTracker.track(filter(filter.and(isOwner(user))), DiffAction.REMOVE);
+    Predicate<T> filter = isOwner(user).and(flat -> Objects.equals(id, flat.getId()));
+    changesTracker.track(filter(filter), DiffAction.REMOVE);
 
     if (!objectsCollection.removeIf(filter)) {
-      throw new ElementNotFoundException("No element with such id in collection");
+      throw new ElementNotFoundException("No element with such id in collection or it's not owned by you.");
     }
   }
 
@@ -126,8 +130,8 @@ public abstract class GenericCollectionManager<T extends Model> implements Colle
    */
   @Override
   public boolean removeLower(T upperBoundModel, User user) {
-    Predicate<T> predicate = flat -> flat.compareTo(upperBoundModel) < 0;
-    changesTracker.track(filter(predicate.and(isOwner(user))), DiffAction.REMOVE);
+    Predicate<T> predicate = isOwner(user).and(flat -> flat.compareTo(upperBoundModel) < 0);
+    changesTracker.track(filter(predicate), DiffAction.REMOVE);
     return objectsCollection.removeIf(predicate);
   }
 

@@ -2,6 +2,7 @@ package server.collection;
 
 import lombok.extern.log4j.Log4j2;
 import model.data.Flat;
+import server.authentication.UserManager;
 import server.generated.repository.FlatRepository;
 import user.User;
 
@@ -14,21 +15,28 @@ import java.util.function.Predicate;
  */
 @Log4j2
 public class FlatsCollectionManager extends GenericCollectionManager<Flat> {
-  public FlatsCollectionManager(FlatRepository flatRepository) {
+  private UserManager userManager;
+
+  public FlatsCollectionManager(FlatRepository flatRepository, UserManager userManager) {
     super(new FlatChangesTracker(), flatRepository);
+    this.userManager = userManager;
   }
 
   @Override
-  public long add(Flat entity) {
+  public long add(Flat entity, User user) {
     entity.setCreationDate(LocalDate.now());
-    entity.setUserId(1);
+    entity.setUserId(getIdFromDb(user));
     long id = super.add(entity);
     entity.setId(id);
     return id;
   }
 
   protected Predicate<Flat> isOwner(User user) {
-    long userId = user.getId();
+    long userId = getIdFromDb(user);
     return flat -> Objects.equals(flat.getUserId(), userId);
+  }
+
+  private long getIdFromDb(User user) {
+    return userManager.findByLogin(user.getLogin()).getId();
   }
 }

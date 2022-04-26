@@ -6,6 +6,7 @@ import model.data.Model;
 import org.modelmapper.MappingException;
 import server.collection.CollectionManager;
 import server.collection.DtoToModelMapper;
+import user.User;
 
 import static commands.ExecutionMode.SERVER;
 
@@ -20,10 +21,11 @@ public final class Add<T extends Model> extends AbstractCommand {
   @Override
   public ExecutionResult execute(ExecutionPayload payload) {
     ModelDto modelDto = payload.getData();
+    User user = payload.getUser();
 
     try {
       T newModel = DtoToModelMapper.fromDto(modelDto);
-      collectionManager.add(newModel);
+      collectionManager.add(newModel, user);
     } catch (MappingException e) {
       return ExecutionResult.valueOf(false, e.getMessage());
     }

@@ -7,7 +7,7 @@ import model.data.Model;
 import user.User;
 
 public interface CollectionManager<T extends Model> {
-  long add(T entity);
+  long add(T entity, User user);
 
   boolean update(T entity, User user);
 

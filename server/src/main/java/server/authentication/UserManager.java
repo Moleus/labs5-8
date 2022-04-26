@@ -5,7 +5,7 @@ import server.generated.repository.UserRepository;
 import user.User;
 
 public class UserManager {
-  public UserRepository userRepository;
+  public final UserRepository userRepository;
 
   public UserManager(UserRepository userRepository) {
     this.userRepository = userRepository;
@@ -15,10 +15,6 @@ public class UserManager {
     if (user == null) return false;
     User storedUser = userRepository.findByLogin(user.getLogin());
     return storedUser != null && verify(user.getPassword(), storedUser.getPassword());
-  }
-
-  private boolean verify(byte[] rawPass, byte[] encrypted) {
-    return BCrypt.verifyer().verify(rawPass, encrypted).verified;
   }
 
   public boolean isUserUnique(User user) {
@@ -33,4 +29,13 @@ public class UserManager {
     user.setId(id);
     return id;
   }
+
+  public User findByLogin(String login) {
+    return userRepository.findByLogin(login);
+  }
+
+  private boolean verify(byte[] rawPass, byte[] encrypted) {
+    return BCrypt.verifyer().verify(rawPass, encrypted).verified;
+  }
+
 }
