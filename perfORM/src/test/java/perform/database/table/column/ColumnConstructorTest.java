@@ -22,8 +22,8 @@ public class ColumnConstructorTest {
     RelationalColumn<TestingEntity> lengthColumn = (new ColumnCreator<>(lengthProp, "")).createColumn();
     RelationalColumn<TestingEntity> speedColumn = (new ColumnCreator<>(speedProp, "")).createColumn();
 
-    assertEquals("length FLOAT CHECK (length > 0.0)", lengthColumn.toString());
-    assertEquals("speed FLOAT CHECK (speed > -1.1)", speedColumn.toString());
+    assertEquals("length float8 CHECK (length > 0.0)", lengthColumn.toString());
+    assertEquals("speed float8 CHECK (speed > -1.1)", speedColumn.toString());
   }
 
   @Test
