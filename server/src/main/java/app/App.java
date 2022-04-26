@@ -4,7 +4,7 @@ import commands.CommandManager;
 import lombok.extern.log4j.Log4j2;
 import model.data.Flat;
 import perform.bootstrap.Bootstrap;
-import server.authorization.UserManager;
+import server.authentication.UserManager;
 import server.collection.CollectionManager;
 import server.collection.FlatsCollectionManager;
 import server.commands.pcommands.*;
@@ -76,7 +76,6 @@ public class App {
     try {
       Server server = new Server(2222, commandManager, collectionManager, userManager);
       server.run();
-      log.info("Collection saved successfully");
     } catch (IOException e) {
       e.printStackTrace();
     }
