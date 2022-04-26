@@ -69,6 +69,7 @@ public class TableProvider<T> {
 
   private <F> RelationalColumn<F> createColumn(FieldProperty<F> field, String namePrefix) {
     ColumnCreator<F> columnCreator = new ColumnCreator<>(field, namePrefix);
+    this.entityTable.setDependsOnTable(columnCreator.getColumnForeignTableName());
     return columnCreator.createColumn();
   }
 }

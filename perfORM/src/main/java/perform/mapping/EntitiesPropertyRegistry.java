@@ -3,7 +3,7 @@ package perform.mapping;
 import perform.mapping.properties.EntityPersistentProperty;
 import perform.mapping.properties.EntityProperty;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -13,7 +13,7 @@ import java.util.Set;
 public class EntitiesPropertyRegistry {
   public static final EntitiesPropertyRegistry INSTANCE = new EntitiesPropertyRegistry();
 
-  private final Map<Class<?>, EntityPersistentProperty<?>> entityToProperty = new HashMap<>();
+  private final Map<Class<?>, EntityPersistentProperty<?>> entityToProperty = new LinkedHashMap<>();
 
   public void register(Class<?> entity) {
     entityToProperty.put(entity, EntityPersistentProperty.of(entity));

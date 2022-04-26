@@ -1,5 +1,6 @@
 package perform.database.table.column;
 
+import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.text.CaseUtils;
 import perform.annotations.ForeignKey;
@@ -21,6 +22,8 @@ public class ColumnCreator<T> {
 
   private final String columnName;
   private final RelationalColumn<T> relationalColumn;
+  @Getter
+  private String columnForeignTableName;
 
   public ColumnCreator(FieldProperty<T> fieldProperty, String namePrefix) {
     this.field = fieldProperty;
@@ -39,7 +42,7 @@ public class ColumnCreator<T> {
     Class<T> fieldType = field.getType();
     this.relationalColumn.setJavaType(fieldType);
 
-    JDBCType sqlDataType = PreparedStatementUtil.getSqlType(fieldType);
+    JDBCType sqlDataType = PreparedStatementUtil.getJDBCType(fieldType);
     this.relationalColumn.setDataType(sqlDataType);
   }
 
@@ -77,6 +80,8 @@ public class ColumnCreator<T> {
     if (annotation instanceof ForeignKey foreignKey) {
       String otherTableName = foreignKey.tableName();
       constraint.addParameter(otherTableName);
+      constraint.addParameter("on DELETE CASCADE");
+      this.columnForeignTableName = otherTableName;
     }
   }
 }

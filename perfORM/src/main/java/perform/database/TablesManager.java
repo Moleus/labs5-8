@@ -8,9 +8,7 @@ import perform.mapping.properties.EntityProperty;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Log4j2
 public class TablesManager {
@@ -18,7 +16,7 @@ public class TablesManager {
   private final Set<EntityProperty<?>> entities;
   private final PreparedStatementProvider provider;
 
-  private final Map<EntityProperty<?>, RelationalTable> entityToTable = new HashMap<>();
+  private final Map<EntityProperty<?>, RelationalTable> entityToTable = new LinkedHashMap<>();
 
   public TablesManager(Set<EntityProperty<?>> entities, PreparedStatementProvider provider) {
     this.entities = entities;
@@ -48,9 +46,21 @@ public class TablesManager {
    * Executes prepared statement queries to create tables in db.
    */
   public void createMissingTables() {
-    for (RelationalTable table : entityToTable.values()) {
+    for (RelationalTable table : resolveConstructionOrder()) {
       createTable(table);
     }
+  }
+
+  private List<RelationalTable> resolveConstructionOrder() {
+    List<RelationalTable> orderedTables = new ArrayList<>();
+    for (RelationalTable table : entityToTable.values()) {
+      if (table.getDependsOnTable() == null) {
+        orderedTables.add(0, table);
+        continue;
+      }
+      orderedTables.add(table);
+    }
+    return orderedTables;
   }
 
   private void createTable(RelationalTable table) {

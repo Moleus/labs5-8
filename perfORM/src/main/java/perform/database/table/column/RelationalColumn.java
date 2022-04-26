@@ -1,6 +1,7 @@
 package perform.database.table.column;
 
 import lombok.Data;
+import perform.util.PreparedStatementUtil;
 import perform.util.StringUtil;
 
 import java.sql.JDBCType;
@@ -16,6 +17,7 @@ public class RelationalColumn<T> {
   private JDBCType dataType;
   private Class<T> javaType;
   private boolean isId = false;
+  private String foreignRelation;
   private List<Constraint> constraints;
 
   @Override

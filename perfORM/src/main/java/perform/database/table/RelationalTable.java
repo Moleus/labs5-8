@@ -14,6 +14,7 @@ import java.util.List;
 public class RelationalTable {
   private final String tableName;
   private List<RelationalColumn<?>> columns;
+  private String dependsOnTable;
 
   public RelationalTable(String tableName) {
     this.tableName = tableName;
