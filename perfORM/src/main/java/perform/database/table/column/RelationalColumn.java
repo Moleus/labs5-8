@@ -21,7 +21,7 @@ public class RelationalColumn<T> {
   @Override
   public String toString() {
     String sqlConstraints = StringUtil.join(" ", constraints);
-    String sqlType = isId ? "SERIAL" : dataType.name();
+    String sqlType = isId ? "BIGSERIAL" : PreparedStatementUtil.getPgsqlName(dataType);
     return StringUtil.join(" ", columnName, sqlType, sqlConstraints);
   }
 }

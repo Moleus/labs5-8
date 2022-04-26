@@ -7,7 +7,7 @@ public enum DataTypes {
   TIMESTAMP("TIMESTAMP"),
   TEXT("TEXT"),
   BOOL("BOOL"),
-  SERIAL("SERIAL");
+  BIGSERIAL("BIGSERIAL");
 
   private final String sqlName;
 

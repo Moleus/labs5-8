@@ -40,7 +40,7 @@ public class ColumnConstructorTest {
     FieldProperty<TestingEntity> idProp = new FieldPersistentProperty<>("id3", TestingEntity.class);
 
     RelationalColumn<TestingEntity> idColumn = (new ColumnCreator<>(idProp, "")).createColumn();
-    assertEquals("id3 SERIAL PRIMARY KEY", idColumn.toString());
+    assertEquals("id3 BIGSERIAL PRIMARY KEY", idColumn.toString());
   }
 
   @Getter
