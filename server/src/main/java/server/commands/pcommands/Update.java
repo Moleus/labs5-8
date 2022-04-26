@@ -27,8 +27,12 @@ public final class Update<T extends Model> extends AbstractCommand {
       return ExecutionResult.valueOf(false, "Id should be an integer");
     }
 
-    ModelDto dataValues = payload.getDataValues();
-    T newModel = DtoToModelMapper.fromDto(dataValues);
+    Object data = payload.getData();
+    if (!(data instanceof ModelDto modelDto)) {
+      return ExecutionResult.valueOf(false, "Assumed to get a ModelDto from payload");
+    }
+
+    T newModel = DtoToModelMapper.fromDto(modelDto);
     newModel.setId(id);
     if (!collectionManager.update(newModel)) {
       return ExecutionResult.valueOf(false, "Element with id " + id + " not updated");

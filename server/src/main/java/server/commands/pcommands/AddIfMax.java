@@ -20,10 +20,13 @@ public final class AddIfMax<T extends Model> extends AbstractCommand {
 
   @Override
   public ExecutionResult execute(ExecutionPayload payload) {
-    ModelDto dataValues = payload.getDataValues();
+    Object data = payload.getData();
+    if (!(data instanceof ModelDto modelDto)) {
+      return ExecutionResult.valueOf(false, "Assumed to get a ModelDto from payload");
+    }
 
     try {
-      T newModel = DtoToModelMapper.fromDto(dataValues);
+      T newModel = DtoToModelMapper.fromDto(modelDto);
       T maxModel = collectionManager.getMax();
       if (newModel.compareTo(maxModel) > 0) {
         collectionManager.add(newModel);

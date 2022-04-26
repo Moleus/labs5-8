@@ -19,10 +19,13 @@ public final class Add<T extends Model> extends AbstractCommand {
 
   @Override
   public ExecutionResult execute(ExecutionPayload payload) {
-    ModelDto dataValues = payload.getDataValues();
+    Object data = payload.getData();
+    if (!(data instanceof ModelDto modelDto)) {
+      return ExecutionResult.valueOf(false, "Assumed to get a ModelDto from payload");
+    }
 
     try {
-      T newModel = DtoToModelMapper.fromDto(dataValues);
+      T newModel = DtoToModelMapper.fromDto(modelDto);
       collectionManager.add(newModel);
     } catch (MappingException e) {
       return ExecutionResult.valueOf(false, e.getMessage());

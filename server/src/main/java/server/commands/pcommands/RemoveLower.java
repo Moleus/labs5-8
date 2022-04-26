@@ -16,9 +16,12 @@ public final class RemoveLower<T extends Model> extends AbstractCommand {
 
   @Override
   public ExecutionResult execute(ExecutionPayload payload) {
-    ModelDto dataValues = payload.getDataValues();
+    Object data = payload.getData();
+    if (!(data instanceof ModelDto modelDto)) {
+      return ExecutionResult.valueOf(false, "Assumed to get a ModelDto from payload");
+    }
 
-    T upperBoundFlat = DtoToModelMapper.fromDto(dataValues);
+    T upperBoundFlat = DtoToModelMapper.fromDto(modelDto);
     if (collectionManager.removeLower(upperBoundFlat)) {
       return ExecutionResult.valueOf(true, "Lower elements successfully removed");
     }
