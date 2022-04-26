@@ -3,6 +3,9 @@ package client;
 import collection.CollectionChangelist;
 import collection.CollectionFilter;
 import commands.*;
+import commands.readers.DtoReader;
+import commands.readers.IOSource;
+import commands.readers.UserReader;
 import communication.Exchanger;
 import exceptions.InvalidCredentialsException;
 import exceptions.ReconnectionTimeoutException;
@@ -18,7 +21,7 @@ import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
-import utils.Console;
+import user.User;
 
 import java.io.*;
 import java.util.NavigableSet;
@@ -28,21 +31,20 @@ import java.util.TreeSet;
 /**
  * This class creates interactive prompt, reads user input, checks commands and sends request to manager.
  */
-public class UserConsole implements Console {
+public class UserConsole implements Console, IOSource {
   private final PrintStream out;
   private final CommandManager commandManager;
   private final Exchanger<Flat> exchanger;
   private final CollectionFilter collectionFilter;
   private final BuilderWrapper<ModelDto> builderWrapper;
+  private final DtoReader dtoReader;
 
-  // contains username + working dir + >
-  private final String userPrompt;
   // contains username + script name + $
   private String scriptPrompt;
 
 
   private final NavigableSet<String> executingScripts = new TreeSet<>();
-  private final String userName = "dev";
+  private User user = null;
 
   private static final String USER_PROMPT_SUFFIX = "> ";
   private static final String SCRIPT_PROMPT_SUFFIX = "$ ";
@@ -50,6 +52,7 @@ public class UserConsole implements Console {
   private LineReader lineReader;
   @Setter
   private BufferedReader scriptReader = null;
+  private final UserReader userReader;
 
   private enum InputState {USER, SCRIPT}
 
@@ -65,7 +68,8 @@ public class UserConsole implements Console {
     this.exchanger = exchanger;
     this.collectionFilter = collectionFilter;
     this.builderWrapper = new ModelDtoBuilderWrapper(new ModelDtoBuilder());
-    this.userPrompt = createUserPrompt(userName, getWorkingDir());
+    this.dtoReader = new DtoReader(this);
+    this.userReader = new UserReader(this);
     initTerminal();
   }
 
@@ -76,7 +80,6 @@ public class UserConsole implements Console {
     } catch (IOException e) {
       throw new RuntimeException("Failed to initialize console", e);
     }
-
   }
 
   private static String getWorkingDir() {
@@ -92,8 +95,14 @@ public class UserConsole implements Console {
     return color.text() + text + Colors.RESET.text();
   }
 
-  private static String createUserPrompt(String userName, String dir) {
-    return colorText(userName, Colors.GREEN) + "@" + colorText(dir, Colors.GREEN) + colorText(USER_PROMPT_SUFFIX, Colors.CYAN);
+  private String getUserName() {
+    return user != null ? user.getLogin() : "nullUser";
+  }
+
+  private String getPrompt() {
+    String workingDir = getWorkingDir();
+    String userName = getUserName();
+    return colorText(userName, Colors.GREEN) + "@" + colorText(workingDir, Colors.GREEN) + colorText(USER_PROMPT_SUFFIX, Colors.CYAN);
   }
 
   private void printErr(String message) {
@@ -113,7 +122,7 @@ public class UserConsole implements Console {
     try {
       commandLoop();
     } catch (IOException e) {
-      out.println("User console exited with IO exception");
+      out.println("User console exited with IO exception: " + e.getMessage());
     } catch (EndOfFileException e) {
       out.println("Pressed Ctrl+D");
     } catch (ReconnectionTimeoutException e) {
@@ -129,9 +138,9 @@ public class UserConsole implements Console {
   }
 
   /**
-   * Changes console input mode to read from specified file.
+   * Changes console input mode to readLine from specified file.
    *
-   * @param scriptName name of a file to read commands from.
+   * @param scriptName name of a file to readLine commands from.
    * @throws ScriptExecutionException if recursion of file not found.
    */
   @Override
@@ -146,13 +155,28 @@ public class UserConsole implements Console {
     }
   }
 
+  @Override
+  public String readLine() throws IOException {
+    return readCommand(false);
+  }
+
+  @Override
+  public byte[] readPassword() {
+    return lineReader.readLine('*').getBytes();
+  }
+
+  @Override
+  public void print(String text) {
+    out.print(text);
+  }
+
   private void commandLoop() throws IOException {
     String command;
     final CommandLineParser inputParser = new CommandLineParser();
     while (true) {
       if (exitFlag) return;
 
-      command = readCommand();
+      command = readCommand(true);
       if (command == null) return;
       if (command.trim().equals("")) continue;
 
@@ -166,18 +190,20 @@ public class UserConsole implements Console {
 
       CommandInfo commandInfo = inputData.commandInfo;
 
-      ModelDto dataValues = null;
-      char[] maskedInput = null;
+      Object data = null;
       switch (commandInfo.getType()) {
-        case REQUIRES_DTO -> dataValues = readNewModelDto();
-        case AUTHENTICATION -> maskedInput = readMaskedInput();
+        case REQUIRES_DTO -> data = dtoReader.read();
+        case AUTHENTICATION -> {
+          user = userReader.read();
+          data = user;
+        }
       }
 
       updateCollection();
 
       String commandName = commandInfo.getName();
       String inlineArg = inputData.inlineArg;
-      ExecutionPayload payload = ExecutionPayload.of(commandName, inlineArg, maskedInput, dataValues);
+      ExecutionPayload payload = ExecutionPayload.of(commandName, inlineArg, data);
       CommandExecutor commandExecutor = new CommandExecutor(commandInfo, payload);
       commandExecutor.executeCommand();
     }
@@ -194,7 +220,7 @@ public class UserConsole implements Console {
       this.commandName = commandInfo.getName();
     }
 
-    void executeCommand() {
+    void executeCommand() throws IOException {
       ExecutionMode mode = commandInfo.getExecutionMode();
       switch (mode) {
         case SERVER -> executeOnServer();
@@ -225,34 +251,35 @@ public class UserConsole implements Console {
     out.println(result.getMessage());
   }
 
-  private void updateCollection() {
+  private void updateCollection() throws IOException {
+    exchanger.requestCollectionChanges(collectionFilter.getCollectionVersion());
     try {
-      exchanger.requestCollectionChanges(collectionFilter.getCollectionVersion());
       CollectionChangelist<Flat> changelist = exchanger.receiveCollectionChanges();
       collectionFilter.applyChangelist(changelist);
-    } catch (ReconnectionTimoutException e) {
-      printErr("Exiting.");
-      exit();
-    } catch (ResponseCodeException | IOException e) {
-      printErr(e.getMessage());
+    } catch (InvalidCredentialsException e) {
+      printInvalidCredentials();
     }
   }
 
-  private void handleNewResponses() throws ReconnectionTimoutException {
+  private void handleNewResponses() throws IOException {
     try {
       ExecutionResult result = exchanger.receiveExecutionResult();
       handleExecutionResult(result);
-    } catch (ResponseCodeException | IOException e) {
-      printErr(e.getMessage());
+    } catch (InvalidCredentialsException e) {
+      printInvalidCredentials();
     }
   }
 
-  private String readCommand() throws IOException {
-    switch (inputState){
+  private void printInvalidCredentials() {
+    printErr("Invalid user credentials. Please register or login.");
+  }
+
+  private String readCommand(boolean prompt) throws IOException {
+    switch (inputState) {
       case USER:
-        return readUserCommand();
+        return readUserCommand(prompt);
       case SCRIPT:
-        out.println(scriptPrompt);
+        if (prompt) out.println(scriptPrompt);
         String command = readCommandFromScript();
         if (command != null) {
           out.println(command);
@@ -261,11 +288,12 @@ public class UserConsole implements Console {
         closeScript();
         return "";
     }
-    return readUserCommand();
+    return readUserCommand(prompt);
   }
 
-  private String readUserCommand() {
-    return lineReader.readLine(userPrompt);
+  private String readUserCommand(boolean prompt) {
+    if (prompt) return lineReader.readLine(getPrompt());
+    return lineReader.readLine();
   }
 
   private String readCommandFromScript() throws IOException {
@@ -288,7 +316,7 @@ public class UserConsole implements Console {
 
   private void runScript(String filename) throws FileNotFoundException {
     scriptReader = new BufferedReader(new InputStreamReader(new FileInputStream(filename)));
-    scriptPrompt = colorText(userName, Colors.YELLOW) + "#" + colorText(filename, Colors.YELLOW) + SCRIPT_PROMPT_SUFFIX;
+    scriptPrompt = colorText(getUserName(), Colors.YELLOW) + "#" + colorText(filename, Colors.YELLOW) + SCRIPT_PROMPT_SUFFIX;
     inputState = InputState.SCRIPT;
     out.println(colorText("--- Script " + filename + " started ---", Colors.BLUE));
     executingScripts.add(filename);
@@ -345,28 +373,5 @@ public class UserConsole implements Console {
       }
       return Optional.of(nameToInfo.get(commandName));
     }
-  }
-
-  private char[] readMaskedInput() {
-    return lineReader.readLine("Enter password: ", '*').toCharArray();
-  }
-
-  private ModelDto readNewModelDto() throws IOException {
-    int fieldsCount = builderWrapper.getFieldsCount();
-    builderWrapper.setPosition(0);
-
-    while (builderWrapper.getPosition() < fieldsCount) {
-      System.out.printf("Enter %s: ", builderWrapper.getDescription());
-      String line = readCommand();
-      try {
-        builderWrapper.setValue(line);
-      } catch (ValueFormatException | ValueConstraintsException e) {
-        System.out.println(e.getMessage());
-        continue;
-      }
-      builderWrapper.step();
-    }
-
-    return builderWrapper.build();
   }
 }
