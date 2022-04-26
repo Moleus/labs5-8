@@ -26,7 +26,7 @@ public class Statements {
     this.SELECT_ALL = "SELECT * FROM " + tableName;
     this.SELECT_BY_TEMPLATE = SELECT_ALL + " WHERE %s = ?";
 
-    this.DELETE_ALL = "DELETE * FROM " + tableName;
+    this.DELETE_ALL = "DELETE FROM " + tableName;
     this.DELETE_BY_TEMPLATE = DELETE_ALL + " WHERE %s = ?";
 
     String commaSepNames = String.join(", ", columnNames);
