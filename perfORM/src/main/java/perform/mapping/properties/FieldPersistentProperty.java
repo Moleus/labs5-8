@@ -38,13 +38,6 @@ public class FieldPersistentProperty<T> implements FieldProperty<T> {
     initialize();
   }
 
-  public FieldPersistentProperty(PropertyDescriptor descriptor, Class<?> ownerClass) {
-    this.propertyDescriptor = descriptor;
-    this.name = descriptor.getName();
-    this.ownerClass = ownerClass;
-    initialize();
-  }
-
   private void initialize() {
     initFieldProp();
     this.isId = Optional.ofNullable(findAnnotation(Id.class)).isPresent();

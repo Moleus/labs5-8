@@ -3,11 +3,8 @@ package perform.mapping.properties;
 import org.reflections.Reflections;
 import perform.annotations.Embeddable;
 import perform.annotations.Table;
-import perform.exception.BeanIntrospectionException;
 import perform.exception.DuplicateKeyException;
 
-import java.beans.IntrospectionException;
-import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.*;
@@ -61,13 +58,7 @@ public class EntityPersistentProperty<T> implements EntityProperty<T> {
   }
 
   private FieldProperty<?> createFieldProperty(Field field) {
-    try {
-      return new FieldPersistentProperty<>(
-          new PropertyDescriptor(field.getName(), entityType),
-          entityType);
-    } catch (IntrospectionException e) {
-      throw new BeanIntrospectionException(entityType, "on field creation", e);
-    }
+    return new FieldPersistentProperty<>(field.getName(), entityType);
   }
 
   @Override
