@@ -16,7 +16,7 @@ public final class Clear<T extends Model> extends AbstractCommand {
 
   @Override
   public ExecutionResult execute(ExecutionPayload payload) {
-    collectionManager.clear();
+    collectionManager.clear(payload.getUser());
     return ExecutionResult.valueOf(true, "collection has been cleared");
   }
 }

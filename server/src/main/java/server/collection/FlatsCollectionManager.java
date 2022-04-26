@@ -3,8 +3,11 @@ package server.collection;
 import lombok.extern.log4j.Log4j2;
 import model.data.Flat;
 import server.generated.repository.FlatRepository;
+import user.User;
 
 import java.time.LocalDate;
+import java.util.Objects;
+import java.util.function.Predicate;
 
 /**
  * Manager class which stores collection and provides an API to interact with it.
@@ -22,5 +25,10 @@ public class FlatsCollectionManager extends GenericCollectionManager<Flat> {
     long id = super.add(entity);
     entity.setId(id);
     return id;
+  }
+
+  protected Predicate<Flat> isOwner(User user) {
+    long userId = user.getId();
+    return flat -> Objects.equals(flat.getUserId(), userId);
   }
 }

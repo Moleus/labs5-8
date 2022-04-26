@@ -5,6 +5,7 @@ import model.ModelDto;
 import model.data.Model;
 import server.collection.CollectionManager;
 import server.collection.DtoToModelMapper;
+import user.User;
 
 import static commands.ExecutionMode.SERVER;
 
@@ -20,6 +21,7 @@ public final class Update<T extends Model> extends AbstractCommand {
   @Override
   public ExecutionResult execute(ExecutionPayload payload) {
     String idStr = payload.getInlineArg();
+    User user = payload.getUser();
     int id;
     try {
       id = Integer.parseInt(idStr);
@@ -30,7 +32,7 @@ public final class Update<T extends Model> extends AbstractCommand {
     ModelDto modelDto = payload.getData();
     T newModel = DtoToModelMapper.fromDto(modelDto);
     newModel.setId(id);
-    if (!collectionManager.update(newModel)) {
+    if (!collectionManager.update(newModel, user)) {
       return ExecutionResult.valueOf(false, "Element with id " + id + " not updated");
     }
 

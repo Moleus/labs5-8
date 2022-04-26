@@ -5,6 +5,7 @@ import collection.CollectionWrapper;
 import exceptions.ElementNotFoundException;
 import model.data.Model;
 import perform.database.repository.CrudRepository;
+import user.User;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -14,8 +15,8 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public class GenericCollectionManager<T extends Model> implements CollectionManager<T> {
-  private final Set<T> objectsCollection = new LinkedHashSet<>();
+public abstract class GenericCollectionManager<T extends Model> implements CollectionManager<T> {
+  protected final Set<T> objectsCollection = new LinkedHashSet<>();
   private final ChangesTracker<T> changesTracker;
   private final CrudRepository<T> entityRepository;
   private LocalDateTime creationDateTime = LocalDateTime.now();
@@ -42,8 +43,8 @@ public class GenericCollectionManager<T extends Model> implements CollectionMana
   }
 
   @Override
-  public boolean update(T entity) {
-    if (!entityRepository.update(entity)) {
+  public boolean update(T entity, User user) {
+    if (!entityRepository.update(entity) || !isOwner(user).test(entity)) {
       return false;
     }
     changesTracker.track(Set.of(entity), DiffAction.UPDATE);
@@ -56,11 +57,13 @@ public class GenericCollectionManager<T extends Model> implements CollectionMana
    * @see LinkedHashSet#clear()
    */
   @Override
-  public void clear() {
-    changesTracker.track(filter(t -> true), DiffAction.REMOVE);
+  public void clear(User user) {
+    changesTracker.track(filter(isOwner(user)), DiffAction.REMOVE);
     objectsCollection.clear();
     entityRepository.deleteAll();
   }
+
+  protected abstract Predicate<T> isOwner(User user);
 
   /**
    * Returns max {@link Model} from collection.
@@ -106,9 +109,9 @@ public class GenericCollectionManager<T extends Model> implements CollectionMana
    * @throws ElementNotFoundException if there is no entry with such id in collection.
    */
   @Override
-  public void removeById(long id) throws ElementNotFoundException {
+  public void removeById(long id, User user) throws ElementNotFoundException {
     Predicate<T> filter = flat -> Objects.equals(id, flat.getId());
-    changesTracker.track(filter(filter), DiffAction.REMOVE);
+    changesTracker.track(filter(filter.and(isOwner(user))), DiffAction.REMOVE);
 
     if (!objectsCollection.removeIf(filter)) {
       throw new ElementNotFoundException("No element with such id in collection");
@@ -122,9 +125,9 @@ public class GenericCollectionManager<T extends Model> implements CollectionMana
    * @return true if removed. False if nothing changed.
    */
   @Override
-  public boolean removeLower(T upperBoundModel) {
+  public boolean removeLower(T upperBoundModel, User user) {
     Predicate<T> predicate = flat -> flat.compareTo(upperBoundModel) < 0;
-    changesTracker.track(filter(predicate), DiffAction.REMOVE);
+    changesTracker.track(filter(predicate.and(isOwner(user))), DiffAction.REMOVE);
     return objectsCollection.removeIf(predicate);
   }
 

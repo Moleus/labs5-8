@@ -5,6 +5,7 @@ import model.ModelDto;
 import model.data.Model;
 import server.collection.CollectionManager;
 import server.collection.DtoToModelMapper;
+import user.User;
 
 public final class RemoveLower<T extends Model> extends AbstractCommand {
   private final CollectionManager<T> collectionManager;
@@ -20,7 +21,7 @@ public final class RemoveLower<T extends Model> extends AbstractCommand {
     User user = payload.getUser();
 
     T upperBoundFlat = DtoToModelMapper.fromDto(modelDto);
-    if (collectionManager.removeLower(upperBoundFlat)) {
+    if (collectionManager.removeLower(upperBoundFlat, user)) {
       return ExecutionResult.valueOf(true, "Lower elements successfully removed");
     }
     return ExecutionResult.valueOf(true, "No elements removed");

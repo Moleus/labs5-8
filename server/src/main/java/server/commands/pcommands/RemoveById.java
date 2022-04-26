@@ -4,6 +4,7 @@ import commands.*;
 import exceptions.ElementNotFoundException;
 import model.data.Model;
 import server.collection.CollectionManager;
+import user.User;
 
 import static commands.ExecutionMode.SERVER;
 
@@ -18,6 +19,7 @@ public final class RemoveById<T extends Model> extends AbstractCommand {
   @Override
   public ExecutionResult execute(ExecutionPayload payload) {
     String idStr = payload.getInlineArg();
+    User user = payload.getUser();
     int id;
     try {
       id = Integer.parseInt(idStr);
@@ -27,7 +29,7 @@ public final class RemoveById<T extends Model> extends AbstractCommand {
     }
 
     try {
-      collectionManager.removeById(id);
+      collectionManager.removeById(id, user);
     } catch (ElementNotFoundException e) {
       return ExecutionResult.valueOf(false, e.getMessage());
     }
