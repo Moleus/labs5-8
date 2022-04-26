@@ -3,6 +3,7 @@ package perform.reflection;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.implementation.MethodCall;
+import net.bytebuddy.implementation.bytecode.assign.Assigner;
 import net.bytebuddy.matcher.ElementMatchers;
 import perform.database.repository.CrudRepository;
 import perform.database.repository.GenericRepositoryOperations;
@@ -102,12 +103,13 @@ public class RepositoryImplementor<T, R extends CrudRepository<T>> {
     for (Map.Entry<String, Method> colNameToMethod : findByMethods.entrySet()) {
       String columnName = colNameToMethod.getKey();
       String methodName = colNameToMethod.getValue().getName();
-      //   genericRepositoryOperations.genericFindBy() // value + columnName
-      builder.method(named(methodName))
+      builder = builder.method(named(methodName))
           .intercept(MethodCall.invoke(named("genericFindBy"))
               .on(genericRepositoryOperations)
               .withAllArguments()
-              .with(columnName));
+              .with(columnName)
+              .withAssigner(Assigner.DEFAULT, Assigner.Typing.DYNAMIC)
+          );
     }
   }
 }
