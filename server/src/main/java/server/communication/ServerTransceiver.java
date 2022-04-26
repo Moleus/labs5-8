@@ -4,7 +4,7 @@ import communication.AbstractTransiever;
 import communication.Transceiver;
 import communication.packaging.Message;
 import communication.packaging.Request;
-import exceptions.RecievedInvalidObjectException;
+import exceptions.ReceivedInvalidObjectException;
 import lombok.extern.log4j.Log4j2;
 
 import java.io.IOException;
@@ -28,7 +28,7 @@ public class ServerTransceiver extends AbstractTransiever {
 
   protected Request checkRequestInstance(Message messageObj) {
     if (!(messageObj instanceof Request request)) {
-      throw new RecievedInvalidObjectException(Request.class, messageObj.getClass());
+      throw new ReceivedInvalidObjectException(Request.class, messageObj.getClass());
     }
     return request;
   }

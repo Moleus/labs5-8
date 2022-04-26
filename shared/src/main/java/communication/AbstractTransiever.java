@@ -1,7 +1,7 @@
 package communication;
 
 import communication.packaging.Message;
-import exceptions.RecievedInvalidObjectException;
+import exceptions.ReceivedInvalidObjectException;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -27,7 +27,7 @@ public abstract class AbstractTransiever implements Transceiver {
   }
 
   @Override
-  public abstract Optional<? extends Message> recieve() throws IOException, RecievedInvalidObjectException;
+  public abstract Optional<? extends Message> recieve() throws IOException, ReceivedInvalidObjectException;
 
   @Override
   public void newSocketChannel(SocketChannel socketChannel) {
@@ -49,11 +49,11 @@ public abstract class AbstractTransiever implements Transceiver {
     try {
       recievedObject = objectStream.readObject();
     } catch (ClassNotFoundException e) {
-      throw new RecievedInvalidObjectException(Message.class, e.getMessage());
+      throw new ReceivedInvalidObjectException(Message.class, e.getMessage());
     }
 
     if (!(recievedObject instanceof Message messageObj)) {
-      throw new RecievedInvalidObjectException(Message.class, recievedObject.getClass());
+      throw new ReceivedInvalidObjectException(Message.class, recievedObject.getClass());
     }
     return Optional.of(messageObj);
   }

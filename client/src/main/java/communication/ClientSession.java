@@ -24,14 +24,14 @@ public class ClientSession implements Session {
   }
 
   @Override
-  public boolean reconnect(int countDownSecnods) {
+  public boolean reconnect(int countDownSeconds) {
     int connectionTriesCounter = 0;
     try {
       disconnect();
     } catch (IOException ignore) {
     }
 
-    while (connectionTriesCounter++ < countDownSecnods) {
+    while (connectionTriesCounter++ < countDownSeconds) {
       try {
         if (!connect()) {
           Thread.sleep(1000);
