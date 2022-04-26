@@ -33,8 +33,8 @@ class MethodUtilTest {
     long save(Car entity);
   }
 
-  Class<?> repo = UtilsRepo.class;
-  EntityPersistentProperty<Car> entity = EntityPersistentProperty.of(Car.class);
+  final Class<?> repo = UtilsRepo.class;
+  final EntityPersistentProperty<Car> entity = EntityPersistentProperty.of(Car.class);
 
   @Test
   public void isFind_ShouldCheckMethodName() throws NoSuchMethodException {

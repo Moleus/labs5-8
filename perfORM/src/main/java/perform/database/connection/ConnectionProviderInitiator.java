@@ -6,7 +6,7 @@ import java.util.Properties;
  * Manages creation and configuration of ConnectionProvider
  */
 public class ConnectionProviderInitiator {
-  public static ConnectionProviderInitiator INSTANCE = new ConnectionProviderInitiator();
+  public static final ConnectionProviderInitiator INSTANCE = new ConnectionProviderInitiator();
 
   private ConnectionProviderInitiator() {
   }

@@ -8,7 +8,7 @@ import java.io.IOException;
 
 public class ClientAuthenticator implements Authenticator {
 
-  private Exchanger exchanger;
+  private final Exchanger exchanger;
 
   public ClientAuthenticator(Exchanger exchanger) {
     this.exchanger = exchanger;
