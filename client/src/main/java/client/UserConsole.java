@@ -190,20 +190,17 @@ public class UserConsole implements Console, IOSource {
 
       CommandInfo commandInfo = inputData.commandInfo;
 
-      Object data = null;
+      ModelDto data = null;
       switch (commandInfo.getType()) {
         case REQUIRES_DTO -> data = dtoReader.read();
-        case AUTHENTICATION -> {
-          user = userReader.read();
-          data = user;
-        }
+        case AUTHENTICATION -> user = userReader.read();
       }
 
       updateCollection();
 
       String commandName = commandInfo.getName();
       String inlineArg = inputData.inlineArg;
-      ExecutionPayload payload = ExecutionPayload.of(commandName, inlineArg, data);
+      ExecutionPayload payload = ExecutionPayload.of(commandName, inlineArg, data, user);
       CommandExecutor commandExecutor = new CommandExecutor(commandInfo, payload);
       commandExecutor.executeCommand();
     }

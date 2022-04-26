@@ -18,10 +18,7 @@ public class Register extends AbstractCommand {
 
   @Override
   public ExecutionResult execute(ExecutionPayload payload) {
-    Object data = payload.getData();
-    if (!(data instanceof User user)) {
-      return ExecutionResult.valueOf(false, "Assumed to get a User from payload");
-    }
+    User user = payload.getUser();
     try {
       authenticator.register(user);
     } catch (UserAlreadyExistsException | InvalidCredentialsException | IOException e) {

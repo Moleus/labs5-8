@@ -16,10 +16,8 @@ public final class RemoveLower<T extends Model> extends AbstractCommand {
 
   @Override
   public ExecutionResult execute(ExecutionPayload payload) {
-    Object data = payload.getData();
-    if (!(data instanceof ModelDto modelDto)) {
-      return ExecutionResult.valueOf(false, "Assumed to get a ModelDto from payload");
-    }
+    ModelDto modelDto = payload.getData();
+    User user = payload.getUser();
 
     T upperBoundFlat = DtoToModelMapper.fromDto(modelDto);
     if (collectionManager.removeLower(upperBoundFlat)) {

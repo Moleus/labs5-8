@@ -10,6 +10,6 @@ import java.io.Serializable;
 public class ExecutionPayload implements Serializable {
   private final String commandName;
   private final String inlineArg;
-  private final ModelDto dataValues;
+  private final ModelDto data;
   private final User user;
 }

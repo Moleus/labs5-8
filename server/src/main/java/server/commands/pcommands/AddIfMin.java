@@ -20,10 +20,7 @@ public final class AddIfMin<T extends Model> extends AbstractCommand {
 
   @Override
   public ExecutionResult execute(ExecutionPayload payload) {
-    Object data = payload.getData();
-    if (!(data instanceof ModelDto modelDto)) {
-      return ExecutionResult.valueOf(false, "Assumed to get a ModelDto from payload");
-    }
+    ModelDto modelDto = payload.getData();
 
     try {
       T newModel = DtoToModelMapper.fromDto(modelDto);
