@@ -1,5 +1,7 @@
 package perform.util;
 
+import perform.exception.PerformException;
+
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -29,7 +31,11 @@ public enum JdbcColumnTypes {
   public static <T> T castUncommonType(Object value, Class<T> type) {
     if (Enum.class.isAssignableFrom(type)) {
       // TODO: catch ClassCastException if String in table is malformed.
-      return (T) Enum.valueOf((Class<Enum>) type, (String) value);
+      try {
+        return (T) Enum.valueOf((Class<Enum>) type, (String) value);
+      } catch (IllegalArgumentException e) {
+        throw new PerformException("Invalid Enum value in table: " + value);
+      }
     }
     return (T) value;
   }
