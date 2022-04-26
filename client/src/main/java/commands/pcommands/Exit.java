@@ -1,7 +1,7 @@
 package commands.pcommands;
 
 import commands.*;
-import utils.Exitable;
+import interfaces.Exitable;
 
 public final class Exit extends AbstractCommand {
   private final Exitable target;
