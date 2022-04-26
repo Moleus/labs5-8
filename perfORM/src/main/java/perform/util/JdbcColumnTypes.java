@@ -14,7 +14,7 @@ public enum JdbcColumnTypes {
           .filter(e -> e.getKey().isAssignableFrom(type))
           .map(e -> (Class<?>) e.getValue())
           .findFirst()
-          .orElseGet(() -> (Class) ClassUtil.resolveToPrimitive(type));
+          .orElseGet(() -> (Class) ClassUtil.resolveToBoxed(type));
     }
   };
 

@@ -4,20 +4,21 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ClassUtil {
-  private static final Map<Class<?>, Class<?>> boxedToPrimitive = new HashMap<>();
+  private static final Map<Class<?>, Class<?>> primitiveToBoxed = new HashMap<>();
 
   static {
-    boxedToPrimitive.put(Boolean.class, boolean.class);
-    boxedToPrimitive.put(Byte.class, byte.class);
-    boxedToPrimitive.put(Character.class, char.class);
-    boxedToPrimitive.put(Double.class, double.class);
-    boxedToPrimitive.put(Float.class, float.class);
-    boxedToPrimitive.put(Integer.class, int.class);
-    boxedToPrimitive.put(Long.class, long.class);
-    boxedToPrimitive.put(Short.class, short.class);
+    primitiveToBoxed.put(boolean.class, Boolean.class);
+    primitiveToBoxed.put(byte.class, Byte.class);
+    primitiveToBoxed.put(char.class, Character.class);
+    primitiveToBoxed.put(double.class, Double.class);
+    primitiveToBoxed.put(float.class, Float.class);
+    primitiveToBoxed.put(int.class, Integer.class);
+    primitiveToBoxed.put(long.class, Long.class);
+    primitiveToBoxed.put(short.class, Short.class);
+    primitiveToBoxed.put(byte[].class, byte[].class);
   }
 
-  public static Class<?> resolveToPrimitive(Class<?> boxedType) {
-    return boxedType.isPrimitive() ? boxedType : boxedToPrimitive.get(boxedType);
+  public static Class<?> resolveToBoxed(Class<?> boxedType) {
+    return boxedType.isPrimitive() ? primitiveToBoxed.get(boxedType) : boxedType;
   }
 }

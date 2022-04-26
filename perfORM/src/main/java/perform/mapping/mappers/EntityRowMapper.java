@@ -65,9 +65,12 @@ public class EntityRowMapper<T> implements RowMapper<T> {
   }
 
   private Object getPropertyValue(FieldProperty<?> property, String embeddedPrefix) throws SQLException {
-//    Class<?> jdbcType = JdbcColumnTypes.INSTANCE.resolvePrimitiveType(property.getType());
+    Class<?> jdbcType = JdbcColumnTypes.INSTANCE.resolvePrimitiveType(property.getType());
     String fullName = CaseUtils.toCamelCase(embeddedPrefix + " " + property.getColumnName(), false);
-    return resultSet.getObject(fullName);
+    if (byte[].class.isAssignableFrom(jdbcType)) {
+      return resultSet.getObject(fullName);
+    }
+    return resultSet.getObject(fullName, jdbcType);
   }
 
   private void populateInstance(Object instance, String setterName, Object value) {
