@@ -37,7 +37,7 @@ public class GenericRepositoryOperations<T> {
     try (PreparedStatement ps = psProvider.prepareStatement(statements.selectBy(columnName))) {
       setValue(ps, 1, value);
       ResultSet resultSet = ps.executeQuery();
-      existsOrThrow(resultSet);
+      if (!resultSet.next()) return null;
       return fromRowMapper.mapRow(resultSet);
     } catch (SQLException e) {
       throw new PerformException("Failed to find Entity by [" + columnName + "]", e);
