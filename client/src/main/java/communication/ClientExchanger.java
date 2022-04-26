@@ -40,8 +40,8 @@ public class ClientExchanger<T extends Model> implements Exchanger<T> {
   }
 
   @Override
-  public void requestCollectionChanges(Long currentVersion) throws ReconnectionTimoutException {
-    makeNewRequest(RequestPurpose.UPDATE_COLLECTION, currentVersion);
+  public void requestCollectionChanges(Long currentVersion) {
+    makeNewRequest(RequestPurpose.GET_CHANGELIST, currentVersion);
   }
 
   @Override
@@ -98,8 +98,8 @@ public class ClientExchanger<T extends Model> implements Exchanger<T> {
   }
 
   @Override
-  public CollectionChangelist<T> receiveCollectionChanges() throws ReconnectionTimoutException, ResponseCodeException, IOException {
-    checkPurposeMatch(RequestPurpose.UPDATE_COLLECTION);
+  public CollectionChangelist<T> receiveCollectionChanges() throws InvalidCredentialsException, IOException {
+    checkPurposeMatch(RequestPurpose.GET_CHANGELIST);
 
     Response response = receiveAndCheckResponse();
     Object payload = readPayload(response);

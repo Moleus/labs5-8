@@ -2,6 +2,7 @@ package communication.packaging;
 
 import communication.RequestPurpose;
 import lombok.Data;
+import user.User;
 
 import java.util.Optional;
 
@@ -9,9 +10,15 @@ import java.util.Optional;
 public class BaseRequest implements Request {
   private final RequestPurpose purpose;
   private final Object payload;
+  public final User user;
 
   @Override
   public Optional<Object> getPayload() {
     return Optional.ofNullable(payload);
+  }
+
+  @Override
+  public Optional<User> getUser() {
+    return Optional.ofNullable(user);
   }
 }
