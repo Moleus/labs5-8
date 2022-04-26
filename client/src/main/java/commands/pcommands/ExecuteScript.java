@@ -1,8 +1,8 @@
 package commands.pcommands;
 
+import client.ScriptExecutor;
 import commands.*;
 import exceptions.ScriptExecutionException;
-import utils.ScriptExecutor;
 
 public final class ExecuteScript extends AbstractCommand {
   private final ScriptExecutor executor;
