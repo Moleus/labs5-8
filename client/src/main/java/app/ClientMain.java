@@ -29,7 +29,7 @@ public class ClientMain {
     try {
       exchanger.requestFullCollection();
       collectionFilter = new CollectionFilter(exchanger.receiveFullCollection());
-    } catch (ReconnectionTimoutException | ResponseCodeException | IOException e) {
+    } catch (IOException | InvalidCredentialsException e) {
       System.err.println("Failed to load collection. Exiting with error: " + e.getMessage());
       return;
     }
@@ -54,7 +54,7 @@ public class ClientMain {
     CommandNameToInfo commandNameToInfo;
     try {
       commandNameToInfo = getAccessibleCommandsInfo(exchanger);
-    } catch (ReconnectionTimoutException | ResponseCodeException | IOException e) {
+    } catch (ResponseCodeException | IOException | InvalidCredentialsException e) {
       System.out.println("Can't get accessible commands: " + e.getMessage());
       return;
     }
@@ -67,7 +67,7 @@ public class ClientMain {
     return clientSession.reconnect(15);
   }
 
-  private static CommandNameToInfo getAccessibleCommandsInfo(Exchanger<Flat> exchanger) throws ReconnectionTimoutException, ResponseCodeException, IOException {
+  private static CommandNameToInfo getAccessibleCommandsInfo(Exchanger<Flat> exchanger) throws ResponseCodeException, IOException, InvalidCredentialsException {
     exchanger.requestAccessibleCommandsInfo();
     return exchanger.receiveAccessibleCommandsInfo();
   }

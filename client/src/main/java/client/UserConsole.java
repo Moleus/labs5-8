@@ -4,7 +4,9 @@ import collection.CollectionChangelist;
 import collection.CollectionFilter;
 import commands.*;
 import communication.Exchanger;
-import exceptions.*;
+import exceptions.InvalidCredentialsException;
+import exceptions.ReconnectionTimeoutException;
+import exceptions.ScriptExecutionException;
 import lombok.Setter;
 import model.ModelDto;
 import model.builder.BuilderWrapper;
@@ -114,6 +116,8 @@ public class UserConsole implements Console {
       out.println("User console exited with IO exception");
     } catch (EndOfFileException e) {
       out.println("Pressed Ctrl+D");
+    } catch (ReconnectionTimeoutException e) {
+      out.println(e.getMessage());
     }
     out.println("Console closed");
     isConsoleRunning = false;
@@ -206,15 +210,10 @@ public class UserConsole implements Console {
       handleExecutionResult(result);
     }
 
-    private void executeOnServer() {
-      try {
-        out.println("Sending command to server");
-        exchanger.requestCommandExecution(payload);
-        handleNewResponses();
-      } catch (ReconnectionTimoutException e) {
-        printErr("Failed to execute command on server.");
-        exit();
-      }
+    private void executeOnServer() throws IOException {
+      out.println("Sending command to server");
+      exchanger.requestCommandExecution(payload);
+      handleNewResponses();
     }
   }
 
