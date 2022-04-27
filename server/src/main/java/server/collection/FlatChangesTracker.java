@@ -6,10 +6,10 @@ import model.data.Flat;
 
 import java.util.List;
 import java.util.Set;
-import java.util.TreeMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 public class FlatChangesTracker implements ChangesTracker<Flat> {
-  private final CollectionChangelist<Flat> changelist = new CollectionChangelist<>(0L, new TreeMap<>());
+  private final CollectionChangelist<Flat> changelist = new CollectionChangelist<>(0L, new ConcurrentSkipListMap<>());
 
   @Override
   public long getLatestVersion() {

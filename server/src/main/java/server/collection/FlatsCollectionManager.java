@@ -26,9 +26,7 @@ public class FlatsCollectionManager extends GenericCollectionManager<Flat> {
   public long add(Flat entity, User user) {
     entity.setCreationDate(LocalDate.now());
     entity.setUserId(getIdFromDb(user));
-    long id = super.add(entity);
-    entity.setId(id);
-    return id;
+    return super.add(entity);
   }
 
   protected Predicate<Flat> isOwner(User user) {

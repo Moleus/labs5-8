@@ -13,11 +13,12 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public abstract class GenericCollectionManager<T extends Model> implements CollectionManager<T> {
-  protected final Set<T> objectsCollection = new LinkedHashSet<>();
+  protected final Set<T> objectsCollection = ConcurrentHashMap.newKeySet();
   private final ChangesTracker<T> changesTracker;
   private final CrudRepository<T> entityRepository;
   private final LocalDateTime creationDateTime = LocalDateTime.now();
@@ -35,8 +36,9 @@ public abstract class GenericCollectionManager<T extends Model> implements Colle
    */
   protected long add(T object) {
     long id = entityRepository.save(object);
+    object.setId(id);
     if (!objectsCollection.add(object)) {
-      throw new IllegalArgumentException("Trying to add dublicate object");
+      throw new IllegalArgumentException("Trying to add duplicate object");
     }
     changesTracker.track(Set.of(object), DiffAction.ADD);
     return id;
@@ -144,7 +146,7 @@ public abstract class GenericCollectionManager<T extends Model> implements Colle
    */
   @Override
   public CollectionWrapper<T> getFullCollection() {
-    return CollectionWrapper.of(new LinkedHashSet<>(objectsCollection), creationDateTime, changesTracker.getLatestVersion());
+    return CollectionWrapper.of(Set.copyOf(objectsCollection), creationDateTime, changesTracker.getLatestVersion());
   }
 
   /**

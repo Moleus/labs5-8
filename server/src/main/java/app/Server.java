@@ -39,7 +39,7 @@ public class Server implements Exitable {
     this.userManager = userManager;
     this.bufferedReader = new BufferedReader(new InputStreamReader(System.in));
 
-    this.reactor = new NioReactor(new ThreadPoolDispatcher(10));
+    this.reactor = new NioReactor(new ThreadPoolDispatcher(5));
     ChannelWrapper channelWrapper = initChannel();
     reactor.registerChannel(channelWrapper);
   }

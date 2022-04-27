@@ -20,7 +20,7 @@ import java.sql.SQLException;
 public class EntityRowMapper<T> implements RowMapper<T> {
   private final EntityProperty<T> entityProperty;
 
-  private ResultSet resultSet;
+  private ThreadLocal<ResultSet> resultSetThreadLocal;
 
   public EntityRowMapper(EntityProperty<T> entityProperty) {
     this.entityProperty = entityProperty;
@@ -32,8 +32,11 @@ public class EntityRowMapper<T> implements RowMapper<T> {
    */
   @Override
   public T mapRow(ResultSet rs) {
-    this.resultSet = rs;
-    return createEntityFrom(entityProperty, "");
+    this.resultSetThreadLocal = new ThreadLocal<>();
+    this.resultSetThreadLocal.set(rs);
+    T entity = createEntityFrom(entityProperty, "");
+    this.resultSetThreadLocal.remove();
+    return entity;
   }
 
   private <E> E createEntityFrom(EntityProperty<E> entityProperty, String embeddedPrefix) {
@@ -68,9 +71,9 @@ public class EntityRowMapper<T> implements RowMapper<T> {
     Class<?> jdbcType = JdbcColumnTypes.INSTANCE.resolvePrimitiveType(property.getType());
     String fullName = CaseUtils.toCamelCase(embeddedPrefix + " " + property.getColumnName(), false);
     if (byte[].class.isAssignableFrom(jdbcType)) {
-      return resultSet.getObject(fullName);
+      return resultSetThreadLocal.get().getObject(fullName);
     }
-    return resultSet.getObject(fullName, jdbcType);
+    return resultSetThreadLocal.get().getObject(fullName, jdbcType);
   }
 
   private void populateInstance(Object instance, String setterName, Object value) {

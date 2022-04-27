@@ -9,6 +9,7 @@ import communication.packaging.Message;
 import communication.packaging.Request;
 import communication.packaging.Response;
 import exceptions.ReceivedInvalidObjectException;
+import lombok.extern.log4j.Log4j2;
 import server.authentication.UserManager;
 import server.collection.CollectionManager;
 import server.exceptions.AuthenticationException;
@@ -19,6 +20,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.util.List;
 
+@Log4j2
 public class RequestHandler implements ChannelHandler {
 
   private final CollectionManager<?> collectionManager;
@@ -37,13 +39,16 @@ public class RequestHandler implements ChannelHandler {
   public void handleChannelRead(ChannelWrapper channel, Object readObject, SelectionKey key) {
     Message message = MessagingUtil.readMessage((ByteBuffer) readObject);
     Request request = MessagingUtil.castWithCheck(message);
+    log.debug("Handling new request: " + request.getPurpose());
     ResponseCode responseCode = ResponseCode.SUCCESS;
     Object result = null;
     try {
       result = getResult(request);
     } catch (AuthenticationException e) {
+      log.info("Invalid user credentials: " + request.getUser());
       responseCode = ResponseCode.AUTH_FAILED;
     } catch (ReceivedInvalidObjectException e) {
+      log.info("Invalid payload: " + request.getPayload());
       responseCode = ResponseCode.INVALID_PAYLOAD;
     }
     Response response = BaseResponse.of(request.getPurpose(), responseCode, result);

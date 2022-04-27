@@ -25,7 +25,7 @@ public class MessagingUtil {
     }
 
     if (!(receivedObject instanceof Message messageObj)) {
-      throw new ReceivedInvalidObjectException(Message.class, receivedObject.getClass());
+      throw new ReceivedInvalidObjectException(Message.class, receivedObject);
     }
     return messageObj;
   }

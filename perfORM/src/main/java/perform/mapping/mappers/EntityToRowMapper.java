@@ -15,9 +15,6 @@ import java.util.function.Predicate;
 public class EntityToRowMapper<T> {
   private final EntityProperty<T> entityProperty;
 
-  private PreparedStatement ps;
-  private int index;
-
   public EntityToRowMapper(EntityProperty<T> entityProperty) {
     this.entityProperty = entityProperty;
   }
@@ -27,31 +24,30 @@ public class EntityToRowMapper<T> {
    *
    * @return next (unfilled) position in prepared statement.
    */
-  public int mapEntity(T entity, PreparedStatement ps) {
-    this.index = 1;
-    this.ps = ps;
-    mapEntity(entity, entityProperty);
-    return index + 1;
+  public synchronized int mapEntity(T entity, PreparedStatement ps) {
+    int index = 1;
+    return mapEntity(entity, entityProperty, index, ps) + 1;
   }
 
   @SuppressWarnings("unchecked")
-  private <U> void mapEntity(U entity, EntityProperty<U> entityProperty) {
+  private <U> int mapEntity(U entity, EntityProperty<U> entityProperty, int psIndex, PreparedStatement ps) {
     List<FieldProperty<?>> properties = entityProperty.getProperties().stream().filter(Predicate.not(FieldProperty::isId)).toList();
     for (FieldProperty<?> property : properties) {
       if (property.isEmbedded()) {
         EntityProperty embeddedProperty = entityProperty.getEmbeddedBy(property);
-        mapEntity(retrieveValue(entity, property), embeddedProperty);
+        psIndex = mapEntity(retrieveValue(entity, property), embeddedProperty, psIndex, ps);
         continue;
       }
-      setValue(entity, property);
-      index++;
+      setValue(entity, property, psIndex, ps);
+      psIndex++;
     }
+    return psIndex;
   }
 
-  private <E, F> void setValue(E entity, FieldProperty<F> property) {
+  private <E, F> void setValue(E entity, FieldProperty<F> property, int psIndex, PreparedStatement ps) {
     Object value = retrieveValue(entity, property);
     try {
-      PreparedStatementUtil.setValue(ps, index, value);
+      PreparedStatementUtil.setValue(ps, psIndex, value);
     } catch (SQLException e) {
       e.printStackTrace();
     }

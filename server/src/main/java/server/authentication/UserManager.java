@@ -34,8 +34,7 @@ public class UserManager {
     return userRepository.findByLogin(login);
   }
 
-  private boolean verify(byte[] rawPass, byte[] encrypted) {
+  private static boolean verify(byte[] rawPass, byte[] encrypted) {
     return BCrypt.verifyer().verify(rawPass, encrypted).verified;
   }
-
 }

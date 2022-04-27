@@ -35,7 +35,7 @@ public abstract class AbstractTransiever implements Transceiver {
   }
 
   protected Optional<Message> readObject() throws IOException {
-    byte[] buffer = new byte[4096];
+    byte[] buffer = new byte[16384];
     Object recievedObject;
 
     int bytesRead = socketChannel.read(ByteBuffer.wrap(buffer));
