@@ -10,11 +10,14 @@
 !.github/
 !.gitlab-ci.yml
 
-.idea/
+**/.idea/
 
 # my files
 diagram/
 logs/
+**/perform.properties
+**/pg.properties
+**/bin/
 
 
 ### Java ###

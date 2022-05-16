@@ -5,6 +5,7 @@ import model.data.Model;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -21,7 +22,7 @@ public class CollectionFilter {
   }
 
   public void loadFullCollection(CollectionWrapper<Flat> collectionWrapper) {
-    objectsCollection = collectionWrapper.getCollection();
+    objectsCollection = new HashSet<>(collectionWrapper.getCollection());
     creationDateTime = collectionWrapper.getCreationDateTime();
     collectionVersion = collectionWrapper.getVersion();
   }

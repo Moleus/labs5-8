@@ -24,7 +24,7 @@ public class EntityToRowMapper<T> {
    *
    * @return next (unfilled) position in prepared statement.
    */
-  public synchronized int mapEntity(T entity, PreparedStatement ps) {
+  public int mapEntity(T entity, PreparedStatement ps) {
     int index = 1;
     return mapEntity(entity, entityProperty, index, ps) + 1;
   }
