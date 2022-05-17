@@ -17,7 +17,7 @@ import user.User;
 import java.io.IOException;
 import java.util.Optional;
 
-public class ClientExchanger<T extends Model> implements Exchanger<T> {
+public class ClientExchanger implements Exchanger {
   private final Transceiver transceiver;
   private final Session clientSession;
 
@@ -88,7 +88,7 @@ public class ClientExchanger<T extends Model> implements Exchanger<T> {
   }
 
   @Override
-  public CollectionWrapper<T> receiveFullCollection() throws InvalidCredentialsException, IOException {
+  public <T extends Model> CollectionWrapper<T> receiveFullCollection() throws InvalidCredentialsException, IOException {
     checkPurposeMatch(RequestPurpose.INIT_COLLECTION);
 
     Response response = receiveAndCheckResponse();
@@ -98,7 +98,7 @@ public class ClientExchanger<T extends Model> implements Exchanger<T> {
   }
 
   @Override
-  public CollectionChangelist<T> receiveCollectionChanges() throws InvalidCredentialsException, IOException {
+  public <T extends Model> CollectionChangelist<T> receiveCollectionChanges() throws InvalidCredentialsException, IOException {
     checkPurposeMatch(RequestPurpose.GET_CHANGELIST);
 
     Response response = receiveAndCheckResponse();

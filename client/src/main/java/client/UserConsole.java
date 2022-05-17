@@ -34,7 +34,7 @@ import java.util.TreeSet;
 public class UserConsole implements Console, IOSource {
   private final PrintStream out;
   private final CommandManager commandManager;
-  private final Exchanger<Flat> exchanger;
+  private final Exchanger exchanger;
   private final CollectionFilter collectionFilter;
   private final BuilderWrapper<ModelDto> builderWrapper;
   private final DtoReader dtoReader;
@@ -62,7 +62,7 @@ public class UserConsole implements Console, IOSource {
   private boolean isConsoleRunning = false;
   private boolean exitFlag = false;
 
-  public UserConsole(PrintStream out, CommandManager commandManager, Exchanger<Flat> exchanger, CollectionFilter collectionFilter) {
+  public UserConsole(PrintStream out, CommandManager commandManager, Exchanger exchanger, CollectionFilter collectionFilter) {
     this.out = out;
     this.commandManager = commandManager;
     this.exchanger = exchanger;

@@ -9,7 +9,6 @@ import commands.pcommands.*;
 import communication.*;
 import exceptions.InvalidCredentialsException;
 import exceptions.ResponseCodeException;
-import model.data.Flat;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -23,7 +22,7 @@ public class ClientMain {
     }
 
     Transceiver clientTransceiver = new ClientTransceiver(clientSession.getSocketChannel());
-    Exchanger<Flat> exchanger = new ClientExchanger<>(clientTransceiver, clientSession);
+    Exchanger exchanger = new ClientExchanger(clientTransceiver, clientSession);
 
     CollectionFilter collectionFilter;
     try {
@@ -67,7 +66,7 @@ public class ClientMain {
     return clientSession.reconnect(15);
   }
 
-  private static CommandNameToInfo getAccessibleCommandsInfo(Exchanger<Flat> exchanger) throws ResponseCodeException, IOException, InvalidCredentialsException {
+  private static CommandNameToInfo getAccessibleCommandsInfo(Exchanger exchanger) throws ResponseCodeException, IOException, InvalidCredentialsException {
     exchanger.requestAccessibleCommandsInfo();
     return exchanger.receiveAccessibleCommandsInfo();
   }

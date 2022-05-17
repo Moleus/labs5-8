@@ -11,7 +11,7 @@ import user.User;
 
 import java.io.IOException;
 
-public interface Exchanger<T extends Model> {
+public interface Exchanger {
   void requestFullCollection();
 
   void requestCollectionChanges(Long currentVersion);
@@ -20,13 +20,13 @@ public interface Exchanger<T extends Model> {
 
   void requestAccessibleCommandsInfo();
 
-  CollectionChangelist<T> receiveCollectionChanges() throws IOException, InvalidCredentialsException;
+  <T extends Model> CollectionChangelist<T> receiveCollectionChanges() throws IOException, InvalidCredentialsException;
 
   void requestLogin(User user);
 
   void requestRegister(User user);
 
-  CollectionWrapper<T> receiveFullCollection() throws IOException, InvalidCredentialsException;
+  <T extends Model> CollectionWrapper<T> receiveFullCollection() throws IOException, InvalidCredentialsException;
 
   ExecutionResult receiveExecutionResult() throws IOException, InvalidCredentialsException;
 
