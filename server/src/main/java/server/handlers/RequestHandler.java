@@ -13,7 +13,7 @@ import lombok.extern.log4j.Log4j2;
 import server.authentication.UserManager;
 import server.collection.CollectionManager;
 import server.exceptions.AuthenticationException;
-import server.util.MessagingUtil;
+import communication.MessagingUtil;
 import server.util.RequestValidator;
 import user.User;
 
@@ -39,8 +39,8 @@ public class RequestHandler implements ChannelHandler {
 
   @Override
   public void handleChannelRead(ChannelWrapper channel, Object readObject, SelectionKey key) {
-    Message message = MessagingUtil.readMessage((ByteBuffer) readObject);
-    Request request = MessagingUtil.castWithCheck(message);
+    Message message = MessagingUtil.deserialize((ByteBuffer) readObject);
+    Request request = MessagingUtil.castRequestWithCheck(message);
     log.debug("Handling new request: " + request.getPurpose());
     ResponseCode responseCode = ResponseCode.SUCCESS;
     Object result = null;

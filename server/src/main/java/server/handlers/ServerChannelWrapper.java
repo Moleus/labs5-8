@@ -1,7 +1,7 @@
 package server.handlers;
 
 import server.communication.NioReactor;
-import server.util.MessagingUtil;
+import communication.MessagingUtil;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -106,7 +106,7 @@ public class ServerChannelWrapper implements ChannelWrapper {
    * Writes data to channel.
    */
   private void doWrite(Object pendingWrite, SelectionKey key) throws IOException {
-    ByteBuffer buffer = MessagingUtil.writeResponse(pendingWrite);
+    ByteBuffer buffer = MessagingUtil.serialize(pendingWrite);
     ((SocketChannel) key.channel()).write(buffer);
   }
 }

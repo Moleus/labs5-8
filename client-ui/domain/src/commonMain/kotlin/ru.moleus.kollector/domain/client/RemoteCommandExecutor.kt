@@ -12,7 +12,6 @@ class RemoteCommandExecutor(
     override fun execute(
         payload: ExecutionPayload
     ) : ExecutionResult {
-        exchanger.requestCommandExecution(payload)
-        return exchanger.receiveExecutionResult()
+        return exchanger.requestCommandExecution(payload)
     }
 }
