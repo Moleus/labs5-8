@@ -1,16 +1,15 @@
-plugins {
-    java
-    kotlin("jvm") version "1.6.21"
-}
+rootProject.name = "shared-module"
 
-dependencies {
-    implementation(kotlin("stdlib"))
-}
+include(
+    ":annotation-processor",
+    ":perfORM",
+    ":shared"
+)
 
-allprojects {
+pluginManagement {
     repositories {
-        mavenCentral()
         mavenLocal()
+        gradlePluginPortal()
         maven {
             url = uri("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
         }

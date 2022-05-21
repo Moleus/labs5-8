@@ -1,0 +1,31 @@
+plugins {
+    id 'java'
+    id 'io.freefair.lombok' version '6.3.0'
+}
+
+version 'unspecified'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation fileTree(dir: 'build/libs', include: ['*.jar'])
+    implementation project(":perfORM")
+
+    implementation 'com.squareup:javapoet:1.13.0'
+
+    annotationProcessor "org.projectlombok:lombok:1.18.22"
+    implementation "org.projectlombok:lombok:1.18.22"
+
+    annotationProcessor "com.google.auto.service:auto-service:1.0.1"
+    implementation "com.google.auto.service:auto-service:1.0.1"
+}
+
+test {
+    useJUnitPlatform()
+}
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
