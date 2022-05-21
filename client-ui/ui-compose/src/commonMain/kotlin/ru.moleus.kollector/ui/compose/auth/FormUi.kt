@@ -1,4 +1,4 @@
-package registration.ui
+package ru.moleus.kollector.ui.compose.auth
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -19,15 +19,44 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.jetbrains.subscribeAsState
 import com.badoo.reaktive.disposable.scope.DisposableScope
-import registration.form.Authentication
+import kotlinx.coroutines.launch
+import registration.ui.DotsPulsing
+import ru.moleus.kollector.feature.auth.Authentication
 
 @Composable
-fun FormUi(authentication: Authentication, modifier: Modifier = Modifier, onSuccess: @Composable (shown: Boolean) -> Unit) {
+fun FormUi(
+    component: Authentication,
+    modifier: Modifier = Modifier,
+    onSuccess: @Composable (shown: Boolean) -> Unit
+) {
+    Scaffold(
+//        topBar = {
+//            AuthBar(
+//                topInset = topInset
+//            )
+//        },
+        content = {
+            AuthBody(
+                authentication = component,
+                modifier = modifier
+            )
+        },
+        snackbarHost = { hostState ->
+            AuthMessage(
+                hostState = hostState,
+                authentication = component,
+                bottomInset = 5.dp
+            )
+        }
+    )
+}
+
+@Composable
+fun AuthBody(authentication: Authentication, modifier: Modifier) {
     val model: State<Authentication.Model> = authentication.model.subscribeAsState()
     val state: Authentication.Model = model.value
     var buttonsModifier = Modifier.fillMaxWidth()
 
-    onSuccess(state.isLoggedIn)
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         LoginField(state.login, Modifier.fillMaxWidth(), authentication::onLoginChanged)
         Spacer(Modifier.height(5.dp))
@@ -37,27 +66,32 @@ fun FormUi(authentication: Authentication, modifier: Modifier = Modifier, onSucc
                 DotsPulsing(Modifier.align(Alignment.Center))
                 buttonsModifier = buttonsModifier.blur(2.dp).alpha(0.8f)
             }
-            SubmitButtons(buttonsModifier, authentication::onSubmitLoginClicked, authentication::onSubmitRegisterClicked)
+            SubmitButtons(
+                buttonsModifier,
+                authentication::onSubmitLoginClicked,
+                authentication::onSubmitRegisterClicked
+            )
         }
         if (state.isError) {
             println("Is error: ${state.errorMsg}")
             Text(text = state.errorMsg, color = Color.Red)
         }
     }
-    DisposableScope(authentication) {
-        authentication.events.subscribeScoped { event ->
-            when (event) {
-                is Authentication.Event.MessageReceived -> {
-                }
-            }
-        }
+}
+
+@Composable
+fun DisposableScope(key: Any, block: DisposableScope.() -> Unit) {
+    DisposableEffect(key) {
+        val scope = DisposableScope()
+        scope.block()
+        onDispose(scope::dispose)
     }
 }
 
 @Composable
 private fun AuthMessage(
-    component: Authentication,
     hostState: SnackbarHostState,
+    authentication: Authentication,
     bottomInset: Dp
 ) {
     SnackbarHost(
@@ -72,23 +106,17 @@ private fun AuthMessage(
         modifier = Modifier.padding(bottom = bottomInset)
     )
 
-    LaunchedEffect("showError") {
-        component.events.collect { event ->
+    val scope = rememberCoroutineScope()
+    DisposableScope(authentication) {
+        authentication.events.subscribeScoped { event ->
             when (event) {
-                is AuthComponent.Event.MessageReceived -> {
-                    hostState.showSnackbar(event.message ?: "")
+                is Authentication.Event.MessageReceived -> {
+                    scope.launch {
+                        hostState.showSnackbar(event.message ?: "")
+                    }
                 }
             }
         }
-    }
-}
-
-@Composable
-fun DisposableScope(key: Any, block: DisposableScope.() -> Unit) {
-    DisposableEffect(key) {
-        val scope = DisposableScope()
-        scope.block()
-        onDispose(scope::dispose)
     }
 }
 

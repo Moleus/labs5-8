@@ -8,9 +8,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import bigLazyTable.view.table.HeaderCell
-import common.`entities-overview`.overview.table.store.TableStore
-import overview.ui.table.lazy.HorizontalPadding
+import ru.moleus.kollector.ui.compose.overview.table.lazy.HeaderCell
+import ru.moleus.kollector.feature.overview.table.store.TableStore
+import ru.moleus.kollector.ui.compose.overview.table.lazy.HorizontalPadding
 
 @Composable
 fun HeaderRow(

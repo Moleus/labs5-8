@@ -1,8 +1,7 @@
-import org.gradle.kotlin.dsl.`kotlin-dsl`
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     `kotlin-dsl`
-    `kotlin-dsl-precompiled-script-plugins`
 }
 
 repositories {
@@ -13,9 +12,15 @@ repositories {
 
 dependencies {
     implementation(Libs.Kotlin.gradlePlugin)
+//    implementation(Libs.Kotlin.jvmGradlePlugin)
     implementation(Libs.gradle)
 }
 
 kotlin {
     sourceSets.getByName("main").kotlin.srcDir("buildSrc/src/main/kotlin")
 }
+
+tasks.withType<KotlinCompile> {
+    kotlinOptions.jvmTarget = "11"
+}
+

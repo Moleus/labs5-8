@@ -1,32 +1,10 @@
-package common.`entities-overview`.overview.ui.table
+package ru.moleus.kollector.ui.compose.overview.table
 
-import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.ContentAlpha
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.layout
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import bigLazyTable.view.table.TableContainer
-import com.arkivanov.decompose.extensions.compose.jetbrains.subscribeAsState
-import overview.table.EntitiesTable
+import ru.moleus.kollector.ui.compose.overview.table.lazy.TableContainer
+import ru.moleus.kollector.feature.overview.table.EntitiesTable
 
 
 @Composable

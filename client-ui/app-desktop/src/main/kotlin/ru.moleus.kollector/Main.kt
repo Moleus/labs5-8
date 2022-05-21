@@ -1,4 +1,4 @@
-package my.demo
+package ru.moleus.kollector
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.Surface
@@ -12,16 +12,13 @@ import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.extensions.compose.jetbrains.lifecycle.LifecycleController
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import common.root.ui.RootUi
-import root.RootComponent
-import root.app.DefaultClientContext
-import root.app.MockAuthenticator
-import root.app.MockDtoBuilder
-import root.app.MockEntityProvider
-import ui.theme.MyTheme
+import ru.moleus.kollector.domain.bootsrap.ClientBootstrapper
+import ru.moleus.kollector.feature.root.RootComponent
+import ru.moleus.kollector.ui.compose.theme.MyTheme
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalDecomposeApi::class)
 fun main() {
-    val clientContext = initClientContext()
+    val clientContext = ClientBootstrapper.initClientContext()
 
     val lifecycle = LifecycleRegistry()
     val root =
@@ -48,6 +45,3 @@ fun main() {
         }
     }
 }
-
-fun initClientContext() =
-    DefaultClientContext(MockAuthenticator(), MockEntityProvider(), MockDtoBuilder())

@@ -1,4 +1,4 @@
-package overview.ui.details
+package ru.moleus.kollector.ui.compose.overview
 
 import androidx.compose.foundation.layout.*
 //import androidx.compose.foundation.rememberScrollState
@@ -14,7 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.jetbrains.subscribeAsState
-import overview.details.EntityDetails
+import ru.moleus.kollector.feature.overview.details.EntityDetails
 
 @Composable
 fun DetailsUi(component: EntityDetails, modifier: Modifier = Modifier) {

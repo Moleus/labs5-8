@@ -6,7 +6,10 @@ kotlin {
     sourceSets {
         named("commonMain") {
             dependencies {
-//                implementation(Libs.Kodein.common)
+                implementation(project(Module.common))
+                implementation(project(Module.domain))
+                implementation(Module.Shared.shared)
+                implementation(Module.Shared.annotation_processor)
             }
         }
     }

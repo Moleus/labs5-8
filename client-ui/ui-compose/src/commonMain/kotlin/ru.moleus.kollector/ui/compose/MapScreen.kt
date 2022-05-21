@@ -1,11 +1,12 @@
-package ui
+package ru.moleus.kollector.ui.compose
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.jetbrains.subscribeAsState
-import root.EntitiesMap
+import ru.moleus.kollector.feature.map.EntitiesMap
+
 //import store.MapStore
 
 @Composable

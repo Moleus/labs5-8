@@ -3,7 +3,7 @@ package app;
 import commands.ExecutionPayload;
 import communication.*;
 import communication.packaging.BaseRequest;
-import model.ModelDto;
+import model.data.ModelDto;
 import model.data.Coordinates;
 import model.data.FlatDto;
 import model.data.House;
@@ -28,7 +28,7 @@ class MultipleClientsTest {
   @BeforeAll
   public static void prepare() {
     for (int i = 0; i < CONNECTIONS; i++) {
-      Session clientSession = new ClientSession("localhost", 2222);
+      Session clientSession = new ConnectionSession("localhost", 2222);
       clientSession.connect();
       ClientTransceiver clientTransceiver = new ClientTransceiver(clientSession.getSocketChannel());
       transceivers.add(clientTransceiver);

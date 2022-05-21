@@ -1,11 +1,11 @@
 package ru.moleus.kollector.feature.builder.integration
 
 import ru.moleus.kollector.feature.builder.store.EditorStore
-import editor.Editor
+import ru.moleus.kollector.feature.builder.Builder
 
-internal val stateToModel: (EditorStore.State) -> (Editor.Model) =
+internal val stateToModel: (EditorStore.State) -> (Builder.Model) =
     {
-        Editor.Model(
+        Builder.Model(
             filledValues = it.filledValues,
             isLoading = it.isLoading,
             isError = it.isError,

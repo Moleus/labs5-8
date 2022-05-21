@@ -1,4 +1,4 @@
-package bigLazyTable.view.table
+package ru.moleus.kollector.ui.compose.overview.table.lazy
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Text
@@ -8,7 +8,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import overview.ui.table.lazy.model.Attribute
+import ru.moleus.kollector.data.local.model.table.Attribute
 
 /**
  * @author Marco Sprenger, Livio Näf
@@ -17,7 +17,7 @@ import overview.ui.table.lazy.model.Attribute
 fun HeaderCell(attribute: Attribute<*>) {
     Cell(
         text = attribute.label,
-        width = attribute.tableColumnWidth,
+        width = attribute.tableColumnWidth.dp,
         color = Color.Black,
         fontWeight = FontWeight.Bold
     )
@@ -27,7 +27,7 @@ fun HeaderCell(attribute: Attribute<*>) {
 fun TableCell(attribute: Attribute<*>) {
     Cell(
         text = attribute.getValueAsText(),
-        width = attribute.tableColumnWidth,
+        width = attribute.tableColumnWidth.dp,
         color = Color.Black,
         fontWeight = FontWeight.Normal
     )
@@ -37,7 +37,7 @@ fun TableCell(attribute: Attribute<*>) {
 fun LoadingCell(attribute: Attribute<*>) {
     Cell(
         text = "...",
-        width = attribute.tableColumnWidth,
+        width = attribute.tableColumnWidth.dp,
         color = Color.Black,
         fontWeight = FontWeight.Normal
     )

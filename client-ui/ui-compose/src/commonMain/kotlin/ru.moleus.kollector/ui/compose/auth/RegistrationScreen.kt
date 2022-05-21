@@ -5,8 +5,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import registration.form.Authentication
-import ui.theme.MyTheme
+import ru.moleus.kollector.feature.auth.Authentication
+import ru.moleus.kollector.ui.compose.auth.FormUi
+import ru.moleus.kollector.ui.compose.theme.MyTheme
 
 @Composable
 fun RegistrationUi(authentication: Authentication, modifier: Modifier) {

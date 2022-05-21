@@ -1,4 +1,4 @@
-package bigLazyTable.view.table
+package ru.moleus.kollector.ui.compose.overview.table.lazy
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
@@ -11,9 +11,8 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import common.`entities-overview`.overview.table.store.TableStore
-import overview.ui.table.lazy.HorizontalPadding
-import overview.ui.table.lazy.model.TableModel
+import ru.moleus.kollector.data.local.model.table.TableModel
+import ru.moleus.kollector.feature.overview.table.store.TableStore
 
 /**
  * @author Marco Sprenger, Livio Näf

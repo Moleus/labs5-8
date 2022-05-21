@@ -1,4 +1,4 @@
-package overview.ui.table.lazy
+package ru.moleus.kollector.ui.compose.overview.table.lazy
 
 import androidx.compose.ui.unit.dp
 

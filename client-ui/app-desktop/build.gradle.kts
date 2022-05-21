@@ -6,9 +6,11 @@ plugins {
 }
 
 dependencies {
+    implementation(Module.Shared.shared)
 
+    implementation(project(Module.Feature.root))
     implementation(project(Module.UI.compose))
-//    implementation(project(Module.Feature.root))
+    implementation(project(Module.domain))
 
     implementation(compose.desktop.currentOs)
 

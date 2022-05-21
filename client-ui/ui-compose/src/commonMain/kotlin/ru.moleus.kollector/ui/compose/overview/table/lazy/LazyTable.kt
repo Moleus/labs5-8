@@ -12,10 +12,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import common.`entities-overview`.overview.table.store.TableStore
+import ru.moleus.kollector.feature.overview.table.store.TableStore
+import ru.moleus.kollector.ui.compose.overview.table.lazy.TableRow
+
 //import common.`entities-overview`.overview.ui.table.lazy.CustomScrollbarStyle
-//import common.`entities-overview`.overview.ui.table.lazy.ScrollbarMinimumHeight
-//import common.`entities-overview`.overview.ui.table.lazy.ScrollbarThickness
+//import common.`entities-overview`.ru.moleus.kollector.ui.compose.overview.table.lazy.getScrollbarMinimumHeight
+//import common.`entities-overview`.ru.moleus.kollector.ui.compose.overview.table.lazy.getScrollbarThickness
 
 /**
  * @author Marco Sprenger, Livio Näf

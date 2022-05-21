@@ -1,6 +1,6 @@
 package ru.moleus.kollector.feature.main
 
-import ClientContext
+import common.context.ClientContext
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.RouterState
 import com.arkivanov.decompose.router.pop
@@ -10,15 +10,17 @@ import com.arkivanov.decompose.value.Value
 import com.arkivanov.decompose.value.operator.map
 import com.arkivanov.essenty.parcelable.Parcelable
 import com.arkivanov.essenty.parcelable.Parcelize
+import ru.moleus.kollector.domain.client.LocalCommandExecutor
+import ru.moleus.kollector.domain.client.RemoteCommandExecutor
 import ru.moleus.kollector.feature.main.Main.*
-import editor.Editor
-import common.`entities-overview`.editor.integration.BuilderComponent
-import overview.root.Overview
-import overview.root.OverviewComponent
-import registration.form.Authentication
-import registration.form.integration.AuthComponent
-import root.MapComponent
-import root.EntitiesMap
+import ru.moleus.kollector.feature.overview.root.Overview
+import ru.moleus.kollector.feature.overview.root.OverviewComponent
+import ru.moleus.kollector.feature.auth.Authentication
+import ru.moleus.kollector.feature.auth.integration.AuthComponent
+import ru.moleus.kollector.feature.builder.Builder
+import ru.moleus.kollector.feature.builder.integration.BuilderComponent
+import ru.moleus.kollector.feature.map.EntitiesMap
+import ru.moleus.kollector.feature.map.integration.MapComponent
 
 class MainComponent(
     componentContext: ComponentContext,
@@ -63,7 +65,7 @@ class MainComponent(
     private fun registrationScreen(componentContext: ComponentContext): Authentication =
         AuthComponent(
             componentContext = componentContext,
-            authenticator = clientContext
+            commandExecutor = LocalCommandExecutor(clientContext)
         )
 
     private fun mapScreen(componentContext: ComponentContext): EntitiesMap =
@@ -72,13 +74,12 @@ class MainComponent(
             entityProvider = clientContext
         )
 
-    private fun newEntityScreen(componentContext: ComponentContext): Editor =
+    private fun newEntityScreen(componentContext: ComponentContext): BuilderComponent =
         BuilderComponent(
             componentContext = componentContext,
             dtoBuilder = clientContext,
-            onClose = { router.pop() },
-            onSubmit = { router.pop() }
-        )
+            commandExecutor = RemoteCommandExecutor(clientContext)
+        ) { router.pop() }
 
     override fun onTabClick(tab: Tab): Unit =
         when (tab) {

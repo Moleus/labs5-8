@@ -12,7 +12,7 @@ interface Builder {
     fun onSubmitClicked()
 
     data class Model(
-        val filledValues: Map<String, String>,
+        val filledValues: Set<FieldInfo>,
         val isLoading: Boolean = false,
         val isError: Boolean = false,
         val errorMsg: String = "",

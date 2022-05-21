@@ -8,8 +8,8 @@ import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.extensions.compose.jetbrains.Children
 import com.arkivanov.decompose.extensions.compose.jetbrains.animation.child.*
-import common.main.ui.MainUi
-import common.root.Root
+import ru.moleus.kollector.ui.compose.main.MainUi
+import ru.moleus.kollector.feature.root.Root
 
 @ExperimentalComposeUiApi
 @ExperimentalDecomposeApi

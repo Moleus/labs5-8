@@ -21,7 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import registration.form.integration.AuthComponent
+import ru.moleus.kollector.feature.auth.integration.AuthComponent
 
 @Composable
 fun Notification(isVisible: Boolean, modifier: Modifier = Modifier, text: String, color: Color) {
@@ -49,35 +49,6 @@ fun Notification(isVisible: Boolean, modifier: Modifier = Modifier, text: String
                 modifier = Modifier.padding(5.dp).wrapContentHeight(Alignment.CenterVertically),
                 textAlign = TextAlign.Center,
             )
-        }
-    }
-}
-
-@Composable
-private fun AuthMessage(
-    component: AuthComponent,
-    hostState: SnackbarHostState,
-    bottomInset: Dp
-) {
-    SnackbarHost(
-        hostState = hostState,
-        snackbar = {
-            Snackbar(
-                modifier = Modifier.padding(8.dp)
-            ) {
-                Text(hostState.currentSnackbarData?.message ?: "")
-            }
-        },
-        modifier = Modifier.padding(bottom = bottomInset)
-    )
-
-    LaunchedEffect("showError") {
-        component.events.collect { event ->
-            when (event) {
-                is AuthComponent.Event.MessageReceived -> {
-                    hostState.showSnackbar(event.message ?: "")
-                }
-            }
         }
     }
 }

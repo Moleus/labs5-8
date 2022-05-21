@@ -1,21 +1,25 @@
 package ru.moleus.kollector.feature.builder.integration
 
 import com.arkivanov.decompose.ComponentContext
+import commands.ExecutionPayload
+import common.context.CommandExecutor
+import model.ModelDto
+import model.builder.BuilderWrapper
+import model.data.Flat
 import ru.moleus.kollector.feature.builder.store.EditorStore
-import common.`entities-overview`.overview.util.toTableModel
-import data.DtoBuilder
-import data.Flat
+import ru.moleus.kollector.feature.builder.util.toTableModel
 
 class BuilderComponent(
     componentContext: ComponentContext,
-    dtoBuilder: DtoBuilder,
+    dtoBuilder: BuilderWrapper<ModelDto>,
+    commandExecutor: CommandExecutor,
     onClose: () -> Unit,
-    onSubmit: () -> Unit,
-) : AbstractEditorComponent(
-    componentContext,
-    dtoBuilder,
-    onClose,
-    onSubmit,
+) : AbstractBuilderComponent(
+    componentContext = componentContext,
+    commandExecutor = commandExecutor,
+    dtoBuilder = dtoBuilder,
+    executionPayload = ExecutionPayload.of("add", null),
+    onClose = onClose,
 ) {
     override fun initValues(): Map<String, String> =
         toTableModel(Flat()).displayedAttributesInTable.filter { !it.label.equals("id", true) }.associate { Pair(it.label, "") }

@@ -1,6 +1,7 @@
 package ru.moleus.kollector.feature.builder.store
 
 import com.arkivanov.mvikotlin.core.store.Store
+import ru.moleus.kollector.feature.builder.FieldInfo
 import ru.moleus.kollector.feature.builder.store.EditorStore.*
 
 interface EditorStore : Store<Intent, State, Label> {
@@ -10,7 +11,7 @@ interface EditorStore : Store<Intent, State, Label> {
     }
 
     data class State(
-        val filledValues: Map<String, String>,
+        val filledValues: Set<FieldInfo>,
         val isLoading: Boolean = false,
         val isError: Boolean = false,
         val errorMsg: String = "",

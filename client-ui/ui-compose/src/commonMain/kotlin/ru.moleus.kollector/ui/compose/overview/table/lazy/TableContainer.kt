@@ -1,17 +1,14 @@
-package bigLazyTable.view.table
+package ru.moleus.kollector.ui.compose.overview.table.lazy
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.ScrollableTabRow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import bigLazyTable.view.table.LazyTable
 import com.arkivanov.decompose.extensions.compose.jetbrains.subscribeAsState
-import overview.table.EntitiesTable
-import overview.ui.table.lazy.HorizontalPadding
 import overview.ui.table.lazy.header.HeaderRow
+import ru.moleus.kollector.feature.overview.table.EntitiesTable
 
 /**
  * @author Marco Sprenger, Livio Näf
