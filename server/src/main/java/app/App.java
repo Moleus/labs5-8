@@ -1,6 +1,6 @@
 package app;
 
-import commands.CommandManager;
+import commands.CommandManagerImpl;
 import lombok.extern.log4j.Log4j2;
 import model.data.Flat;
 import perform.bootstrap.Bootstrap;
@@ -52,7 +52,7 @@ public class App {
 
     collectionManager.loadCollection();
 
-    CommandManager commandManager = new CommandManager();
+    CommandManagerImpl commandManager = new CommandManagerImpl();
     // to server:
     // 1. command (String) with objects array
     // 2. command (String) with inline arg

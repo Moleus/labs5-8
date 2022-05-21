@@ -1,6 +1,6 @@
 package app;
 
-import commands.CommandManager;
+import commands.CommandManagerImpl;
 import interfaces.Exitable;
 import lombok.extern.log4j.Log4j2;
 import model.data.Flat;
@@ -21,7 +21,7 @@ public class Server implements Exitable {
   volatile boolean runningFlag;
 
   private final int port;
-  private final CommandManager commandManager;
+  private final CommandManagerImpl commandManager;
   private final CollectionManager<Flat> collectionManager;
   private final UserManager userManager;
   private final BufferedReader bufferedReader;
@@ -30,7 +30,7 @@ public class Server implements Exitable {
 
   public Server(
       int port,
-      CommandManager commandManager,
+      CommandManagerImpl commandManager,
       CollectionManager<Flat> collectionManager,
       UserManager userManager) throws IOException {
     this.port = port;
