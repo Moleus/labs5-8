@@ -1,6 +1,6 @@
 package server.communication;
 
-import communication.AbstractTransiever;
+import communication.AbstractTransceiver;
 import communication.Transceiver;
 import communication.packaging.Message;
 import communication.packaging.Request;
@@ -12,7 +12,7 @@ import java.nio.channels.SocketChannel;
 import java.util.Optional;
 
 @Log4j2
-public class ServerTransceiver extends AbstractTransiever {
+public class ServerTransceiver extends AbstractTransceiver {
   private ServerTransceiver(SocketChannel socketChannel) {
     super(socketChannel);
   }
@@ -22,7 +22,7 @@ public class ServerTransceiver extends AbstractTransiever {
   }
 
   @Override
-  public Optional<Request> recieve() throws IOException {
+  public Optional<Request> receive() throws IOException {
     return super.readObject().map(this::checkRequestInstance);
   }
 

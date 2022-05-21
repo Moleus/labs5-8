@@ -1,6 +1,6 @@
 package server.handlers;
 
-import commands.CommandManager;
+import commands.CommandManagerImpl;
 import commands.ExecutionPayload;
 import communication.RequestPurpose;
 import communication.ResponseCode;
@@ -15,21 +15,23 @@ import server.collection.CollectionManager;
 import server.exceptions.AuthenticationException;
 import server.util.MessagingUtil;
 import server.util.RequestValidator;
+import user.User;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.util.List;
+import java.util.Optional;
 
 @Log4j2
 public class RequestHandler implements ChannelHandler {
 
   private final CollectionManager<?> collectionManager;
   private final UserManager userManager;
-  private final CommandManager commandManager;
+  private final CommandManagerImpl commandManager;
 
   private static final List<RequestPurpose> AUTH_REQUIRED_REQUESTS = List.of(RequestPurpose.CHANGE_COLLECTION, RequestPurpose.LOGIN);
 
-  public RequestHandler(CollectionManager<?> collectionManager, UserManager userManager, CommandManager commandManager) {
+  public RequestHandler(CollectionManager<?> collectionManager, UserManager userManager, CommandManagerImpl commandManager) {
     this.collectionManager = collectionManager;
     this.userManager = userManager;
     this.commandManager = commandManager;
@@ -57,6 +59,7 @@ public class RequestHandler implements ChannelHandler {
 
   private Object getResult(Request request) {
     RequestPurpose purpose = request.getPurpose();
+    Optional<User> user = request.getUser();
     if (AUTH_REQUIRED_REQUESTS.contains(purpose)) {
       request.getUser().filter(userManager::areCredentialsValid).orElseThrow(AuthenticationException::new);
     }
@@ -64,6 +67,7 @@ public class RequestHandler implements ChannelHandler {
       case CHANGE_COLLECTION -> request.getPayload()
           .filter(RequestValidator::isExecutable)
           .map(ExecutionPayload.class::cast)
+          .map(payload -> addUser(payload, user.orElseThrow(AuthenticationException::new)))
           .map(commandManager::executeCommand)
           .orElseThrow(ReceivedInvalidObjectException::new);
       case INIT_COLLECTION -> collectionManager.getFullCollection();
@@ -72,7 +76,7 @@ public class RequestHandler implements ChannelHandler {
           .map(Long.class::cast)
           .map(collectionManager::getChangesNewerThan)
           .orElseThrow(ReceivedInvalidObjectException::new);
-      case GET_COMMANDS -> commandManager.getUseraccessibleCommandsInfo();
+      case GET_COMMANDS -> commandManager.getUserAccessibleCommandsInfo();
       case LOGIN -> request.getUser()
           .filter(userManager::areCredentialsValid)
           .orElseThrow(AuthenticationException::new);
@@ -81,5 +85,10 @@ public class RequestHandler implements ChannelHandler {
           .map(userManager::save)
           .orElseThrow(AuthenticationException::new);
     };
+  }
+
+  private ExecutionPayload addUser(ExecutionPayload payload, User user) {
+    payload.setUser(user);
+    return payload;
   }
 }
