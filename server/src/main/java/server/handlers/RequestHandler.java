@@ -63,28 +63,29 @@ public class RequestHandler implements ChannelHandler {
     if (AUTH_REQUIRED_REQUESTS.contains(purpose)) {
       request.getUser().filter(userManager::areCredentialsValid).orElseThrow(AuthenticationException::new);
     }
-    return switch (purpose) {
-      case CHANGE_COLLECTION -> request.getPayload()
+    switch (purpose) {
+      case CHANGE_COLLECTION: return request.getPayload()
           .filter(RequestValidator::isExecutable)
           .map(ExecutionPayload.class::cast)
           .map(payload -> addUser(payload, user.orElseThrow(AuthenticationException::new)))
           .map(commandManager::executeCommand)
           .orElseThrow(ReceivedInvalidObjectException::new);
-      case INIT_COLLECTION -> collectionManager.getFullCollection();
-      case GET_CHANGELIST -> request.getPayload()
+      case INIT_COLLECTION: return collectionManager.getFullCollection();
+      case GET_CHANGELIST: return request.getPayload()
           .filter(RequestValidator::isLong)
           .map(Long.class::cast)
           .map(collectionManager::getChangesNewerThan)
           .orElseThrow(ReceivedInvalidObjectException::new);
-      case GET_COMMANDS -> commandManager.getUserAccessibleCommandsInfo();
-      case LOGIN -> request.getUser()
+      case GET_COMMANDS: return commandManager.getUserAccessibleCommandsInfo();
+      case LOGIN: return request.getUser()
           .filter(userManager::areCredentialsValid)
           .orElseThrow(AuthenticationException::new);
-      case REGISTER -> request.getUser()
+      case REGISTER: return request.getUser()
           .filter(userManager::isUserUnique)
           .map(userManager::save)
           .orElseThrow(AuthenticationException::new);
-    };
+    }
+    throw new IllegalArgumentException("No such purpose: " + purpose);
   }
 
   private ExecutionPayload addUser(ExecutionPayload payload, User user) {

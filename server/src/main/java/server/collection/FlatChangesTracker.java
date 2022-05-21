@@ -27,9 +27,9 @@ public class FlatChangesTracker implements ChangesTracker<Flat> {
       return;
     }
     switch (operation) {
-      case ADD -> changelist.newChange(CollectionChange.add(changes));
-      case REMOVE -> changelist.newChange(CollectionChange.remove(changes));
-      case UPDATE -> changelist.newChange(CollectionChange.update(changes));
+      case ADD: changelist.newChange(CollectionChange.add(changes)); break;
+      case REMOVE: changelist.newChange(CollectionChange.remove(changes)); break;
+      case UPDATE: changelist.newChange(CollectionChange.update(changes)); break;
     }
   }
 

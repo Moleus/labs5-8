@@ -46,7 +46,7 @@ public abstract class GenericCollectionManager<T extends Model> implements Colle
 
   @Override
   public boolean update(T entity, User user) {
-    if (!entityRepository.update(entity) || !isOwner(user).test(entity)) {
+    if (!isOwner(user).test(entity) || !entityRepository.update(entity)) {
       return false;
     }
     changesTracker.track(Set.of(entity), DiffAction.UPDATE);
@@ -61,7 +61,7 @@ public abstract class GenericCollectionManager<T extends Model> implements Colle
   @Override
   public void clear(User user) {
     changesTracker.track(filter(isOwner(user)), DiffAction.REMOVE);
-    for (T entity : objectsCollection.stream().filter(isOwner(user)).toList()) {
+    for (T entity : objectsCollection.stream().filter(isOwner(user)).collect(Collectors.toList())) {
       objectsCollection.remove(entity);
       entityRepository.delete(entity);
     }
