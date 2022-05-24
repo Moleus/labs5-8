@@ -110,10 +110,10 @@ public abstract class AbstractBuilderPoet implements BuilderPoet {
 
   private void createConstraints() {
     NotNull notNullAnnotation = currentField.getAnnotation(NotNull.class);
-    if (notNullAnnotation != null && !currentField.asType().getKind().isPrimitive()) {
+    GreaterThan greaterThanAnnotation = currentField.getAnnotation(GreaterThan.class);
+    if ((notNullAnnotation != null || greaterThanAnnotation != null)  && !currentField.asType().getKind().isPrimitive()) {
       notNullConditionThrow();
     }
-    GreaterThan greaterThanAnnotation = currentField.getAnnotation(GreaterThan.class);
     if (greaterThanAnnotation != null) {
       lessOrEqualConditionThrow(greaterThanAnnotation.num());
     }
