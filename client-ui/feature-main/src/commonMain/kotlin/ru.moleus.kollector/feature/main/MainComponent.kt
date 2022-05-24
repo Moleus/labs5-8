@@ -1,6 +1,5 @@
 package ru.moleus.kollector.feature.main
 
-import common.context.ClientContext
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.RouterState
 import com.arkivanov.decompose.router.pop
@@ -10,17 +9,18 @@ import com.arkivanov.decompose.value.Value
 import com.arkivanov.decompose.value.operator.map
 import com.arkivanov.essenty.parcelable.Parcelable
 import com.arkivanov.essenty.parcelable.Parcelize
+import common.context.ClientContext
 import ru.moleus.kollector.domain.client.LocalCommandExecutor
 import ru.moleus.kollector.domain.client.RemoteCommandExecutor
-import ru.moleus.kollector.feature.main.Main.*
-import ru.moleus.kollector.feature.overview.root.Overview
-import ru.moleus.kollector.feature.overview.root.OverviewComponent
 import ru.moleus.kollector.feature.auth.Authentication
 import ru.moleus.kollector.feature.auth.integration.AuthComponent
 import ru.moleus.kollector.feature.builder.Builder
 import ru.moleus.kollector.feature.builder.integration.BuilderComponent
+import ru.moleus.kollector.feature.main.Main.*
 import ru.moleus.kollector.feature.map.EntitiesMap
 import ru.moleus.kollector.feature.map.integration.MapComponent
+import ru.moleus.kollector.feature.overview.root.Overview
+import ru.moleus.kollector.feature.overview.root.OverviewComponent
 
 class MainComponent(
     componentContext: ComponentContext,
@@ -34,12 +34,6 @@ class MainComponent(
         )
 
     override val routerState: Value<RouterState<*, Child>> = router.state
-
-//    private val drawerState = BehaviorSubject(DrawerState(DrawerValue.Closed))
-
-//    override fun onDrawerClose() {
-//        drawerState.onNext(drawerState)
-//    }
 
     override val model: Value<Model> = router.state.map { state ->
         Model(
@@ -74,7 +68,7 @@ class MainComponent(
             entityProvider = clientContext
         )
 
-    private fun newEntityScreen(componentContext: ComponentContext): BuilderComponent =
+    private fun newEntityScreen(componentContext: ComponentContext): Builder =
         BuilderComponent(
             componentContext = componentContext,
             dtoBuilder = clientContext,
