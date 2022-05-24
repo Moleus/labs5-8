@@ -28,18 +28,11 @@ dependencies {
     implementation("org.modelmapper:modelmapper:3.1.0")
 }
 
-//mainClassName = "app.App"
-//
-//jar {
-//    manifest {
-//        attributes "Main-Class": "app.App"
-//    }
-//}
-//
-//run {
-//    standardInput = System.in
-//}
-//
-//test {
-//    useJUnitPlatform()
-//}
+application {
+    mainClassName = "app.App"
+}
+
+
+tasks.getByName("run", JavaExec::class) {
+    standardInput = System.`in`
+}

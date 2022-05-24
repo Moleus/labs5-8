@@ -63,9 +63,11 @@ public class Server implements Exitable {
     while (true) {
       try {
         String userInput = bufferedReader.readLine();
-        if (null == userInput || userInput.trim().equals("exit")) {
+        if (null == userInput) continue;
+        if (runningFlag && userInput.trim().equals("exit")) {
           log.warn("Stopping server on 'exit'");
           exit();
+          return;
         }
       } catch (IOException ignore) {
         return;
