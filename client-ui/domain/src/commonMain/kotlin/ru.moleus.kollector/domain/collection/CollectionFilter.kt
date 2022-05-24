@@ -2,34 +2,34 @@ package ru.moleus.kollector.domain.collection
 
 import collection.CollectionChangelist
 import collection.CollectionWrapper
+import com.arkivanov.decompose.value.MutableValue
+import com.arkivanov.decompose.value.ValueObserver
+import com.arkivanov.decompose.value.reduce
 import model.data.Flat
 import model.data.Model
 import java.time.LocalDateTime
 
 class CollectionFilter(collectionWrapper: CollectionWrapper<Flat>) {
-    private lateinit var objectsCollection: MutableSet<Flat>
-    private var collectionVersion: Long = 0
+    private val objectsCollection: MutableSet<Flat> = HashSet(collectionWrapper.collection)
+    private val collectionValue = MutableValue(objectsCollection)
+
+    val collection: Set<Flat> = objectsCollection
+    private var collectionVersion = collectionWrapper.version
 
     /**
      * Returns collection creation time
      */
-    lateinit var creationDateTime: LocalDateTime
-    private val changesApplier: ChangesApplier<Flat>
+    val creationDateTime: LocalDateTime = collectionWrapper.creationDateTime
+    private val changesApplier: ChangesApplier<Flat> = ChangesApplier(target = objectsCollection)
 
-    init {
-        loadFullCollection(collectionWrapper)
-        changesApplier = ChangesApplier(objectsCollection)
-    }
-
-    private fun loadFullCollection(collectionWrapper: CollectionWrapper<Flat>) {
-        objectsCollection = HashSet(collectionWrapper.collection)
-        creationDateTime = collectionWrapper.creationDateTime
-        collectionVersion = collectionWrapper.version
+    fun subscribeOnUpdate(onUpdate: ValueObserver<Set<Flat>>) {
+        collectionValue.subscribe { collection -> onUpdate(collection) }
     }
 
     fun applyChangelist(changelist: CollectionChangelist<Flat>) {
         collectionVersion = changelist.latestVersion
-        changesApplier.apply(changelist)
+        changesApplier.apply(changelist = changelist)
+        collectionValue.reduce { objectsCollection }
     }
 
     /**

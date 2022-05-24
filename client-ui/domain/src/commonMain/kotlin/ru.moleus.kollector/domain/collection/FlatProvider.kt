@@ -1,17 +1,19 @@
 package ru.moleus.kollector.domain.collection
 
+import com.arkivanov.decompose.value.ValueObserver
 import common.context.EntityProvider
 import model.data.Flat
-import ru.moleus.kollector.domain.collection.CollectionFilter
 
 class FlatProvider(
-    collectionFilter: CollectionFilter
+    private val collectionFilter: CollectionFilter
 ) : EntityProvider {
-    override fun getAll(): List<Flat> {
-        TODO("Not yet implemented")
+    override fun getAll(): List<Flat> = collectionFilter.collection.toList()
+
+    override fun subscribe(onUpdate: ValueObserver<Set<Flat>>) {
+        collectionFilter.subscribeOnUpdate(onUpdate)
     }
 
     override fun getById(id: Long): Flat {
-        TODO("Not yet implemented")
+        return collectionFilter.collection.find { it.id == id } ?: throw NoSuchElementException("No flat with id: $id")
     }
 }
