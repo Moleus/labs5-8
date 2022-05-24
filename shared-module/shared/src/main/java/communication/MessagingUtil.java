@@ -9,14 +9,14 @@ import java.io.*;
 import java.nio.ByteBuffer;
 
 public class MessagingUtil {
-  public static Request castRequestWithCheck(Message messageObj) {
+  public static Request castRequestWithCheck(Object messageObj) {
     if (!(messageObj instanceof Request)) {
       throw new ReceivedInvalidObjectException(Request.class, messageObj.getClass());
     }
     return (Request) messageObj;
   }
 
-  public static Response castResponseWithCheck(Message messageObj) {
+  public static Response castResponseWithCheck(Object messageObj) {
     if (!(messageObj instanceof Response)) {
       throw new ReceivedInvalidObjectException(Response.class, messageObj.getClass());
     }

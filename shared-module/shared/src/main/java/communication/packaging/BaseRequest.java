@@ -8,6 +8,7 @@ import java.util.Optional;
 
 @Data(staticConstructor = "of")
 public class BaseRequest implements Request {
+  private static final long serialVersionUID = 8_0;
   private final RequestPurpose purpose;
   private final Object payload;
   public final User user;

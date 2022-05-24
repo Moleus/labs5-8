@@ -8,6 +8,7 @@ import java.util.Optional;
 
 @Data(staticConstructor="of")
 public class BaseResponse implements Response {
+  private static final long serialVersionUID = 8_0;
   private final RequestPurpose purpose;
   private final ResponseCode responseCode;
   private final Object payload;

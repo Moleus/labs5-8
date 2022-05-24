@@ -9,6 +9,7 @@ import java.util.Set;
 
 @Getter
 public class CollectionChange<T extends Model> implements Serializable {
+  private static final long serialVersionUID = 8_0;
   private final Set<T> removed;
   private final Set<T> added;
 

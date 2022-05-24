@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @ToString
 public class CollectionChangelist<T extends Model> implements Serializable {
+  private static final long serialVersionUID = 8_0;
   private final AtomicLong latestVersion;
   private final NavigableMap<Long, CollectionChange<T>> changelist;
 

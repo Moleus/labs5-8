@@ -12,6 +12,7 @@ import java.io.Serializable;
 @Data
 @RequiredArgsConstructor(staticName = "of")
 final public class CommandInfo implements Serializable {
+  private static final long serialVersionUID = 8_0;
   /**
    * Returns the name of a command.
    */

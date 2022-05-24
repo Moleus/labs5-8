@@ -7,6 +7,7 @@ import java.io.Serializable;
  * Use factory method for new instances creation.
  */
 public class ExecutionResult implements Serializable {
+  private static final long serialVersionUID = 8_0;
   private final boolean success;
   private final String message;
 

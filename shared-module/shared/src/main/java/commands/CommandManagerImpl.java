@@ -1,7 +1,5 @@
 package commands;
 
-import lombok.extern.log4j.Log4j2;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,7 +9,6 @@ import java.util.stream.Collectors;
 /**
  * Manager class which stores all commands. Provieds an API to register new commands and execute them.
  */
-@Log4j2
 public class CommandManagerImpl implements CommandManager {
   private final Map<String, Command> nameToCommand;
   private final Map<String, CommandInfo> nameToInfo;
@@ -70,7 +67,6 @@ public class CommandManagerImpl implements CommandManager {
     String commandName = payload.getCommandName();
     if (isRegistered(commandName)) {
       ExecutionResult result = nameToCommand.get(commandName).execute(payload);
-      log.debug("Execution result: " + result.getMessage());
       return result;
     }
     return ExecutionResult.valueOf(false, "Invalid command");
