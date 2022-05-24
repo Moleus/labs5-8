@@ -15,8 +15,6 @@ internal interface AuthStore : Store<Intent, State, Label> {
         val login: String = "",
         val password: String = "",
         val isLoading: Boolean = false,
-        val isError: Boolean = false,
-        val errorMsg: String = "",
     )
 
     sealed interface Label {

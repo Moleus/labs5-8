@@ -36,7 +36,6 @@ internal class AuthStoreProvider(
         data class LoginEntered(val login: String) : Msg
         data class PasswordEntered(val password: String) : Msg
         data class Loading(val isLoading: Boolean) : Msg
-        data class InvalidCredentials(val errorMsg: String) : Msg
     }
 
     /**
@@ -82,14 +81,13 @@ internal class AuthStoreProvider(
                 .subscribeOn(ioScheduler)
                 .observeOn(mainScheduler)
                 .subscribeScoped(isThreadLocal = true) {
+                    dispatch(Msg.Loading(false))
                     processAuthResult(it)
                 }
         }
 
         private fun processAuthResult(result: ExecutionResult) {
-            if (!result.isSuccess) {
-                dispatch(Msg.InvalidCredentials(result.message))
-            }
+            publish(Label.MessageReceived(result.message))
         }
 
         private fun validateCredentials(login: String, password: String): Boolean {
@@ -97,17 +95,17 @@ internal class AuthStoreProvider(
             val minPasswordLen = 4
 
             when {
-                login.length < minLoginLen -> dispatch(Msg.InvalidCredentials(textToShort("Login", minLoginLen)))
-                login.containsCyrillic() -> dispatch(Msg.InvalidCredentials(CYRILLIC_IN_LOGIN))
-                password.length < minPasswordLen -> dispatch(
-                    Msg.InvalidCredentials(
+                login.length < minLoginLen -> publish(Label.MessageReceived(textToShort("Login", minLoginLen)))
+                login.containsCyrillic() -> publish(Label.MessageReceived(CYRILLIC_IN_LOGIN))
+                password.length < minPasswordLen -> publish(
+                    Label.MessageReceived(
                         textToShort(
                             "Password",
                             minPasswordLen
                         )
                     )
                 )
-                password.containsCyrillic() -> dispatch(Msg.InvalidCredentials(CYRILLIC_IN_PASS))
+                password.containsCyrillic() -> publish(Label.MessageReceived(CYRILLIC_IN_PASS))
                 else -> return true
             }
             return false
@@ -122,13 +120,8 @@ internal class AuthStoreProvider(
     private object ReducerImpl : Reducer<State, Msg> {
         override fun State.reduce(msg: Msg): State =
             when (msg) {
-                is Msg.LoginEntered -> copy(login = msg.login, isError = false)
-                is Msg.PasswordEntered -> copy(password = msg.password, isError = false)
-                is Msg.InvalidCredentials -> copy(
-                    isError = true,
-                    isLoading = false,
-                    errorMsg = msg.errorMsg,
-                )
+                is Msg.LoginEntered -> copy(login = msg.login)
+                is Msg.PasswordEntered -> copy(password = msg.password)
                 is Msg.Loading -> copy(isLoading = msg.isLoading)
             }
     }
