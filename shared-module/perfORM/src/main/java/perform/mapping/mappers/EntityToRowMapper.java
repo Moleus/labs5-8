@@ -27,7 +27,7 @@ public class EntityToRowMapper<T> {
    */
   public int mapEntity(T entity, PreparedStatement ps) {
     int index = 1;
-    return mapEntity(entity, entityProperty, index, ps) + 1;
+    return mapEntity(entity, entityProperty, index, ps);
   }
 
   @SuppressWarnings("unchecked")
