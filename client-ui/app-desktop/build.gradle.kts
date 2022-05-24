@@ -11,6 +11,7 @@ dependencies {
     implementation(project(Module.Feature.root))
     implementation(project(Module.UI.compose))
     implementation(project(Module.domain))
+    implementation(project(Module.common))
 
     implementation(compose.desktop.currentOs)
 

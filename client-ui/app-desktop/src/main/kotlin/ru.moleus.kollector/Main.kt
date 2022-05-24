@@ -11,20 +11,23 @@ import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.extensions.compose.jetbrains.lifecycle.LifecycleController
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import common.root.ui.RootUi
+import common.context.ClientContext
+import common.context.Session
 import ru.moleus.kollector.domain.bootsrap.ClientBootstrapper
+import ru.moleus.kollector.domain.communication.ConnectionSession
 import ru.moleus.kollector.feature.root.RootComponent
+import ru.moleus.kollector.ui.compose.RootUi
 import ru.moleus.kollector.ui.compose.theme.MyTheme
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalDecomposeApi::class)
 fun main() {
-    val clientContext = ClientBootstrapper.initClientContext()
-
     val lifecycle = LifecycleRegistry()
+    val clientSession = ConnectionSession()
     val root =
         RootComponent(
             componentContext = DefaultComponentContext(lifecycle),
-            clientContext = clientContext
+            clientSession = clientSession,
+            getContext = ::initContext
         )
 
     application {
@@ -35,7 +38,7 @@ fun main() {
         Window(
             onCloseRequest = ::exitApplication,
             state = windowState,
-            title = "Decompose Dynamic Features"
+            title = "Kollector App"
         ) {
             Surface(modifier = Modifier.fillMaxSize()) {
                 MyTheme {
@@ -44,4 +47,8 @@ fun main() {
             }
         }
     }
+}
+
+private fun initContext(clientSession: Session): ClientContext {
+    return ClientBootstrapper.initClientContext(clientSession)
 }
