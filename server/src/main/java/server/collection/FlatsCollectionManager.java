@@ -29,6 +29,17 @@ public class FlatsCollectionManager extends GenericCollectionManager<Flat> {
     return super.add(entity);
   }
 
+  @Override
+  public boolean update(Flat entity, User user) {
+    entity.setCreationDate(objectsCollection.stream()
+        .map(Flat::getCreationDate)
+        .filter(date -> date.equals(entity.getCreationDate()))
+        .findFirst()
+        .orElse(LocalDate.now()));
+    entity.setUserId(getIdFromDb(user));
+    return super.update(entity, user);
+  }
+
   protected Predicate<Flat> isOwner(User user) {
     long userId = getIdFromDb(user);
     return flat -> Objects.equals(flat.getUserId(), userId);
