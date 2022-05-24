@@ -1,7 +1,7 @@
 package ru.moleus.kollector.data.local.model.table
 
 data class DefaultAttribute<T>(
-    override val label: String,
+    override val label: HeaderLabel,
     override val value: T,
     override val tableColumnWidth: Int
 ) : Attribute<T> {
