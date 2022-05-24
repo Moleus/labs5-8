@@ -8,7 +8,7 @@ import com.arkivanov.essenty.parcelable.Parcelize
 import com.badoo.reaktive.observable.Observable
 import common.context.EntityProvider
 import ru.moleus.kollector.feature.overview.table.EntitiesTable
-import ru.moleus.kollector.feature.overview.table.EntitiesTableComponent
+import ru.moleus.kollector.feature.overview.table.integration.EntitiesTableComponent
 
 internal class TableRouter(
     componentContext: ComponentContext,

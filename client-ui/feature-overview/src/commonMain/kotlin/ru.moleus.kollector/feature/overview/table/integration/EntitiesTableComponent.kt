@@ -1,4 +1,4 @@
-package ru.moleus.kollector.feature.overview.table
+package ru.moleus.kollector.feature.overview.table.integration
 
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
@@ -7,10 +7,11 @@ import com.arkivanov.decompose.value.reduce
 import com.badoo.reaktive.disposable.scope.DisposableScope
 import com.badoo.reaktive.observable.Observable
 import common.context.EntityProvider
-import ru.moleus.kollector.feature.overview.table.store.TableStore
 import model.data.Flat
 import ru.moleus.kollector.data.local.model.table.FlatModel
 import ru.moleus.kollector.feature.builder.util.toTableModel
+import ru.moleus.kollector.feature.overview.table.EntitiesTable
+import ru.moleus.kollector.feature.overview.table.EntitiesTable.*
 import ru.moleus.kollector.utils.disposableScope
 
 class EntitiesTableComponent(
@@ -21,18 +22,21 @@ class EntitiesTableComponent(
 ) : EntitiesTable, ComponentContext by componentContext, DisposableScope by componentContext.disposableScope() {
 
     private val _model = MutableValue(
-        TableStore(
+        Model(
             entityModels = entityProvider.getAll().map(::toTableModel),
             defaultModel = FlatModel(Flat()),
             selectedEntityId = null
         )
     )
 
-    override val store: Value<TableStore> = _model
+    override val model: Value<Model> = _model
 
     init {
         selectedEntityId.subscribeScoped { id ->
             _model.reduce { it.copy(selectedEntityId = id) }
+        }
+        entityProvider.subscribe { collection ->
+            _model.reduce { it.copy(entityModels = collection.map(::toTableModel)) }
         }
     }
 

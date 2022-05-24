@@ -1,6 +1,5 @@
 package ru.moleus.kollector.feature.overview.root
 
-import common.context.ClientContext
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.RouterState
 import com.arkivanov.decompose.value.MutableValue
@@ -8,6 +7,7 @@ import com.arkivanov.decompose.value.Value
 import com.arkivanov.decompose.value.observe
 import com.arkivanov.decompose.value.reduce
 import com.badoo.reaktive.subject.behavior.BehaviorSubject
+import common.context.ClientContext
 
 class OverviewComponent(
     componentContext: ComponentContext,
@@ -47,7 +47,7 @@ class OverviewComponent(
 
     private fun closeDetailsAndShowTable() {
         tableRouter.show()
-        detailsRouter.closeEntity()
+        detailsRouter.closeDetailsPane()
     }
 
     private fun onEntitySelected(id: Long) {

@@ -3,15 +3,14 @@ package ru.moleus.kollector.feature.overview.root
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.*
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.parcelable.Parcelable
+import com.arkivanov.essenty.parcelable.Parcelize
 import com.badoo.reaktive.observable.Observable
+import common.context.ClientContext
+import ru.moleus.kollector.feature.builder.integration.UpdaterComponent
 import ru.moleus.kollector.feature.overview.details.EntityDetails
 import ru.moleus.kollector.feature.overview.details.EntityDetailsComponent
 import ru.moleus.kollector.feature.overview.root.Overview.DetailsChild
-
-import com.arkivanov.essenty.parcelable.Parcelable
-import com.arkivanov.essenty.parcelable.Parcelize
-import common.context.ClientContext
-import ru.moleus.kollector.feature.builder.integration.UpdaterComponent
 
 class DetailsRouter(
     componentContext: ComponentContext,
@@ -39,10 +38,11 @@ class DetailsRouter(
             )
             is Config.Updater -> DetailsChild.Updater(
                UpdaterComponent(
-                  componentContext = componentContext,
+                   componentContext = componentContext,
                    dtoBuilder = clientContext,
                    exchanger = clientContext,
                    entityId = config.entityId,
+                   isToolbarVisible = isToolbarVisible,
                    onClose = ::closeUpdater
                )
             )
@@ -61,23 +61,20 @@ class DetailsRouter(
     fun showEntity(id: Long) {
         router.navigate { stack ->
             stack
-                .dropLastWhile { it is Config.Details }
+                .dropLastWhile { it is Config.Details || it is Config.Updater }
                 .plus(Config.Details(entityId = id))
         }
     }
 
-    fun closeEntity() {
+    fun closeDetailsPane() {
         router.popWhile { it !is Config.None }
     }
 
     private fun showUpdater(id: Long) {
-        router.navigate {stack ->
-            stack.dropLastWhile { it is Config.Updater }
-                .plus(Config.Updater(entityId = id))
-        }
+        router.push(Config.Updater(entityId = id))
     }
 
-    fun closeUpdater() {
+    private fun closeUpdater() {
         router.popWhile { it !is Config.Details }
     }
 
