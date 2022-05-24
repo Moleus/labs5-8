@@ -1,6 +1,7 @@
 package common.context
 
-import java.nio.channels.SocketChannel
+import java.io.InputStream
+import java.io.OutputStream
 
 interface Session {
     val isConnected: Boolean
@@ -11,5 +12,7 @@ interface Session {
 
     fun disconnect()
 
-    fun getSocketChannel(): SocketChannel
+    fun getInputStream(): InputStream
+
+    fun getOutputStream(): OutputStream
 }

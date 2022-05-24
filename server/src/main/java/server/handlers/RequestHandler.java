@@ -2,6 +2,7 @@ package server.handlers;
 
 import commands.CommandManagerImpl;
 import commands.ExecutionPayload;
+import communication.MessagingUtil;
 import communication.RequestPurpose;
 import communication.ResponseCode;
 import communication.packaging.BaseResponse;
@@ -13,7 +14,6 @@ import lombok.extern.log4j.Log4j2;
 import server.authentication.UserManager;
 import server.collection.CollectionManager;
 import server.exceptions.AuthenticationException;
-import communication.MessagingUtil;
 import server.util.RequestValidator;
 import user.User;
 
@@ -38,8 +38,8 @@ public class RequestHandler implements ChannelHandler {
   }
 
   @Override
-  public void handleChannelRead(ChannelWrapper channel, Object readObject, SelectionKey key) {
-    Message message = MessagingUtil.deserialize((ByteBuffer) readObject);
+  public void handleChannelRead(ChannelWrapper channel, ByteBuffer byteBuffer, SelectionKey key) {
+    Message message = MessagingUtil.deserialize(byteBuffer);
     Request request = MessagingUtil.castRequestWithCheck(message);
     log.debug("Handling new request: " + request.getPurpose());
     ResponseCode responseCode = ResponseCode.SUCCESS;
@@ -47,10 +47,10 @@ public class RequestHandler implements ChannelHandler {
     try {
       result = getResult(request);
     } catch (AuthenticationException e) {
-      log.info("Invalid user credentials: " + request.getUser());
+      log.info("Received request with invalid credentials: " + e.getMessage());
       responseCode = ResponseCode.AUTH_FAILED;
     } catch (ReceivedInvalidObjectException e) {
-      log.info("Invalid payload: " + request.getPayload());
+      log.info("Received request with invalid payload: " + e.getMessage());
       responseCode = ResponseCode.INVALID_PAYLOAD;
     }
     Response response = BaseResponse.of(request.getPurpose(), responseCode, result);

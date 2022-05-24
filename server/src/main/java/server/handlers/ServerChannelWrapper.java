@@ -1,7 +1,7 @@
 package server.handlers;
 
-import server.communication.NioReactor;
 import communication.MessagingUtil;
+import server.communication.NioReactor;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -10,6 +10,7 @@ import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,6 +25,9 @@ public class ServerChannelWrapper implements ChannelWrapper {
   private final Map<SelectableChannel, Queue<Object>> channelToPendingWrites;
   private final int port;
   private NioReactor reactor;
+
+  private final int DATA_LENGTH = 2048;
+  private final Map<SocketChannel, ByteBuffer> channelToBuffer = new HashMap<>();
 
   public ServerChannelWrapper(ChannelHandler handler, int port) throws IOException {
     this.handler = handler;
@@ -61,18 +65,29 @@ public class ServerChannelWrapper implements ChannelWrapper {
   }
 
   /**
-   * Returns data read from channel.
+   * Returns data read from channel or null if buffer is not filled.
    */
   @Override
   public ByteBuffer read(SelectionKey key) throws IOException {
     SocketChannel socketChannel = (SocketChannel) key.channel();
-    ByteBuffer buffer = ByteBuffer.allocate(4096);
-    int read = socketChannel.read(buffer);
-    buffer.flip();
+    ByteBuffer byteBuffer = getBufferByChannel(socketChannel);
+    int read = socketChannel.read(byteBuffer);
+
+    if (byteBuffer.position() == DATA_LENGTH) {
+      byteBuffer.position(0);
+      return byteBuffer;
+    }
     if (read == -1) {
       throw new IOException("Socket closed");
     }
-    return buffer;
+    return null;
+  }
+
+  private ByteBuffer getBufferByChannel(SocketChannel channel) {
+    if (!channelToBuffer.containsKey(channel)) {
+      channelToBuffer.put(channel, ByteBuffer.allocate(DATA_LENGTH));
+    }
+    return channelToBuffer.get(channel);
   }
 
   /**

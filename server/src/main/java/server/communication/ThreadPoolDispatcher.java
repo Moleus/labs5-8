@@ -2,6 +2,7 @@ package server.communication;
 
 import server.handlers.ChannelWrapper;
 
+import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -15,8 +16,8 @@ public class ThreadPoolDispatcher implements Dispatcher {
   }
 
   @Override
-  public void onChannelReadEvent(ChannelWrapper channel, Object readObject, SelectionKey key) {
-    executorService.execute(() -> channel.getHandler().handleChannelRead(channel, readObject, key));
+  public void onChannelReadEvent(ChannelWrapper channel, ByteBuffer byteBuffer, SelectionKey key) {
+    executorService.execute(() -> channel.getHandler().handleChannelRead(channel, byteBuffer, key));
   }
 
   @Override

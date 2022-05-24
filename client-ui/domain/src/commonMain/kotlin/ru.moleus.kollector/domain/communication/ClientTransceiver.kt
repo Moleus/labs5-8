@@ -2,7 +2,6 @@ package ru.moleus.kollector.domain.communication
 
 import common.context.Session
 import common.exceptions.InvalidCredentialsException
-import communication.MessagingUtil
 import communication.RequestPurpose
 import communication.ResponseCode
 import communication.packaging.BaseRequest
@@ -10,10 +9,13 @@ import communication.packaging.Request
 import communication.packaging.Response
 import exceptions.ReceivedInvalidObjectException
 import user.User
+import java.io.ByteArrayOutputStream
 import java.io.IOException
-import java.nio.ByteBuffer
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
 
 class ClientTransceiver(private val session: Session) : Transceiver {
+    private val requestSize: Int = 2048
     override var user: User? = null
 
     /**
@@ -29,15 +31,13 @@ class ClientTransceiver(private val session: Session) : Transceiver {
         }
     }
 
-    private fun withReconnect(repeat: Boolean = true, doRequest: () -> Response): Response {
+    private fun withReconnect(doRequest: () -> Response): Response {
         try {
             return doRequest()
-        } catch (e: Exception) {
-            if (repeat) {
-                session.connect()
-                return withReconnect(false) { doRequest() }
-            }
-            throw IOException("Server is not reachable.")
+        } catch (e: IOException) {
+            Thread.sleep(100)
+            session.connect()
+            throw e
         }
     }
 
@@ -47,20 +47,23 @@ class ClientTransceiver(private val session: Session) : Transceiver {
     }
 
     private fun send(request: Request) {
-        val message = MessagingUtil.serialize(request)
-        session.getSocketChannel().write(message)
+        val fixedSizeBuffer = serializeWithFixedSize(request)
+        println(fixedSizeBuffer.size)
+        session.getOutputStream().write(fixedSizeBuffer)
     }
 
-    private fun receive(): Response {
-        val response = MessagingUtil.deserialize(getResponseBytes())
-        return MessagingUtil.castResponseWithCheck(response)
+    private fun serializeWithFixedSize(data: Any): ByteArray {
+        val fixedByteArray = ByteArray(requestSize)
+        val bytesOut = ByteArrayOutputStream()
+        val oos = ObjectOutputStream(bytesOut)
+        oos.writeObject(data)
+        oos.flush()
+        bytesOut.toByteArray()
+
+        return bytesOut.toByteArray().copyInto(fixedByteArray)
     }
 
-    private fun getResponseBytes(): ByteBuffer =
-        ByteBuffer.allocate(65536)
-            .apply {
-                session.getSocketChannel().read(this)
-            }
+    private fun receive(): Response = ObjectInputStream(session.getInputStream()).readObject() as Response
 
     private fun readPayloadWithCheck(response: Response): Any {
         when (response.responseCode) {

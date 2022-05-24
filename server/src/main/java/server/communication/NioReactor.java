@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import server.handlers.ChannelWrapper;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.util.Iterator;
 import java.util.Queue;
@@ -93,8 +94,9 @@ public class NioReactor {
 
   private void onChannelReadable(SelectionKey key) {
     try {
-      Object readObject = ((ChannelWrapper) key.attachment()).read(key);
-      dispatchReadEvent(key, readObject);
+      ByteBuffer objectBuffer = ((ChannelWrapper) key.attachment()).read(key);
+      if (objectBuffer == null) return;
+      dispatchReadEvent(key, objectBuffer);
     } catch (IOException e) {
       try {
         key.channel().close();
@@ -104,11 +106,8 @@ public class NioReactor {
     }
   }
 
-  private void dispatchReadEvent(SelectionKey key, Object readObject) {
-    if (readObject == null) {
-      System.out.println("Request is null. Is client disconnected?");
-    }
-    dispatcher.onChannelReadEvent((ChannelWrapper) key.attachment(), readObject, key);
+  private void dispatchReadEvent(SelectionKey key, ByteBuffer objectBuffer) {
+    dispatcher.onChannelReadEvent((ChannelWrapper) key.attachment(), objectBuffer, key);
   }
 
   private static void onChannelWritable(SelectionKey key) throws IOException {
