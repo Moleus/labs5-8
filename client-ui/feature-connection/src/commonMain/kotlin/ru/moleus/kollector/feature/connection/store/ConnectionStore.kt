@@ -8,7 +8,6 @@ interface ConnectionStore : Store<Intent, State, Label> {
         data class SetIp(val ip: String) : Intent
         data class SetPort(val port: String) : Intent
         object SubmitConnect : Intent
-        object FetchFromServer : Intent
     }
 
     data class State(

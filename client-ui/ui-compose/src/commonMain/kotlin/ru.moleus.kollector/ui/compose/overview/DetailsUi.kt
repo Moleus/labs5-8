@@ -11,7 +11,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.jetbrains.subscribeAsState
 import ru.moleus.kollector.feature.overview.details.EntityDetails
-import ru.moleus.kollector.ui.compose.builder.DeleteButton
 import ru.moleus.kollector.ui.compose.builder.UpdateButton
 import ru.moleus.kollector.ui.compose.common.ScrollableList
 
@@ -38,7 +37,6 @@ fun DetailsUi(component: EntityDetails) {
                     text = "Flat details",
                     actions = {
                         UpdateButton { component.onUpdateClicked(entityModel.id.value) }
-                        DeleteButton { component.onUpdateClicked(entityModel.id.value) }
                     }
                 )
             }

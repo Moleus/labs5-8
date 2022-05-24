@@ -8,9 +8,11 @@ import com.arkivanov.decompose.value.reduce
 import model.data.Flat
 import model.data.Model
 import java.time.LocalDateTime
+import java.util.concurrent.ConcurrentHashMap
 
 class CollectionFilter(collectionWrapper: CollectionWrapper<Flat>) {
-    private val objectsCollection: MutableSet<Flat> = HashSet(collectionWrapper.collection)
+    private val objectsCollection: MutableSet<Flat> =
+        ConcurrentHashMap.newKeySet<Flat>().also { it.addAll(collectionWrapper.collection) }
     private val collectionValue = MutableValue(objectsCollection)
 
     val collection: Set<Flat> = objectsCollection
@@ -42,7 +44,7 @@ class CollectionFilter(collectionWrapper: CollectionWrapper<Flat>) {
     /**
      * Returns collection size.
      *
-     * @see LinkedHashSet.size
+     * @see Set.size
      */
     val size: Int
         get() = objectsCollection.size

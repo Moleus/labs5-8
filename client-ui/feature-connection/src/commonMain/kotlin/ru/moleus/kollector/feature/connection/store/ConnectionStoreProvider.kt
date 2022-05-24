@@ -51,7 +51,6 @@ class ConnectionStoreProvider(
                 is Intent.SetIp -> dispatch(Msg.IpEntered(intent.ip))
                 is Intent.SetPort -> onPortEnter(intent.port)
                 is Intent.SubmitConnect -> connect(getState().serverIp, getState().serverPort)
-                is Intent.FetchFromServer -> fetchFromServer()
             }
         }
 
@@ -107,7 +106,8 @@ class ConnectionStoreProvider(
         private fun processError(e: Throwable) {
             when (e) {
                 is IllegalArgumentException -> publish(Label.MessageReceived("Invalid ip or port."))
-                is IOException -> publish(Label.MessageReceived("Connection failed."))
+                is IOException -> publish(Label.MessageReceived("Connection failed: ${e.message}"))
+                else -> throw e
             }
         }
     }

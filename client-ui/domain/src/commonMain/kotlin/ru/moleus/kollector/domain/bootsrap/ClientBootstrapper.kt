@@ -12,7 +12,10 @@ import ru.moleus.kollector.domain.collection.CollectionFilter
 import ru.moleus.kollector.domain.collection.CollectionUpdater
 import ru.moleus.kollector.domain.collection.FlatProvider
 import ru.moleus.kollector.domain.commands.pcommands.*
-import ru.moleus.kollector.domain.communication.*
+import ru.moleus.kollector.domain.communication.Authenticator
+import ru.moleus.kollector.domain.communication.ClientAuthenticator
+import ru.moleus.kollector.domain.communication.ClientExchanger
+import ru.moleus.kollector.domain.communication.ClientTransceiver
 import ru.moleus.kollector.domain.mocks.DefaultClientContext
 import kotlin.concurrent.thread
 
@@ -76,7 +79,10 @@ object ClientBootstrapper {
         clientCommandManager.addCommandsInfo(commandNameToInfo)
     }
 
+    private var entered: Boolean = false
     private fun startCollectionUpdater() {
+        if (entered) return
+        entered = true
         thread(start = true) {
             CollectionUpdater(clientExchanger, collectionFilter).run()
         }

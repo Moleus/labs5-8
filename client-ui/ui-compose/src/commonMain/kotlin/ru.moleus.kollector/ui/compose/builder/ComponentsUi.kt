@@ -42,11 +42,6 @@ fun UpdateButton(modifier: Modifier = Modifier, onClick: () -> Unit) {
 }
 
 @Composable
-fun DeleteButton(modifier: Modifier = Modifier, onClick: () -> Unit) {
-    SubmitButton("delete", modifier, onClick)
-}
-
-@Composable
 fun SubmitButton(text: String = "Submit", modifier: Modifier = Modifier, onSubmit: () -> Unit) {
     Button(
         onClick = onSubmit,
