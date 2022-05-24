@@ -127,4 +127,9 @@ public class FieldPersistentProperty<T> implements FieldProperty<T> {
   public Method getSetter() {
     return setter;
   }
+
+  @Override
+  public String toString() {
+    return this.name;
+  }
 }
