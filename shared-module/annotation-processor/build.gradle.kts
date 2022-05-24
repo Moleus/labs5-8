@@ -5,7 +5,9 @@ plugins {
 }
 
 dependencies {
-    implementation(fileTree(mapOf("dir" to "build/libs", "include" to listOf("*.jar"))))
+    // FIXME: android complains about Collectible class in build/ 'multiple dex files define'.
+    // Commenting this fixes the issue.
+//    implementation(fileTree(mapOf("dir" to "build/libs", "include" to listOf("*.jar"))))
     implementation(project(":perfORM"))
 
     annotationProcessor("org.projectlombok:lombok:1.18.24")

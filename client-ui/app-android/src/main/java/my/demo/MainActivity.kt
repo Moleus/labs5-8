@@ -9,13 +9,13 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import common.root.ui.RootUi
-import root.RootComponent
-import root.app.DefaultClientContext
-import root.app.MockAuthenticator
-import root.app.MockDtoBuilder
-import root.app.MockEntityProvider
-import ui.theme.MyTheme
+import common.context.ClientContext
+import common.context.Session
+import ru.moleus.kollector.domain.bootsrap.ClientBootstrapper
+import ru.moleus.kollector.domain.communication.ConnectionSession
+import ru.moleus.kollector.feature.root.RootComponent
+import ru.moleus.kollector.ui.compose.RootUi
+import ru.moleus.kollector.ui.compose.theme.MyTheme
 
 class MainActivity : AppCompatActivity() {
     @OptIn(ExperimentalComposeUiApi::class, ExperimentalDecomposeApi::class)
@@ -23,14 +23,15 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
 
-        val clientContext = initClientContext()
-
         val lifecycle = LifecycleRegistry()
+        val clientSession = ConnectionSession()
         val root =
             RootComponent(
                 componentContext = DefaultComponentContext(lifecycle),
-                clientContext = clientContext
+                clientSession = clientSession,
+                getContext = ::initContext
             )
+
         setContent {
             MyTheme {
                 Surface(color = MaterialTheme.colors.background) {
@@ -41,5 +42,4 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
-fun initClientContext() =
-    DefaultClientContext(MockAuthenticator(), MockEntityProvider(), MockDtoBuilder())
+private fun initContext(clientSession: Session): ClientContext = ClientBootstrapper.initClientContext(clientSession)

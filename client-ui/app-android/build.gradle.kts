@@ -1,8 +1,10 @@
+import org.jetbrains.compose.compose
+
 //import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("com.android.application")
-    id("kotlin-android")
+    kotlin("android")
     id("org.jetbrains.compose") version Libs.AndroidX.Compose.version
 }
 
@@ -21,6 +23,11 @@ android {
         jvmTarget = "11"
     }
 
+    lintOptions {
+        isAbortOnError = false
+        isCheckReleaseBuilds = false
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -28,16 +35,45 @@ android {
 
     compileSdk = Sdk.Version.compile
     buildToolsVersion = Sdk.Version.buildTools
+
+    packagingOptions {
+        exclude("META-INF/*")
+    }
+
+
+    val RELEASE_STORE_FILE: String by project
+    val RELEASE_STORE_PASSWORD: String by project
+    val RELEASE_KEY_ALIAS: String by project
+    val RELEASE_KEY_PASSWORD: String by project
+
+    signingConfigs {
+        create("release") {
+            storeFile = file(RELEASE_STORE_FILE)
+            storePassword = RELEASE_STORE_PASSWORD
+            keyAlias = RELEASE_KEY_ALIAS
+            keyPassword = RELEASE_KEY_PASSWORD
+        }
+    }
+
+    buildTypes {
+        getByName("release") {
+            signingConfig = signingConfigs.getByName("release")
+        }
+    }
 }
 
 dependencies {
-    implementation(project(Module.UI.compose))
-    implementation(project(Module.Feature.root))
-//    implementation(project(Module.Feature.nowPlaying))
+//    implementation(Module.Shared.shared)
+//    implementation(Module.Shared.annotation_processor)
 
-//    implementation(compose.runtime)
-//    implementation(Libs.Kodein.android)
-//    implementation(Libs.Accompanist.insets)
+    implementation(project(Module.Feature.root))
+    implementation(project(Module.domain))
+    implementation(project(Module.common))
+    implementation(project(Module.UI.compose))
+
+    implementation(compose.runtime)
+    implementation(compose.material)
+
 
     implementation(Libs.AndroidX.appCompat)
     implementation(Libs.AndroidX.Compose.activity)

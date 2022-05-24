@@ -1,9 +1,10 @@
 rootProject.name = "client-ui"
 
 include(
-//    ":app-android",
+    ":app-android",
     ":app-desktop",
     ":feature-root",
+    ":feature-connection",
     ":feature-main",
     ":feature-auth",
     ":feature-map",

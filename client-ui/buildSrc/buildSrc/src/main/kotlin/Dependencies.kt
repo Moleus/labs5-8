@@ -11,7 +11,7 @@ object App {
 object Sdk {
     object Version {
         const val min = 26
-        const val target = 31
+        const val target = 30
         const val compile = 31
         const val buildTools = "33.0.0-rc4"
     }

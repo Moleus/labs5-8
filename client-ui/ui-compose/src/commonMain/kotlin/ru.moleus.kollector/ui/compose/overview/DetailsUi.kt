@@ -31,7 +31,6 @@ fun DetailsUi(component: EntityDetails) {
                     text = "Flat details", onBack = component::onCloseClicked,
                     actions = {
                         UpdateButton { component.onUpdateClicked(entityModel.id.value) }
-                        DeleteButton { component.onUpdateClicked(entityModel.id.value) }
                     },
                 )
             } else {

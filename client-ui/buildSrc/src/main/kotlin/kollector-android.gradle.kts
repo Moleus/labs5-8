@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("com.android.library")
+    id("kotlin-parcelize")
 }
 
 android {
@@ -20,7 +21,7 @@ android {
     sourceSets {
         named("main") {
             manifest.srcFile("src/androidMain/AndroidManifest.xml")
-            java.srcDirs("src/main/java") // << that's what makes Android target recognize Java
+//            java.srcDirs("src/main/java") // << that's what makes Android target recognize Java
         }
     }
 }

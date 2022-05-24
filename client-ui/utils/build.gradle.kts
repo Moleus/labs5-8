@@ -4,9 +4,5 @@ plugins {
 
 kotlin {
     sourceSets {
-        named("commonMain") {
-//            implementation(project(Module.Data.local))
-//            implementation(project(Module.Data.remote))
-        }
     }
 }
