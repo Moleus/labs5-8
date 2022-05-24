@@ -27,6 +27,7 @@ object Module {
 
     object Feature {
         const val root = ":feature-root"
+        const val connection = ":feature-connection"
         const val main = ":feature-main"
         const val auth = ":feature-auth"
         const val map = ":feature-map"

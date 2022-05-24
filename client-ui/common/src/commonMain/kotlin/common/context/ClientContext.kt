@@ -8,4 +8,5 @@ interface ClientContext :
     EntityProvider,
     BuilderWrapper<ModelDto>,
     CommandManager,
-    Exchanger
+    Exchanger,
+    Session

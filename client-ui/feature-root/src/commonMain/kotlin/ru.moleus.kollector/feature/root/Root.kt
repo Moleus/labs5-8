@@ -7,7 +7,8 @@ import ru.moleus.kollector.feature.main.Main
 interface Root {
     val routerState: Value<RouterState<*, Child>>
 
-    sealed class Child {
-        class MainChild(val component: Main) : Child()
+    sealed interface Child {
+        class MainChild(val component: Main) : Child
+        class Connection(val component: ru.moleus.kollector.feature.connection.Connection) : Child
     }
 }

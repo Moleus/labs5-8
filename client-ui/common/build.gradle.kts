@@ -8,6 +8,8 @@ kotlin {
             dependencies {
                 implementation(Module.Shared.shared)
                 implementation(Module.Shared.annotation_processor)
+
+                implementation(Libs.ArkIvanov.Decompose.common)
             }
         }
     }
