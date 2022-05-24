@@ -11,7 +11,7 @@ val gray900 = Color(0xFF232323)
 val gray700 = Color(0xFF2D2D2D)
 
 
-val darkBlue = Color(0xFF125488)
+val darkBlue_ = Color(0xFF125488)
 val lightBlue = Color(0xFF2A93D5)
 val oceanBlue = Color(0xFF37CAEC)
 val cyan = Color(0xFF3DD9D6)

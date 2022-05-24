@@ -12,6 +12,7 @@ kotlin {
                 implementation(project(Module.Data.local))
 
                 implementation(project(Module.common))
+                implementation(project(Module.Feature.connection))
                 implementation(project(Module.Feature.root))
                 implementation(project(Module.Feature.main))
                 implementation(project(Module.Feature.auth))

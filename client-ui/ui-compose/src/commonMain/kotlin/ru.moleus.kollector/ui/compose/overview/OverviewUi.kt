@@ -18,16 +18,16 @@ import com.arkivanov.decompose.extensions.compose.jetbrains.animation.child.scal
 import com.arkivanov.decompose.extensions.compose.jetbrains.subscribeAsState
 import com.arkivanov.decompose.router.RouterState
 import com.arkivanov.decompose.value.Value
-import ru.moleus.kollector.ui.compose.overview.table.TableUi
 import ru.moleus.kollector.feature.overview.root.Overview
-import ru.moleus.kollector.ui.compose.builder.BuilderUi
+import ru.moleus.kollector.ui.compose.builder.UpdaterUi
+import ru.moleus.kollector.ui.compose.overview.table.TableUi
 
 private val MULTI_PANE_WIDTH_THRESHOLD = 800.dp
-private const val LIST_PANE_WEIGHT = 0.4F
-private const val DETAILS_PANE_WEIGHT = 0.6F
+private const val LIST_PANE_WEIGHT = 0.7F
+private const val DETAILS_PANE_WEIGHT = 0.3F
 
 @Composable
-fun OverviewUi(component: Overview, modifier: Modifier = Modifier) {
+fun OverviewUi(component: Overview) {
     BoxWithConstraints {
         val model by component.model.subscribeAsState()
         val isMultiPane = model.isMultiPane
@@ -84,7 +84,7 @@ private fun DetailsPane(routerState: Value<RouterState<*, Overview.DetailsChild>
         when (val child = it.instance) {
             is Overview.DetailsChild.None -> Box {}
             is Overview.DetailsChild.Details -> DetailsUi(child.component)
-            is Overview.DetailsChild.Updater -> BuilderUi(child.component)
+            is Overview.DetailsChild.Updater -> UpdaterUi(child.component)
         }.let {}
     }
 }

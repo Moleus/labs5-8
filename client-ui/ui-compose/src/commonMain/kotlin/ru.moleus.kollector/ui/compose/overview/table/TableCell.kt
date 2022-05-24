@@ -1,6 +1,7 @@
-package ru.moleus.kollector.ui.compose.overview.table.lazy
+package ru.moleus.kollector.ui.compose.overview.table
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -16,7 +17,7 @@ import ru.moleus.kollector.data.local.model.table.Attribute
 @Composable
 fun HeaderCell(attribute: Attribute<*>) {
     Cell(
-        text = attribute.label,
+        text = attribute.label.eng,
         width = attribute.tableColumnWidth.dp,
         color = Color.Black,
         fontWeight = FontWeight.Bold

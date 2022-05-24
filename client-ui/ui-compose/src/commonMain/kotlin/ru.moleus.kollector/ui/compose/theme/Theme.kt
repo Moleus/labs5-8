@@ -8,8 +8,6 @@ import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
-import ui.theme.shapes
-import ui.theme.typography
 
 private val DarkColorPalette = darkColors(
     primary = cyan,
@@ -26,7 +24,7 @@ private val LightColorPalette = lightColors(
     onPrimary = gray900,
     background = white,
     onBackground = gray900,
-    surface = darkBlue,
+    surface = darkBlue_,
     onSurface = gray900
 )
 

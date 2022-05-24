@@ -1,4 +1,4 @@
-package ui.theme
+package ru.moleus.kollector.ui.compose.theme
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Shapes

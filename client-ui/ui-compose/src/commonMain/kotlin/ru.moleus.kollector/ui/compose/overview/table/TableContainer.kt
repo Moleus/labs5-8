@@ -1,14 +1,14 @@
-package ru.moleus.kollector.ui.compose.overview.table.lazy
+package ru.moleus.kollector.ui.compose.overview.table
 
-import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import bigLazyTable.view.table.LazyTable
 import com.arkivanov.decompose.extensions.compose.jetbrains.subscribeAsState
-import overview.ui.table.lazy.header.HeaderRow
 import ru.moleus.kollector.feature.overview.table.EntitiesTable
+import ru.moleus.kollector.ui.compose.common.MultiplatformHorizontalScrollbar
+import ru.moleus.kollector.ui.compose.overview.table.header.HeaderRow
 
 /**
  * @author Marco Sprenger, Livio Näf
@@ -19,7 +19,7 @@ fun RowScope.TableContainer(
     component: EntitiesTable,
 ) {
     val horizontalScrollState = rememberScrollState()
-    val tableStore by component.store.subscribeAsState()
+    val modelState by component.model.subscribeAsState()
 
     Box(modifier = Modifier.weight(weight)) {
         Column(
@@ -28,21 +28,15 @@ fun RowScope.TableContainer(
         ) {
             HeaderRow(
                 horizontalScrollState = horizontalScrollState,
-                store = tableStore
+                model = modelState
             )
-            LazyTable(
-                tableStore = tableStore,
+            TableBody(
+                model = modelState,
                 horizontalScrollState = horizontalScrollState,
                 onRowClick = { id -> component.onEntityClicked(id) }
             )
         }
 
-//        HorizontalScrollbar(
-//            adapter = rememberScrollbarAdapter(horizontalScrollState),
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .align(Alignment.BottomCenter)
-//                .padding(end= 25.dp),
-//        )
+        MultiplatformHorizontalScrollbar(horizontalScrollState)
     }
 }

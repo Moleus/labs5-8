@@ -1,4 +1,4 @@
-package ui.theme
+package ru.moleus.kollector.ui.compose.theme
 
 
 import androidx.compose.material.Typography
@@ -16,7 +16,7 @@ val typography = Typography(
     ),
     body1 = TextStyle(
         fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Light,
+        fontWeight = FontWeight.Medium,
         fontSize = 14.sp
     ),
     button = TextStyle(

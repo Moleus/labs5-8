@@ -1,4 +1,4 @@
-package ru.moleus.kollector.ui.compose.overview.table.lazy
+package ru.moleus.kollector.ui.compose.overview.table
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
@@ -12,14 +12,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import ru.moleus.kollector.data.local.model.table.TableModel
-import ru.moleus.kollector.feature.overview.table.store.TableStore
+import ru.moleus.kollector.feature.overview.table.EntitiesTable
 
 /**
  * @author Marco Sprenger, Livio Näf
  */
 @Composable
 fun TableRow(
-    store: TableStore,
+    store: EntitiesTable.Model,
     tableModel: TableModel,
     horizontalScrollState: ScrollState,
     onClick: () -> Unit
@@ -44,25 +44,3 @@ fun TableRow(
         }
     }
 }
-
-//@Composable
-//fun TableRowPlaceholder(
-//    backgroundColor: Color = BackgroundColorLight,
-//    horizontalScrollState: ScrollState,
-//    appState: AppState<*>
-//) {
-//    val lazyListAttributes = appState.defaultTableModel.displayedAttributesInTable
-//
-//    Row(
-//        modifier = Modifier
-//            .background(backgroundColor)
-//            .fillMaxWidth()
-//            .padding(horizontal = HorizontalPadding)
-//            .horizontalScroll(horizontalScrollState),
-//        horizontalArrangement = Arrangement.SpaceBetween
-//    ) {
-//        for (attribute in lazyListAttributes!!) {
-//            LoadingCell(attribute = attribute)
-//        }
-//    }
-//}
